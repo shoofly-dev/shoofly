@@ -19,7 +19,7 @@
       <p class="hero-subheadline">Drop-in runtime security for AI agents. See every action in real time. Open rules. Free to start.</p>
 
       <div class="hero-ctas">
-        <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Install now</a>
+        <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get started free</a>
         <a href="#waitlist" class="btn btn-secondary">Join waitlist</a>
       </div>
 
@@ -63,22 +63,58 @@
     </div>
   </section>
 
+  <!-- ===== PRICING ===== -->
+  <section class="pricing">
+    <div class="container">
+      <h2 class="pricing-heading">Simple pricing</h2>
+      <div class="pricing-grid">
+
+        <div class="pricing-card">
+          <span class="pricing-badge pricing-badge--free">FREE</span>
+          <h3>Shoofly Basic 🪰🧹</h3>
+          <p class="pricing-desc">Detects threats, sends notifications, never blocks. See exactly what your agents are doing.</p>
+          <div class="terminal-block">
+            <span class="terminal-prompt">$ npx shoofly init</span>
+            <button class="copy-btn copy-btn-pricing" aria-label="Copy install command" data-command="npx shoofly init">copy</button>
+          </div>
+          <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Get started free</a>
+        </div>
+
+        <div class="pricing-card pricing-card--highlight">
+          <span class="pricing-badge pricing-badge--paid">$19/MO</span>
+          <h3>Shoofly Advanced ⚡🪰⚡</h3>
+          <p class="pricing-desc">Automatic blocking before threats reach your agents. Upgrades seamlessly from Basic.</p>
+          <ul class="pricing-features">
+            <li>Pre-execution intercept</li>
+            <li>Auto-block on detection</li>
+            <li>Everything in Basic</li>
+          </ul>
+          <a href="https://shoofly-stripe-production.up.railway.app/upgrade" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get Advanced</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ===== WAITLIST ===== -->
   <section class="waitlist" id="waitlist">
     <div class="container container--narrow">
-      <h2 class="waitlist-heading">Get early access</h2>
+      <h2 class="waitlist-heading">Get notified when new features ship</h2>
 
       <!-- Tally waitlist form -->
-      <iframe
-        data-tally-src="https://tally.so/embed/gD4dKd?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
-        loading="lazy"
-        width="100%"
-        height="184"
-        frameborder="0"
-        marginheight="0"
-        marginwidth="0"
-        title="Shoofly waitlist"
-      ></iframe>
+      <div class="waitlist-form-wrapper">
+        <iframe
+          data-tally-src="https://tally.so/embed/gD4dKd?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+          loading="lazy"
+          width="100%"
+          height="184"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0"
+          title="Shoofly waitlist"
+        ></iframe>
+        <div class="tally-overlay"></div>
+      </div>
       <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.getElementById("tally-js")==null){var s=d.createElement("script");s.src=w;s.id="tally-js";s.onload=v;d.body.appendChild(s);}</script>
 
     </div>

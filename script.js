@@ -1,39 +1,40 @@
 // script.js — shoofly.dev
-// Handles copy-to-clipboard for the terminal install command.
+// Handles copy-to-clipboard and Tally branding removal.
 
 (function () {
   'use strict';
 
-  var copyBtn = document.getElementById('copyBtn');
-  if (!copyBtn) return;
+  // --- Copy buttons ---
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.copy-btn');
+    if (!btn) return;
 
-  copyBtn.addEventListener('click', function () {
-    var command = copyBtn.getAttribute('data-command') || 'npx shoofly init';
+    var command = btn.getAttribute('data-command') || 'npx shoofly init';
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(command).then(function () {
-        showCopied();
+        showCopied(btn);
       }).catch(function () {
-        fallbackCopy(command);
+        fallbackCopy(command, btn);
       });
     } else {
-      fallbackCopy(command);
+      fallbackCopy(command, btn);
     }
   });
 
-  function showCopied() {
-    copyBtn.textContent = 'Copied!';
-    copyBtn.classList.add('copied');
-    copyBtn.disabled = true;
+  function showCopied(btn) {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    btn.disabled = true;
 
     setTimeout(function () {
-      copyBtn.textContent = 'copy';
-      copyBtn.classList.remove('copied');
-      copyBtn.disabled = false;
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+      btn.disabled = false;
     }, 2000);
   }
 
-  function fallbackCopy(text) {
+  function fallbackCopy(text, btn) {
     var textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';
@@ -44,10 +45,30 @@
     textarea.select();
     try {
       document.execCommand('copy');
-      showCopied();
+      showCopied(btn);
     } catch (err) {
       // Silent fail — clipboard unavailable
     }
     document.body.removeChild(textarea);
   }
+
+  // --- Tally branding removal ---
+  // Try to hide "Made with Tally" via postMessage; CSS overlay is the fallback
+  window.addEventListener('message', function (e) {
+    if (e.origin !== 'https://tally.so') return;
+    try {
+      var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+      if (data && data.event === 'Tally.FormLoaded') {
+        var iframe = document.querySelector('.waitlist iframe');
+        if (iframe) {
+          iframe.contentWindow.postMessage(
+            JSON.stringify({ event: 'Tally.RemoveBranding' }),
+            'https://tally.so'
+          );
+        }
+      }
+    } catch (err) {
+      // Cross-origin or parse error — CSS overlay handles it
+    }
+  });
 })();
