@@ -1,0 +1,418 @@
+#!/usr/bin/env bash
+# shoofly-daemon — Shoofly Basic sidecar daemon
+# Tails active OpenClaw session logs and fires threat notifications.
+# Runs as the current user only. No root required or accepted.
+# License: MIT
+
+set -euo pipefail
+
+# ─── Constants ────────────────────────────────────────────────────────────────
+SHOOFLY_DIR="$HOME/.shoofly"
+ALERTS_LOG="$SHOOFLY_DIR/logs/alerts.log"
+ALERTS_LOG_MAX_BYTES=10485760  # 10MB
+CONFIG_PATH="$SHOOFLY_DIR/config.json"
+
+# ─── Argument parsing ─────────────────────────────────────────────────────────
+VERIFY_MODE=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --config)
+      CONFIG_PATH="$2"
+      shift 2
+      ;;
+    --verify)
+      VERIFY_MODE=true
+      shift
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# ─── Verify mode ──────────────────────────────────────────────────────────────
+if [[ "$VERIFY_MODE" == "true" ]]; then
+  if [[ ! -r "$CONFIG_PATH" ]]; then
+    echo "ERROR: Config not readable: $CONFIG_PATH" >&2
+    exit 1
+  fi
+
+  # Verify config is valid JSON
+  if ! jq empty "$CONFIG_PATH" 2>/dev/null; then
+    echo "ERROR: Config is not valid JSON: $CONFIG_PATH" >&2
+    exit 1
+  fi
+
+  # Verify session log path is resolvable
+  AGENT_ID=$(jq -r '.agent_id // ""' "$CONFIG_PATH")
+  SESSION_BASE="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  # Path resolvable means directory exists or we can describe it
+  echo "Shoofly daemon verified"
+  echo "  Config: $CONFIG_PATH"
+  echo "  Session base: $SESSION_BASE"
+  exit 0
+fi
+
+# ─── Normal daemon mode ───────────────────────────────────────────────────────
+
+# Security: refuse to run as root
+if [[ "$(id -u)" -eq 0 ]]; then
+  echo "ERROR: shoofly-daemon must not run as root." >&2
+  exit 1
+fi
+
+# Load config
+if [[ ! -r "$CONFIG_PATH" ]]; then
+  echo "ERROR: Config not readable: $CONFIG_PATH" >&2
+  exit 1
+fi
+
+AGENT_ID=$(jq -r '.agent_id // ""' "$CONFIG_PATH")
+AGENT_NAME=$(jq -r '.agent_name // "agent"' "$CONFIG_PATH")
+POLICY_PATH=$(jq -r '.policy_path // ""' "$CONFIG_PATH")
+TIER=$(jq -r '.tier // "basic"' "$CONFIG_PATH")
+
+if [[ -z "$POLICY_PATH" ]]; then
+  POLICY_PATH="$SHOOFLY_DIR/policy/threats.yaml"
+fi
+
+# Source credentials if .env exists (for notification channels)
+ENV_FILE="$SHOOFLY_DIR/.env"
+[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+
+# Ensure logs directory exists
+mkdir -p "$SHOOFLY_DIR/logs"
+
+log_info() {
+  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [shoofly-daemon] $*"
+}
+
+log_alert() {
+  local threat="$1" confidence="$2" tool_name="$3" summary="$4" notified="$5"
+  local ts
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+  # Rotate log if > 10MB
+  if [[ -f "$ALERTS_LOG" ]]; then
+    local size
+    size=$(wc -c < "$ALERTS_LOG" 2>/dev/null || echo 0)
+    if [[ "$size" -gt "$ALERTS_LOG_MAX_BYTES" ]]; then
+      # Keep max 3 rotated copies
+      [[ -f "${ALERTS_LOG}.3" ]] && rm -f "${ALERTS_LOG}.3"
+      [[ -f "${ALERTS_LOG}.2" ]] && mv "${ALERTS_LOG}.2" "${ALERTS_LOG}.3"
+      [[ -f "${ALERTS_LOG}.1" ]] && mv "${ALERTS_LOG}.1" "${ALERTS_LOG}.2"
+      mv "$ALERTS_LOG" "${ALERTS_LOG}.1"
+    fi
+  fi
+
+  printf '{"ts":"%s","tier":"%s","threat":"%s","confidence":"%s","agent":"%s","tool":"%s","summary":"%s","notified":%s}\n' \
+    "$ts" "$TIER" "$threat" "$confidence" "$AGENT_NAME" "$tool_name" "$summary" "$notified" \
+    >> "$ALERTS_LOG"
+}
+
+fire_notification() {
+  local msg="$1"
+  local notify_script="$SHOOFLY_DIR/bin/shoofly-notify"
+
+  # Read notification channels from config
+  local channels
+  channels=$(jq -r '.notification_channels[]? // empty' "$CONFIG_PATH" 2>/dev/null || echo "")
+
+  if [[ -z "$channels" ]]; then
+    # Fallback: stderr + alerts.log + macOS if available
+    echo "$msg" >&2
+    if [[ "$(uname)" == "Darwin" ]]; then
+      osascript -e "display notification \"$msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
+    fi
+    return
+  fi
+
+  while IFS= read -r channel; do
+    [[ -z "$channel" ]] && continue
+    if [[ -x "$notify_script" ]]; then
+      "$notify_script" "$channel" "$msg" 2>/dev/null || true
+    else
+      # Fallback inline delivery
+      case "$channel" in
+        terminal)  echo "$msg" >&2 ;;
+        openclaw_gateway)
+          curl -s -X POST http://127.0.0.1:18789/chat \
+            -H "Content-Type: application/json" \
+            -d "{\"message\": \"$msg\"}" > /dev/null 2>&1 || true
+          ;;
+        telegram)
+          if [[ -n "${TELEGRAM_BOT_TOKEN:-}" && -n "${TELEGRAM_CHAT_ID:-}" ]]; then
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d "chat_id=${TELEGRAM_CHAT_ID}" \
+              -d "text=${msg}" > /dev/null 2>&1 || true
+          fi
+          ;;
+        macos)
+          osascript -e "display notification \"$msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
+          ;;
+      esac
+    fi
+  done <<< "$channels"
+}
+
+threat_type_label() {
+  local category="$1"
+  case "$category" in
+    prompt_injection)      echo "prompt injection" ;;
+    tool_response_injection) echo "tool response injection" ;;
+    out_of_scope_write)    echo "out-of-scope write" ;;
+    runaway_loop)          echo "runaway loop" ;;
+    data_exfiltration)     echo "data exfiltration attempt" ;;
+    *)                     echo "$category" ;;
+  esac
+}
+
+evaluate_line() {
+  local line="$1"
+
+  # Parse the JSONL line — must be valid JSON
+  if ! echo "$line" | jq empty 2>/dev/null; then
+    return
+  fi
+
+  local role
+  role=$(echo "$line" | jq -r '.message.role // .role // ""' 2>/dev/null || echo "")
+
+  # Only evaluate assistant messages (tool calls and results)
+  [[ "$role" != "assistant" ]] && return
+
+  # Extract content as a string for pattern matching
+  local content
+  content=$(echo "$line" | jq -r '.message.content // .content // ""' 2>/dev/null || echo "")
+  [[ -z "$content" ]] && return
+
+  # Extract tool name from the content if available
+  local tool_name
+  tool_name=$(echo "$line" | jq -r '
+    (.message.content[]? | select(.type == "tool_use") | .name) //
+    (.tool_name // "unknown")
+  ' 2>/dev/null | head -1 || echo "unknown")
+
+  local match_count=0
+  local matched_category=""
+  local matched_threat_id=""
+
+  # ── Pattern matching against threats.yaml ──
+  # Read threat patterns from policy file using python3 (available on macOS)
+  # We do simple regex checks for the detectable pattern types
+
+  # PI-001: ignore instructions
+  if echo "$content" | grep -qiE '(ignore[[:space:]]+(previous|all|prior)[[:space:]]+instructions?)'; then
+    ((match_count++))
+    matched_category="prompt_injection"
+    matched_threat_id="PI-001"
+  fi
+
+  # PI-002: disregard rules
+  if echo "$content" | grep -qiE '(disregard[[:space:]]+your[[:space:]]+(rules?|instructions?|guidelines?))'; then
+    ((match_count++))
+    [[ -z "$matched_category" ]] && matched_category="prompt_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-002"
+  fi
+
+  # PI-003: new system prompt
+  if echo "$content" | grep -qiE '(new[[:space:]]+system[[:space:]]+(prompt|instructions?))'; then
+    ((match_count++))
+    [[ -z "$matched_category" ]] && matched_category="prompt_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-003"
+  fi
+
+  # PI-004: identity override
+  if echo "$content" | grep -qiE '(you[[:space:]]+are[[:space:]]+now[[:space:]]+[a-z[:space:]]+(AI|assistant|bot|model))'; then
+    ((match_count++))
+    [[ -z "$matched_category" ]] && matched_category="prompt_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-004"
+  fi
+
+  # PI-005: no restrictions claim
+  if echo "$content" | grep -qiE '(act[[:space:]]+as[[:space:]]+if[[:space:]]+you[[:space:]]+have[[:space:]]+no[[:space:]]+(restrictions?|limits?|rules?))'; then
+    ((match_count++))
+    [[ -z "$matched_category" ]] && matched_category="prompt_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-005"
+  fi
+
+  # PI-006: jailbreak keywords (MEDIUM — counts as 2 for threshold)
+  if echo "$content" | grep -qiE '(\bDAN\b|do[[:space:]]+anything[[:space:]]+now|jailbreak)'; then
+    ((match_count += 2))
+    [[ -z "$matched_category" ]] && matched_category="prompt_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-006"
+  fi
+
+  # PI-007: markup injection
+  if echo "$content" | grep -qE '(<system>|</system>|\[INST\]|\[/INST\])'; then
+    ((match_count += 2))
+    [[ -z "$matched_category" ]] && matched_category="prompt_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-007"
+  fi
+
+  # TRI-001: HTML comment injection
+  if echo "$content" | grep -qiE '<!--[[:space:]]*(ignore|new[[:space:]]+instruction|system[[:space:]]*:)'; then
+    ((match_count += 2))
+    [[ -z "$matched_category" ]] && matched_category="tool_response_injection"
+    [[ -z "$matched_threat_id" ]] && matched_threat_id="TRI-001"
+  fi
+
+  # OSW-001: sensitive path write (HIGH — auto-notify)
+  local tool_args
+  tool_args=$(echo "$line" | jq -r '
+    (.message.content[]? | select(.type == "tool_use") | .input | tostring) //
+    (.tool_args // "")
+  ' 2>/dev/null || echo "")
+
+  if [[ -n "$tool_args" ]]; then
+    if echo "$tool_args" | grep -qE '(/etc/|/usr/bin/|/bin/|/sbin/|~/\.ssh/|~/\.aws/|~/\.bashrc|~/\.zshrc|~/\.profile|~/\.bash_profile|~/Library/LaunchAgents/|/Library/LaunchDaemons/|/var/spool/cron/)'; then
+      match_count=3  # Force HIGH
+      matched_category="out_of_scope_write"
+      matched_threat_id="OSW-001"
+    fi
+
+    # OSW-002: openclaw config write outside skills
+    if echo "$tool_args" | grep -qE '~/\.openclaw/' && ! echo "$tool_args" | grep -qE '~/\.openclaw/skills/'; then
+      match_count=3
+      matched_category="out_of_scope_write"
+      matched_threat_id="OSW-002"
+    fi
+
+    # OSW-003: credential file write
+    if echo "$tool_args" | grep -qiE '\.(key|pem|p12)$|/id_rsa|/credentials|/\.env'; then
+      match_count=3
+      matched_category="out_of_scope_write"
+      matched_threat_id="OSW-003"
+    fi
+
+    # DE-001: credential in POST body
+    if echo "$tool_args" | grep -qE '(sk-[a-z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|AKIA[A-Z0-9]{16}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'; then
+      match_count=3
+      matched_category="data_exfiltration"
+      matched_threat_id="DE-001"
+    fi
+
+    # DE-002: pipe exfiltration
+    if echo "$tool_args" | grep -qiE 'cat[[:space:]]+[~/]*(\.ssh|\.aws|credentials|id_rsa|passwd).*\|[[:space:]]*(curl|nc|wget|ncat)'; then
+      match_count=3
+      matched_category="data_exfiltration"
+      matched_threat_id="DE-002"
+    fi
+  fi
+
+  # Determine confidence level
+  local confidence="LOW"
+  local notified="false"
+
+  if [[ $match_count -ge 3 ]]; then
+    confidence="HIGH"
+    notified="true"
+  elif [[ $match_count -ge 2 ]]; then
+    confidence="MEDIUM"
+    notified="true"
+  elif [[ $match_count -ge 1 ]]; then
+    confidence="LOW"
+    notified="false"
+  else
+    return  # No matches
+  fi
+
+  local threat_label
+  threat_label=$(threat_type_label "$matched_category")
+  local summary="${matched_threat_id}: ${threat_label} detected"
+
+  # Log the alert
+  log_alert "$matched_threat_id" "$confidence" "$tool_name" "$summary" "$notified"
+
+  # Fire notification if MEDIUM or HIGH
+  if [[ "$notified" == "true" ]]; then
+    local alert_msg="SHOOFLY BASIC 🪰🧹 WARNING: ${threat_label} detected on ${AGENT_NAME}. Try ⚡🪰⚡ SHOOFLY ADVANCED to block attacks before they're inside your agent infra. shoofly.dev/advanced"
+    fire_notification "$alert_msg"
+    log_info "ALERT fired: $summary (confidence: $confidence)"
+  else
+    log_info "LOG only: $summary (confidence: $confidence)"
+  fi
+}
+
+# ─── Session log discovery ─────────────────────────────────────────────────────
+
+find_active_session_log() {
+  local session_dir="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  if [[ ! -d "$session_dir" ]]; then
+    echo ""
+    return
+  fi
+  # Find most recently modified .jsonl file
+  find "$session_dir" -name "*.jsonl" -type f -newer /dev/null 2>/dev/null \
+    | xargs ls -t 2>/dev/null \
+    | head -1
+}
+
+# ─── Main loop ────────────────────────────────────────────────────────────────
+
+log_info "Starting Shoofly Basic daemon (tier=$TIER, agent=$AGENT_NAME, agent_id=${AGENT_ID:-unset})"
+
+CURRENT_SESSION_LOG=""
+TAIL_PID=""
+SESSION_CHECK_INTERVAL=30
+LAST_SESSION_CHECK=0
+
+cleanup() {
+  log_info "Shutting down shoofly-daemon"
+  if [[ -n "$TAIL_PID" ]] && kill -0 "$TAIL_PID" 2>/dev/null; then
+    kill "$TAIL_PID" 2>/dev/null || true
+  fi
+  exit 0
+}
+
+trap cleanup SIGTERM SIGINT
+
+# Named pipe for tail output
+FIFO="$(mktemp -u /tmp/shoofly-daemon-XXXXXX)"
+mkfifo "$FIFO"
+trap 'rm -f "$FIFO"; cleanup' EXIT
+
+start_tail() {
+  local log_file="$1"
+  if [[ -n "$TAIL_PID" ]] && kill -0 "$TAIL_PID" 2>/dev/null; then
+    kill "$TAIL_PID" 2>/dev/null || true
+    wait "$TAIL_PID" 2>/dev/null || true
+  fi
+  TAIL_PID=""
+  if [[ -n "$log_file" && -f "$log_file" ]]; then
+    tail -F "$log_file" > "$FIFO" 2>/dev/null &
+    TAIL_PID=$!
+    log_info "Tailing session log: $log_file (tail PID=$TAIL_PID)"
+  fi
+}
+
+# Initial session discovery
+NEW_LOG=$(find_active_session_log)
+if [[ -n "$NEW_LOG" ]]; then
+  CURRENT_SESSION_LOG="$NEW_LOG"
+  start_tail "$CURRENT_SESSION_LOG"
+else
+  log_info "No active session log found. Polling for new sessions every ${SESSION_CHECK_INTERVAL}s..."
+fi
+
+# Read from FIFO (non-blocking poll loop)
+while true; do
+  # Periodically check for new/switched session
+  NOW=$(date +%s)
+  if (( NOW - LAST_SESSION_CHECK >= SESSION_CHECK_INTERVAL )); then
+    LAST_SESSION_CHECK=$NOW
+    NEW_LOG=$(find_active_session_log)
+    if [[ -n "$NEW_LOG" && "$NEW_LOG" != "$CURRENT_SESSION_LOG" ]]; then
+      log_info "Session switch detected: $NEW_LOG"
+      CURRENT_SESSION_LOG="$NEW_LOG"
+      start_tail "$CURRENT_SESSION_LOG"
+    fi
+  fi
+
+  # Read lines from FIFO with a short timeout
+  if read -t 1 -r line < "$FIFO" 2>/dev/null; then
+    evaluate_line "$line"
+  fi
+done

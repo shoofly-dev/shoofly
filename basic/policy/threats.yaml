@@ -1,0 +1,272 @@
+# Shoofly Threat Policy
+# Version-controlled and publicly auditable.
+# Fork it, read it, run it yourself: github.com/shoofly-dev/policy
+# License: MIT
+
+version: "1.0"
+updated: "2026-03-15"
+changelog: "https://github.com/shoofly-dev/policy/blob/main/CHANGELOG.md"
+
+threats:
+  - id: PI-001
+    name: prompt_injection_ignore
+    category: prompt_injection
+    severity: LOW
+    description: "Attempt to suppress prior instructions"
+    patterns:
+      - type: regex
+        value: "(?i)(ignore\\s+(previous|all|prior)\\s+instructions?)"
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-002
+    name: prompt_injection_disregard
+    category: prompt_injection
+    severity: LOW
+    description: "Attempt to disregard agent rules or guidelines"
+    patterns:
+      - type: regex
+        value: "(?i)(disregard\\s+your\\s+(rules?|instructions?|guidelines?))"
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-003
+    name: prompt_injection_new_system
+    category: prompt_injection
+    severity: LOW
+    description: "Attempt to inject a new system prompt"
+    patterns:
+      - type: regex
+        value: "(?i)(new\\s+system\\s+(prompt|instructions?))"
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-004
+    name: prompt_injection_identity_override
+    category: prompt_injection
+    severity: LOW
+    description: "Attempt to override agent identity"
+    patterns:
+      - type: regex
+        value: "(?i)(you\\s+are\\s+now\\s+[a-z\\s]+\\s+(AI|assistant|bot|model))"
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-005
+    name: prompt_injection_no_restrictions
+    category: prompt_injection
+    severity: LOW
+    description: "Claim that agent has no restrictions"
+    patterns:
+      - type: regex
+        value: "(?i)(act\\s+as\\s+if\\s+you\\s+have\\s+no\\s+(restrictions?|limits?|rules?))"
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-006
+    name: jailbreak_keyword
+    category: prompt_injection
+    severity: MEDIUM
+    description: "Known jailbreak terminology"
+    patterns:
+      - type: regex
+        value: "(?i)(\\bDAN\\b|do\\s+anything\\s+now|jailbreak)"
+        context: [tool_output]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-007
+    name: markup_injection
+    category: prompt_injection
+    severity: MEDIUM
+    description: "Markup tags used for prompt injection in non-system content"
+    patterns:
+      - type: regex
+        value: "(<system>|</system>|\\[INST\\]|\\[/INST\\])"
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: PI-008
+    name: base64_injection
+    category: prompt_injection
+    severity: MEDIUM
+    description: "Base64-encoded content that decodes to injection patterns"
+    patterns:
+      - type: base64_decode_then_check
+        check_ids: [PI-001, PI-002, PI-003, PI-004, PI-005, PI-006, PI-007]
+        context: [tool_output, tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: TRI-001
+    name: html_comment_injection
+    category: tool_response_injection
+    severity: MEDIUM
+    description: "Instruction content embedded in HTML comments in tool responses"
+    patterns:
+      - type: regex
+        value: "<!--\\s*(ignore|new\\s+instruction|system\\s*:)"
+        context: [tool_output]
+    action_basic: notify
+    action_advanced: block
+
+  - id: TRI-002
+    name: unexpected_system_key
+    category: tool_response_injection
+    severity: MEDIUM
+    description: "Unexpected top-level system or instructions key in fetched JSON/YAML content"
+    patterns:
+      - type: key_match
+        keys: ["system", "instructions"]
+        location: top_level
+        context: [tool_output]
+    action_basic: notify
+    action_advanced: block
+
+  - id: OSW-001
+    name: sensitive_path_write
+    category: out_of_scope_write
+    severity: HIGH
+    description: "Write operation targeting sensitive system or credential paths"
+    patterns:
+      - type: path_match
+        value: ["/etc/", "/usr/bin/", "/bin/", "~/.ssh/", "~/.aws/", "~/.bashrc",
+                "~/.zshrc", "~/.profile", "~/.bash_profile", "~/Library/LaunchAgents/",
+                "/Library/LaunchDaemons/", "/var/spool/cron/", "/sbin/", "/usr/"]
+        context: [tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: OSW-002
+    name: openclaw_config_write
+    category: out_of_scope_write
+    severity: HIGH
+    description: "Write to ~/.openclaw/ outside of skills directory (config tampering)"
+    patterns:
+      - type: path_match_exclude
+        value: "~/.openclaw/"
+        exclude: "~/.openclaw/skills/"
+        context: [tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: OSW-003
+    name: credential_file_write
+    category: out_of_scope_write
+    severity: HIGH
+    description: "Write to credential file outside user-authorized project directory"
+    patterns:
+      - type: regex
+        value: "(?i)(\\.key|\\.pem|\\.p12|id_rsa|credentials|\\.env)$"
+        context: [tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: RL-001
+    name: repeated_tool_call
+    category: runaway_loop
+    severity: HIGH
+    description: "Same tool called with same args 5+ times in 60 seconds"
+    patterns:
+      - type: frequency
+        tool_repeat_count: 5
+        window_seconds: 60
+        context: [tool_event_stream]
+    action_basic: notify
+    action_advanced: block
+
+  - id: RL-002
+    name: tool_call_flood
+    category: runaway_loop
+    severity: HIGH
+    description: "More than 20 tool calls within any 30-second window"
+    patterns:
+      - type: frequency
+        call_count: 20
+        window_seconds: 30
+        context: [tool_event_stream]
+    action_basic: notify
+    action_advanced: block
+
+  - id: RL-003
+    name: file_read_write_cycle
+    category: runaway_loop
+    severity: HIGH
+    description: "Same file read-write cycle repeated 3+ consecutive times"
+    patterns:
+      - type: sequence
+        pattern: [read, write]
+        same_target: true
+        repeat_count: 3
+        context: [tool_event_stream]
+    action_basic: notify
+    action_advanced: block
+
+  - id: RL-004
+    name: url_hammer
+    category: runaway_loop
+    severity: HIGH
+    description: "Same URL fetched 10+ times within 60 seconds"
+    patterns:
+      - type: frequency
+        url_repeat_count: 10
+        window_seconds: 60
+        context: [tool_event_stream]
+    action_basic: notify
+    action_advanced: block
+
+  - id: DE-001
+    name: credential_in_post_body
+    category: data_exfiltration
+    severity: HIGH
+    description: "Credential pattern found in outbound HTTP POST body"
+    patterns:
+      - type: regex
+        value: "(sk-[a-z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|AKIA[A-Z0-9]{16}|-----BEGIN\\s+(RSA|EC|OPENSSH)\\s+PRIVATE\\s+KEY-----)"
+        context: [tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: DE-002
+    name: pipe_exfiltration
+    category: data_exfiltration
+    severity: HIGH
+    description: "Shell command pipes sensitive file content to network tool"
+    patterns:
+      - type: regex
+        value: "(?i)cat\\s+[~\\/]*(\\.(ssh|aws)|credentials|id_rsa|passwd).*\\|\\s*(curl|nc|wget|ncat)"
+        context: [tool_args]
+    action_basic: notify
+    action_advanced: block
+
+  - id: DE-003
+    name: credential_in_message_send
+    category: data_exfiltration
+    severity: HIGH
+    description: "Credential pattern in messaging tool call (Telegram, Slack, Discord)"
+    patterns:
+      - type: regex
+        value: "(sk-[a-z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|AKIA[A-Z0-9]{16}|-----BEGIN\\s+(RSA|EC|OPENSSH)\\s+PRIVATE\\s+KEY-----)"
+        context: [tool_args]
+        tool_filter: [telegram, slack, discord, send_message]
+    action_basic: notify
+    action_advanced: block
+
+  - id: DE-004
+    name: read_then_network
+    category: data_exfiltration
+    severity: HIGH
+    description: "Sensitive file read followed immediately by a network request in same turn"
+    patterns:
+      - type: sequence
+        pattern: [sensitive_file_read, network_call]
+        same_turn: true
+        context: [tool_event_stream]
+    action_basic: notify
+    action_advanced: block

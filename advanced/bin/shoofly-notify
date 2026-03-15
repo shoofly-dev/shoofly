@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# shoofly-notify — Shoofly notification dispatcher
+# Usage: shoofly-notify <channel> "<message>"
+# License: MIT
+
+CHANNEL="${1:-}"
+MSG="${2:-}"
+CONFIG="$HOME/.shoofly/config.json"
+ENV_FILE="$HOME/.shoofly/.env"
+
+[[ -z "$CHANNEL" ]] && { echo "Usage: shoofly-notify <channel> <message>" >&2; exit 1; }
+[[ -z "$MSG" ]] && { echo "Usage: shoofly-notify <channel> <message>" >&2; exit 1; }
+
+# Source credentials if available (Telegram tokens, etc.)
+[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+
+case "$CHANNEL" in
+  telegram)
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+      -d "chat_id=${TELEGRAM_CHAT_ID}" \
+      -d "text=${MSG}" > /dev/null
+    ;;
+  whatsapp)
+    command -v wacli >/dev/null && wacli send --to "$(jq -r .whatsapp_number "$CONFIG")" --message "$MSG"
+    ;;
+  openclaw_gateway)
+    curl -s -X POST http://127.0.0.1:18789/chat \
+      -H "Content-Type: application/json" \
+      -d "{\"message\": \"$MSG\"}" > /dev/null
+    ;;
+  terminal)
+    echo "$MSG" >&2
+    ;;
+  macos)
+    osascript -e "display notification \"$MSG\" with title \"Shoofly ⚡🪰⚡\" sound name \"Basso\""
+    ;;
+  *)
+    echo "Unknown channel: $CHANNEL" >&2
+    exit 1
+    ;;
+esac
+
+# Always log notification dispatch to alerts.log
+echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"channel\":\"$CHANNEL\",\"msg\":\"$MSG\"}" \
+  >> "$HOME/.shoofly/logs/alerts.log"

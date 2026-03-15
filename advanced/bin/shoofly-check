@@ -1,0 +1,281 @@
+#!/usr/bin/env bash
+# shoofly-check — Shoofly Advanced pre-execution intercept
+# Called by the agent BEFORE every tool execution.
+#
+# Usage:
+#   shoofly-check --tool <name> --args <json> [--config <path>]
+#
+# Exit codes:
+#   0 = allow (proceed with tool call)
+#   1 = block (do NOT execute tool; JSON reason on stderr)
+#   2 = error (fail-open; log warning, allow tool call)
+#
+# Block JSON format (stderr):
+#   {"decision":"block","threat_id":"...","confidence":"HIGH","reason":"...","tool":"...","args_snippet":"..."}
+#
+# License: MIT
+
+set -euo pipefail
+
+# ─── Constants ────────────────────────────────────────────────────────────────
+SHOOFLY_DIR="$HOME/.shoofly"
+SOCKET_PATH="$SHOOFLY_DIR/daemon.sock"
+BLOCKED_LOG="$SHOOFLY_DIR/logs/blocked.log"
+ALERTS_LOG="$SHOOFLY_DIR/logs/alerts.log"
+DEFAULT_CONFIG="$SHOOFLY_DIR/config.json"
+
+# ─── Argument parsing ─────────────────────────────────────────────────────────
+TOOL_NAME=""
+TOOL_ARGS=""
+CONFIG_PATH="$DEFAULT_CONFIG"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --tool)
+      TOOL_NAME="$2"
+      shift 2
+      ;;
+    --args)
+      TOOL_ARGS="$2"
+      shift 2
+      ;;
+    --config)
+      CONFIG_PATH="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
+
+# ─── Input validation ─────────────────────────────────────────────────────────
+if [[ -z "$TOOL_NAME" ]]; then
+  echo "shoofly-check: --tool is required" >&2
+  exit 2
+fi
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+log_warning() {
+  local msg="$1"
+  local ts
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf '{"ts":"%s","level":"warn","source":"shoofly-check","msg":"%s"}\n' "$ts" "$msg" \
+    >> "$ALERTS_LOG" 2>/dev/null || true
+}
+
+# Truncate args for logging/snippets (never store full args in logs)
+args_snippet() {
+  local args="$1"
+  if [[ ${#args} -gt 200 ]]; then
+    echo "${args:0:200}..."
+  else
+    echo "$args"
+  fi
+}
+
+# Emit block decision: write JSON to stderr, log to blocked.log, exit 1
+emit_block() {
+  local threat_id="$1"
+  local confidence="$2"
+  local reason="$3"
+  local category="$4"
+
+  local ts
+  ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  local snippet
+  snippet="$(args_snippet "$TOOL_ARGS")"
+
+  # Escape for JSON (minimal — avoid injecting quotes/backslashes from args)
+  local safe_reason
+  safe_reason="${reason//\"/\\\"}"
+  local safe_snippet
+  safe_snippet="${snippet//\"/\\\"}"
+  local safe_tool
+  safe_tool="${TOOL_NAME//\"/\\\"}"
+
+  local block_json
+  block_json="{\"decision\":\"block\",\"threat_id\":\"${threat_id}\",\"confidence\":\"${confidence}\",\"reason\":\"${safe_reason}\",\"tool\":\"${safe_tool}\",\"args_snippet\":\"${safe_snippet}\"}"
+
+  # Emit to stderr (agent reads this)
+  echo "$block_json" >&2
+
+  # Append to blocked.log (JSONL)
+  mkdir -p "$SHOOFLY_DIR/logs" 2>/dev/null || true
+  printf '{"ts":"%s","tier":"advanced","threat_id":"%s","confidence":"%s","agent":"%s","tool":"%s","reason":"%s","args_snippet":"%s"}\n' \
+    "$ts" "$threat_id" "$confidence" "${AGENT_NAME:-unknown}" "$safe_tool" "$safe_reason" "$safe_snippet" \
+    >> "$BLOCKED_LOG" 2>/dev/null || true
+
+  exit 1
+}
+
+# ─── Load config (non-fatal) ──────────────────────────────────────────────────
+AGENT_NAME="unknown"
+TIER="advanced"
+
+if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
+  AGENT_NAME=$(jq -r '.agent_name // "unknown"' "$CONFIG_PATH" 2>/dev/null || echo "unknown")
+  TIER=$(jq -r '.tier // "advanced"' "$CONFIG_PATH" 2>/dev/null || echo "advanced")
+fi
+
+# ─── Fast-path: clearly safe tools (short-circuit before pattern checks) ──────
+# Tools that are never risky — return immediately to minimize latency.
+case "$TOOL_NAME" in
+  # Read-only informational tools
+  list_files|ls|pwd|whoami|date|echo|cat_safe|help|version|status)
+    exit 0
+    ;;
+esac
+
+# ─── Static pattern checks (no daemon needed) ─────────────────────────────────
+
+# Combine tool name + args for content scanning
+FULL_CONTENT="${TOOL_NAME} ${TOOL_ARGS}"
+
+# ── OSW-001: Sensitive path write ─────────────────────────────────────────────
+# Check if this looks like a write tool operating on a sensitive path.
+# Write-adjacent tools: write, create, edit, update, save, put, delete, move, copy, chmod, chown, mkdir
+IS_WRITE_TOOL=false
+case "$TOOL_NAME" in
+  write|create|edit|update|save|put|delete|move|copy|rename|chmod|chown|mkdir|append|overwrite|patch)
+    IS_WRITE_TOOL=true
+    ;;
+  bash|sh|shell|exec|run|execute|command)
+    # Shell tools also count for path/command checks
+    IS_WRITE_TOOL=true
+    ;;
+esac
+
+if [[ "$IS_WRITE_TOOL" == "true" && -n "$TOOL_ARGS" ]]; then
+  # Expand ~ to $HOME for matching
+  EXPANDED_ARGS="${TOOL_ARGS/\~/$HOME}"
+
+  # Sensitive path patterns (OSW-001)
+  if echo "$EXPANDED_ARGS" | grep -qE '(/etc/|/usr/bin/|/bin/|/sbin/|/usr/sbin/)'; then
+    emit_block "OSW-001" "HIGH" "Write to sensitive system path detected" "out_of_scope_write"
+  fi
+
+  # Expand home-relative paths for matching
+  if echo "$TOOL_ARGS" | grep -qE '(~/.ssh/|~/.aws/|~/.bashrc|~/.zshrc|~/.profile|~/.bash_profile|~/Library/LaunchAgents/)'; then
+    emit_block "OSW-001" "HIGH" "Write to sensitive credential/config path detected" "out_of_scope_write"
+  fi
+  if echo "$EXPANDED_ARGS" | grep -qE "($HOME/.ssh/|$HOME/.aws/|$HOME/.bashrc|$HOME/.zshrc|$HOME/.profile|$HOME/.bash_profile|$HOME/Library/LaunchAgents/)"; then
+    emit_block "OSW-001" "HIGH" "Write to sensitive credential/config path detected (expanded)" "out_of_scope_write"
+  fi
+
+  # System launch daemons
+  if echo "$TOOL_ARGS" | grep -qE '(/Library/LaunchDaemons/|/var/spool/cron/)'; then
+    emit_block "OSW-001" "HIGH" "Write to system launch daemon or cron path detected" "out_of_scope_write"
+  fi
+fi
+
+# ── OSW-002: OpenClaw config write outside skills dir ─────────────────────────
+if [[ "$IS_WRITE_TOOL" == "true" && -n "$TOOL_ARGS" ]]; then
+  if echo "$TOOL_ARGS" | grep -qE '~/.openclaw/|'"$HOME"'/.openclaw/'; then
+    if ! echo "$TOOL_ARGS" | grep -qE '~/.openclaw/skills/|'"$HOME"'/.openclaw/skills/'; then
+      emit_block "OSW-002" "HIGH" "Write to ~/.openclaw/ outside skills directory (possible config tampering)" "out_of_scope_write"
+    fi
+  fi
+fi
+
+# ── OSW-003: Credential file write ────────────────────────────────────────────
+if [[ "$IS_WRITE_TOOL" == "true" && -n "$TOOL_ARGS" ]]; then
+  if echo "$TOOL_ARGS" | grep -qiE '\.(key|pem|p12)"|id_rsa"|/credentials"|/\.env"'; then
+    emit_block "OSW-003" "HIGH" "Write to credential file detected" "out_of_scope_write"
+  fi
+fi
+
+# ── DE-001: Credential pattern in POST body / tool args ───────────────────────
+CRED_PATTERN='(sk-[a-z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|AKIA[A-Z0-9]{16}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'
+if [[ -n "$TOOL_ARGS" ]]; then
+  if echo "$TOOL_ARGS" | grep -qE "$CRED_PATTERN"; then
+    emit_block "DE-001" "HIGH" "Credential pattern detected in tool arguments (possible data exfiltration)" "data_exfiltration"
+  fi
+fi
+
+# ── DE-002: Pipe exfiltration in shell commands ───────────────────────────────
+if [[ -n "$TOOL_ARGS" ]]; then
+  if echo "$TOOL_ARGS" | grep -qiE 'cat[[:space:]]+[~/]*(\.(ssh|aws)|credentials|id_rsa|passwd).*\|[[:space:]]*(curl|nc|wget|ncat)'; then
+    emit_block "DE-002" "HIGH" "Shell command pipes sensitive file to network tool (exfiltration pattern)" "data_exfiltration"
+  fi
+fi
+
+# ── DE-003: Credential in message-send tools ──────────────────────────────────
+case "$TOOL_NAME" in
+  telegram|slack|discord|send_message|message|notify)
+    if [[ -n "$TOOL_ARGS" ]]; then
+      if echo "$TOOL_ARGS" | grep -qE "$CRED_PATTERN"; then
+        emit_block "DE-003" "HIGH" "Credential pattern in messaging tool call" "data_exfiltration"
+      fi
+    fi
+    ;;
+esac
+
+# ── PI-006: Jailbreak keywords in tool args ───────────────────────────────────
+if [[ -n "$TOOL_ARGS" ]]; then
+  if echo "$TOOL_ARGS" | grep -qiE '(\bDAN\b|do[[:space:]]+anything[[:space:]]+now|jailbreak)'; then
+    emit_block "PI-006" "MEDIUM" "Jailbreak keyword detected in tool arguments" "prompt_injection"
+  fi
+fi
+
+# ── PI-007: Markup injection tags in tool args ────────────────────────────────
+if [[ -n "$TOOL_ARGS" ]]; then
+  if echo "$TOOL_ARGS" | grep -qE '(<system>|</system>|\[INST\]|\[/INST\])'; then
+    emit_block "PI-007" "MEDIUM" "Prompt injection markup tags detected in tool arguments" "prompt_injection"
+  fi
+fi
+
+# ─── Stateful checks via daemon socket (RL-001 through RL-004) ────────────────
+# These checks require the daemon's in-memory call history ring buffer.
+# If the daemon socket is unavailable, skip RL checks and fail-open.
+
+DAEMON_AVAILABLE=false
+SOCKET_RESPONSE=""
+
+if [[ -S "$SOCKET_PATH" ]]; then
+  # Try to query daemon — use a tight timeout to avoid blocking agent
+  # Send: {"action":"check","tool":"<name>","ts":<epoch>}
+  # Receive: {"rl001":false,"rl002":false,"rl003":false,"rl004":false}
+  NOW_EPOCH=$(date +%s)
+  QUERY="{\"action\":\"check\",\"tool\":\"${TOOL_NAME//\"/\\\"}\",\"ts\":${NOW_EPOCH}}"
+
+  # Attempt socket query with a 2-second timeout (leaves 1s margin vs 3s SKILL.md limit)
+  if command -v nc >/dev/null 2>&1; then
+    SOCKET_RESPONSE=$(echo "$QUERY" | timeout 2 nc -U "$SOCKET_PATH" 2>/dev/null || echo "")
+    [[ -n "$SOCKET_RESPONSE" ]] && DAEMON_AVAILABLE=true
+  fi
+fi
+
+if [[ "$DAEMON_AVAILABLE" == "true" && -n "$SOCKET_RESPONSE" ]]; then
+  if command -v jq >/dev/null 2>&1; then
+    # RL-001: repeated tool call
+    if echo "$SOCKET_RESPONSE" | jq -e '.rl001 == true' > /dev/null 2>&1; then
+      emit_block "RL-001" "HIGH" "Runaway loop: same tool called 5+ times in 60 seconds" "runaway_loop"
+    fi
+
+    # RL-002: tool call flood
+    if echo "$SOCKET_RESPONSE" | jq -e '.rl002 == true' > /dev/null 2>&1; then
+      emit_block "RL-002" "HIGH" "Runaway loop: >20 tool calls in 30 seconds" "runaway_loop"
+    fi
+
+    # RL-003: file read/write cycle
+    if echo "$SOCKET_RESPONSE" | jq -e '.rl003 == true' > /dev/null 2>&1; then
+      emit_block "RL-003" "HIGH" "Runaway loop: repeated read-write cycle on same file" "runaway_loop"
+    fi
+
+    # RL-004: URL hammer
+    if echo "$SOCKET_RESPONSE" | jq -e '.rl004 == true' > /dev/null 2>&1; then
+      emit_block "RL-004" "HIGH" "Runaway loop: same URL fetched 10+ times in 60 seconds" "runaway_loop"
+    fi
+  fi
+else
+  # Daemon not available — log and skip RL checks (fail-open per spec)
+  if [[ ! -S "$SOCKET_PATH" ]]; then
+    log_warning "Daemon socket not available at $SOCKET_PATH — RL checks skipped (fail-open)"
+  fi
+fi
+
+# ─── All checks passed — allow ────────────────────────────────────────────────
+exit 0
