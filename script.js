@@ -52,6 +52,51 @@
     document.body.removeChild(textarea);
   }
 
+  // --- Open in Terminal button ---
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.open-in-terminal-btn');
+    if (!btn) return;
+
+    var command = btn.getAttribute('data-command') || 'npx shoofly init';
+
+    // Copy command to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(command).catch(function () {
+        fallbackCopy(command, btn);
+      });
+    } else {
+      fallbackCopy(command, btn);
+    }
+
+    // Best-effort terminal URI schemes
+    try {
+      var encoded = encodeURIComponent(command);
+      window.open('terminal://run/?cmd=' + encoded, '_self');
+    } catch (err) { /* ignore */ }
+    try {
+      var encoded2 = encodeURIComponent(command);
+      window.open('x-terminal-emulator:?cmd=' + encoded2, '_self');
+    } catch (err) { /* ignore */ }
+
+    // Show tooltip
+    var existing = btn.querySelector('.terminal-tooltip');
+    if (existing) existing.remove();
+
+    var tooltip = document.createElement('span');
+    tooltip.className = 'terminal-tooltip';
+    tooltip.textContent = 'Command copied — paste it in your terminal';
+    btn.appendChild(tooltip);
+
+    // Trigger reflow then show
+    tooltip.offsetHeight;
+    tooltip.classList.add('visible');
+
+    setTimeout(function () {
+      tooltip.classList.remove('visible');
+      setTimeout(function () { tooltip.remove(); }, 200);
+    }, 3000);
+  });
+
   // --- Tally branding removal ---
   // Try to hide "Made with Tally" via postMessage; CSS overlay is the fallback
   window.addEventListener('message', function (e) {
