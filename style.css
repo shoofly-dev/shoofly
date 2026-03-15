@@ -149,7 +149,7 @@ a:hover {
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   color: var(--text-muted);
   max-width: 640px;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.25rem;
 }
 
 /* ----- CTA Buttons ----- */
