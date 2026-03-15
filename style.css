@@ -1,0 +1,293 @@
+/* =========================================
+   Shoofly — style.css
+   Dark monospace aesthetic for shoofly.dev
+   ========================================= */
+
+/* ----- CSS Custom Properties ----- */
+:root {
+  --bg: #0a0a0f;
+  --bg-card: #13131a;
+  --bg-terminal: #0d1117;
+  --border: #1e1e2e;
+  --text: #e2e8f0;
+  --text-muted: #64748b;
+  --accent: #6ee7b7;
+  --accent-dim: #065f46;
+  --cta-primary-bg: #6ee7b7;
+  --cta-primary-text: #0a0a0f;
+
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+/* ----- Reset & Base ----- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ----- Layout Containers ----- */
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container--narrow {
+  max-width: 680px;
+}
+
+/* =========================================
+   HERO
+   ========================================= */
+.hero {
+  padding: 6rem 0 5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-headline {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.hero-subheadline {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: var(--text-muted);
+  max-width: 640px;
+  margin-bottom: 2.5rem;
+}
+
+/* ----- CTA Buttons ----- */
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background-color: var(--cta-primary-bg);
+  color: var(--cta-primary-text);
+  border: 1px solid var(--cta-primary-bg);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+/* ----- Terminal Block ----- */
+.terminal-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background-color: var(--bg-terminal);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.85rem 1.25rem;
+  max-width: 480px;
+  font-family: var(--font-mono);
+}
+
+.terminal-prompt {
+  color: var(--accent);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copy-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.copy-btn.copied {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* =========================================
+   PRINCIPLES
+   ========================================= */
+.principles {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.principles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.principle-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2rem 1.75rem;
+}
+
+.principle-icon {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.principle-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+
+.principle-body {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* =========================================
+   WAITLIST
+   ========================================= */
+.waitlist {
+  padding: 5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.waitlist-heading {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2rem;
+  letter-spacing: -0.01em;
+}
+
+/* Tally iframe inherits transparent background */
+.waitlist iframe {
+  display: block;
+  color-scheme: dark;
+}
+
+/* =========================================
+   FOOTER
+   ========================================= */
+.footer {
+  padding: 1.5rem 0;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.footer-copy {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.footer-link {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  transition: color 0.15s;
+}
+
+.footer-link:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* =========================================
+   RESPONSIVE — Mobile
+   ========================================= */
+@media (max-width: 640px) {
+  .hero {
+    padding: 3.5rem 0 3rem;
+  }
+
+  .principles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .terminal-block {
+    max-width: 100%;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

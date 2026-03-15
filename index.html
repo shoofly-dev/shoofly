@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Drop-in runtime security for AI agents. See every action in real time. Open rules. Free to start." />
+  <title>Shoofly — Know what your agent actually did.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-headline">Know what your agent actually did.</h1>
+      <p class="hero-subheadline">Drop-in runtime security for AI agents. See every action in real time. Open rules. Free to start.</p>
+
+      <div class="hero-ctas">
+        <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Install now</a>
+        <a href="#waitlist" class="btn btn-secondary">Join waitlist</a>
+      </div>
+
+      <div class="terminal-block">
+        <span class="terminal-prompt">$ npx shoofly init</span>
+        <button class="copy-btn" id="copyBtn" aria-label="Copy install command" data-command="npx shoofly init">copy</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRINCIPLES ===== -->
+  <section class="principles">
+    <div class="container">
+      <div class="principles-grid">
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">👁️</span>
+          <h2 class="principle-title">See everything.</h2>
+          <p class="principle-body">Know what your agents are doing, every action, in real time. No guessing.</p>
+        </div>
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">📖</span>
+          <h2 class="principle-title">We show our work.</h2>
+          <p class="principle-body">The rules that protect your agents are open. Read them, fork them, run them yourself.</p>
+        </div>
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">⚡</span>
+          <h2 class="principle-title">Free to start.</h2>
+          <p class="principle-body">One command in your terminal. No account, no credit card, no sales call.</p>
+        </div>
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">🛡️</span>
+          <h2 class="principle-title">Pay when it matters.</h2>
+          <p class="principle-body">Basic is free forever. Upgrade to Advanced when you want attacks blocked automatically, not just flagged.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WAITLIST ===== -->
+  <section class="waitlist" id="waitlist">
+    <div class="container container--narrow">
+      <h2 class="waitlist-heading">Get early access</h2>
+
+      <!-- Tally waitlist form -->
+      <iframe
+        data-tally-src="https://tally.so/embed/gD4dKd?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+        loading="lazy"
+        width="100%"
+        height="184"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        title="Shoofly waitlist"
+      ></iframe>
+      <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.getElementById("tally-js")==null){var s=d.createElement("script");s.src=w;s.id="tally-js";s.onload=v;d.body.appendChild(s);}</script>
+
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="footer-link">github.com/shoofly-dev</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
