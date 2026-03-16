@@ -1,6 +1,6 @@
 # Shoofly
 
-Drop-in runtime security for AI agents.
+Drop-in runtime security for OpenClaw AI agents.
 
 ```
 curl -fsSL https://shoofly.dev/install.sh | bash
@@ -22,6 +22,6 @@ Shoofly wraps your agent and checks every action against an open ruleset — cat
 
 ## Open source
 
-The rules that protect your agents are open. Read them, fork them, run them yourself.
+The rules that protect your OpenClaw agents are open. Read them, fork them, run them yourself.
 
 → [shoofly.dev](https://shoofly.dev)
