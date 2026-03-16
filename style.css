@@ -507,6 +507,10 @@ a:hover {
   color: var(--text);
 }
 
+.quick-start-tier-row .pricing-badge {
+  margin-bottom: 0;
+}
+
 /* ----- Waitlist Subtext ----- */
 .waitlist-subtext { font-size: 1rem; color: var(--text-muted); margin-top: -1.25rem; margin-bottom: 2rem; }
 
