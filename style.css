@@ -122,7 +122,7 @@ a:hover {
    HERO
    ========================================= */
 .hero {
-  padding: 6rem 0 5rem;
+  padding: 6rem 0 4rem;
   background-color: var(--bg);
   border-bottom: 1px solid var(--border);
 }
@@ -245,9 +245,15 @@ a:hover {
 /* =========================================
    PRINCIPLES
    ========================================= */
+.quick-start {
+  padding: 4rem 0;
+  background-color: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+}
+
 .principles {
   padding: 5rem 0;
-  background-color: var(--bg-alt);
+  background-color: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
@@ -308,7 +314,7 @@ a:hover {
    ========================================= */
 .pricing {
   padding: 5rem 0;
-  background-color: var(--bg);
+  background-color: var(--bg-alt);
   border-bottom: 1px solid var(--border);
 }
 
@@ -420,7 +426,7 @@ a:hover {
    ========================================= */
 .waitlist {
   padding: 5rem 0 6rem;
-  background-color: var(--bg-alt);
+  background-color: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
@@ -450,7 +456,7 @@ a:hover {
   left: 0;
   right: 0;
   height: 28px;
-  background: var(--bg-alt);
+  background: var(--bg);
   z-index: 10;
   pointer-events: none;
   padding-bottom: 3rem;
