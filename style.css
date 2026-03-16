@@ -501,6 +501,10 @@ a:hover {
 }
 
 /* ----- Quick Start ----- */
+.quick-start .terminal-block {
+  max-width: 100%;
+}
+
 .quick-start-header { margin-bottom: 1rem; }
 .quick-start-heading { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
 .quick-start-sub { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.5rem; }
