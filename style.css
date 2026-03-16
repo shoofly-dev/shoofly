@@ -30,6 +30,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -41,6 +42,7 @@ body {
   -webkit-font-smoothing: antialiased;
   color-scheme: light;
   padding-top: 56px;
+  overflow-x: hidden;
 }
 
 nav, button, input, select, textarea {
@@ -617,10 +619,23 @@ a:hover {
 
   .pricing-grid {
     grid-template-columns: 1fr;
+    overflow-x: hidden;
+  }
+
+  .pricing-card,
+  .pricing-card--highlight {
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .terminal-block {
     max-width: 100%;
+    overflow: hidden;
+  }
+
+  .terminal-prompt {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .quick-start {
