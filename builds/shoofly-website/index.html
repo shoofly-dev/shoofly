@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Drop-in runtime security for AI agents. See every action in real time. Open rules. Free to start." />
+  <meta name="color-scheme" content="light" />
+  <title>Shoofly — Know what your agent actually did.</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪰</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav class="site-nav">
+    <a href="/" class="nav-logo">🪰 Shoofly</a>
+    <ul class="nav-links">
+      <li><a href="#pricing">Shoofly Basic</a></li>
+      <li><a href="#pricing">Shoofly Advanced</a></li>
+      <li><a href="https://github.com/shoofly-dev" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-headline">Know what your agent actually did.</h1>
+      <p class="hero-subheadline">Drop-in runtime security for AI agents. See every action in real time. Open rules. Free to start.</p>
+
+      <div class="hero-ctas">
+        <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get started free</a>
+        <a href="#waitlist" class="btn btn-secondary">Join waitlist</a>
+      </div>
+
+      <div class="terminal-block">
+        <span class="terminal-prompt">$ npx shoofly init</span>
+        <button class="copy-btn" id="copyBtn" aria-label="Copy install command" data-command="npx shoofly init">copy</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRINCIPLES ===== -->
+  <section class="principles">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-heading">Shoofly Benefits</h2>
+      </div>
+      <div class="principles-grid">
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">👁️</span>
+          <h2 class="principle-title">See everything.</h2>
+          <p class="principle-body">Know what your agents are doing, every action, in real time. No guessing.</p>
+        </div>
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">📖</span>
+          <h2 class="principle-title">We show our work.</h2>
+          <p class="principle-body">The rules that protect your agents are open. Read them, fork them, run them yourself.</p>
+        </div>
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">⚡</span>
+          <h2 class="principle-title">Free to start.</h2>
+          <p class="principle-body">One command in your terminal. No account, no credit card, no sales call.</p>
+        </div>
+
+        <div class="principle-card">
+          <span class="principle-icon" aria-hidden="true">🛡️</span>
+          <h2 class="principle-title">Pay when it matters.</h2>
+          <p class="principle-body">Basic is free forever. Upgrade to Advanced when you want attacks blocked automatically, not just flagged.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRICING ===== -->
+  <section class="pricing">
+    <div class="container">
+      <div class="pricing-hero-heading">
+        <h2 class="pricing-main-title">Shoofly</h2>
+        <p class="pricing-main-sub">Runtime security for AI agents — free to start, pay when it matters.</p>
+      </div>
+      <div class="pricing-grid">
+
+        <div class="pricing-card">
+          <span class="pricing-badge pricing-badge--free">FREE</span>
+          <h3>Shoofly Basic 🪰🧹</h3>
+          <p class="pricing-desc">Detects threats, sends notifications, never blocks. See exactly what your agents are doing.</p>
+          <div class="terminal-block">
+            <span class="terminal-prompt">$ npx shoofly init</span>
+            <button class="copy-btn copy-btn-pricing" aria-label="Copy install command" data-command="npx shoofly init">copy</button>
+          </div>
+          <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">Get started free</a>
+        </div>
+
+        <div class="pricing-card pricing-card--highlight">
+          <span class="pricing-badge pricing-badge--paid">$19/MO</span>
+          <h3>Shoofly Advanced ⚡🪰⚡</h3>
+          <p class="pricing-desc">Automatic blocking before threats reach your agents. Upgrades seamlessly from Basic.</p>
+          <ul class="pricing-features">
+            <li>Pre-execution intercept</li>
+            <li>Auto-block on detection</li>
+            <li>Everything in Basic</li>
+          </ul>
+          <a href="https://shoofly-stripe-production.up.railway.app/upgrade" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get Advanced</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WAITLIST ===== -->
+  <section class="waitlist" id="waitlist">
+    <div class="container container--narrow">
+      <h2 class="waitlist-heading">Get notified when new features ship</h2>
+
+      <!-- Tally waitlist form -->
+      <div class="waitlist-form-wrapper">
+        <iframe
+          data-tally-src="https://tally.so/embed/gD4dKd?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+          loading="lazy"
+          width="100%"
+          height="400"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0"
+          title="Shoofly waitlist"
+        ></iframe>
+        <div class="tally-overlay"></div>
+      </div>
+      <script>var d=document,w="https://tally.so/widgets/embed.js",v=function(){"undefined"!=typeof Tally?Tally.loadEmbeds():d.querySelectorAll("[data-tally-src]:not([src])").forEach((function(e){e.src=e.dataset.tallySrc}))};if("undefined"!=typeof Tally)v();else if(d.getElementById("tally-js")==null){var s=d.createElement("script");s.src=w;s.id="tally-js";s.onload=v;d.body.appendChild(s);}</script>
+
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="/terms.html" class="footer-link">Terms</a>
+        <a href="/privacy.html" class="footer-link">Privacy</a>
+        <a href="/license.html" class="footer-link">License</a>
+        <a href="https://github.com/shoofly-dev" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
