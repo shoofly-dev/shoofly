@@ -276,6 +276,23 @@ a:hover {
   color: var(--text-muted);
 }
 
+.principles-group {
+  margin-bottom: 3rem;
+}
+
+.principles-group:last-child {
+  margin-bottom: 0;
+}
+
+.principles-group-heading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
 .principles-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -512,8 +529,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  max-width: 480px;
+  max-width: 100%;
   margin-top: 0.5rem;
 }
 .quick-start-tier-name {
