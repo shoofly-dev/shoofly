@@ -1,24 +1,27 @@
 # Shoofly
 
-Shoofly is a drop-in runtime security layer for AI agents — catch prompt injection, flag anomalous behavior, and block threats before they reach your users.
+Drop-in runtime security for AI agents.
 
-## Install
-
-```bash
-npm install @shoofly/core
 ```
+npx shoofly init
+```
+
+Shoofly wraps your agent and checks every action against an open ruleset — catching prompt injection, anomalous tool use, and credential sniffing before they reach your infrastructure.
 
 ## How it works
 
-1. **Wrap your agent** with the Shoofly middleware
-2. **Every action your agent takes** is logged and checked against the ruleset
-3. **Threats are flagged in real time** — injection attempts, anomalous tool use, credential sniffing
-4. **Block automatically** (Advanced) or **review and decide** (Basic)
+1. Run `npx shoofly init` in your agent project
+2. Every action is logged and checked against the ruleset in real time
+3. Threats are flagged instantly — injection attempts, out-of-scope tool calls, credential sniffing
+4. Basic notifies. Advanced blocks automatically.
+
+## Tiers
+
+- 🪰🧹 **Shoofly Basic** — Free forever. Detection + notifications. Never blocks.
+- ⚡🪰⚡ **Shoofly Advanced** — $19/mo. Automatic blocking before threats reach your agents.
 
 ## Open source
 
 The rules that protect your agents are open. Read them, fork them, run them yourself.
 
-## Early access
-
-Early access → [shoofly.dev](https://shoofly.dev)
+→ [shoofly.dev](https://shoofly.dev)
