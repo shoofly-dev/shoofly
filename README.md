@@ -3,14 +3,14 @@
 Drop-in runtime security for AI agents.
 
 ```
-npx shoofly init
+curl -fsSL https://shoofly.dev/install.sh | bash
 ```
 
 Shoofly wraps your agent and checks every action against an open ruleset — catching prompt injection, anomalous tool use, and credential sniffing before they reach your infrastructure.
 
 ## How it works
 
-1. Run `npx shoofly init` in your agent project
+1. Run `curl -fsSL https://shoofly.dev/install.sh | bash` in your agent project
 2. Every action is logged and checked against the ruleset in real time
 3. Threats are flagged instantly — injection attempts, out-of-scope tool calls, credential sniffing
 4. Basic notifies. Advanced blocks automatically.
