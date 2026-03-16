@@ -357,6 +357,10 @@ a:hover {
   background-color: #f0f7ff;
 }
 
+#pricing-advanced {
+  scroll-margin-top: 80px;
+}
+
 .pricing-badge {
   display: inline-block;
   font-family: var(--font-mono);
@@ -597,6 +601,14 @@ a:hover {
 
   .terminal-block {
     max-width: 100%;
+  }
+
+  .quick-start {
+    padding: 2rem 0 1.5rem;
+  }
+
+  .quick-start-header {
+    margin-bottom: 0.75rem;
   }
 
   .footer-inner {
