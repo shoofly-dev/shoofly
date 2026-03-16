@@ -116,4 +116,19 @@
       // Cross-origin or parse error — CSS overlay handles it
     }
   });
+
+  // --- Hamburger nav toggle ---
+  var hamburger = document.getElementById('navHamburger');
+  var navLinks = document.querySelector('.nav-links');
+  if (hamburger && navLinks) {
+    hamburger.addEventListener('click', function () {
+      navLinks.classList.toggle('nav-open');
+    });
+    // Close menu when a nav link is clicked
+    navLinks.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') {
+        navLinks.classList.remove('nav-open');
+      }
+    });
+  }
 })();
