@@ -50,12 +50,12 @@ if [[ "$CHANNEL_CHOICE" == *"3"* ]]; then
 fi
 
 # 5. Get agent name
-AGENT_NAME=$(openclaw status 2>/dev/null | jq -r '.agentName // "agent"' 2>/dev/null || echo "agent")
+AGENT_NAME=$(openclaw status 2>/dev/null | jq -r '.agentName // "shoofly-basic"' 2>/dev/null || echo "shoofly-basic")
 read -r -p "Agent name [$AGENT_NAME]: " INPUT_NAME < /dev/tty
 AGENT_NAME=${INPUT_NAME:-$AGENT_NAME}
 
-# 6. Get agent ID for session log path
-AGENT_ID=$(openclaw status 2>/dev/null | jq -r '.agentId // ""' 2>/dev/null || echo "")
+# 6. Get agent ID for session log path (default to "main" to avoid agents//sessions double-slash)
+AGENT_ID=$(openclaw status 2>/dev/null | jq -r '.agentId // "main"' 2>/dev/null || echo "main")
 
 # 7. Write config
 CHANNELS_JSON=$(printf '"%s",' "${CHANNELS[@]}" | sed 's/,$//')
@@ -101,6 +101,7 @@ echo ""
 echo "✅ Shoofly Basic installed!"
 echo "   Alerts log: ~/.shoofly/logs/alerts.log"
 echo "   Policy:     ~/.shoofly/policy/threats.yaml"
-echo "   Docs:       https://shoofly.dev/docs"
+echo "   Agent:      $AGENT_NAME"
+echo "   Docs:       https://github.com/shoofly-dev/shoofly"
 echo ""
 echo "🪰 Watching your agents. Stay safe."
