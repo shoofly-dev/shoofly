@@ -12,43 +12,12 @@ mkdir -p ~/.openclaw/skills/shoofly-basic/policy
 
 # 3. Download files
 BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
-curl -fsSL "$BASE_URL/skills/shoofly-basic/SKILL.md" -o ~/.openclaw/skills/shoofly-basic/SKILL.md
-curl -fsSL "$BASE_URL/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
+curl -fsSL "$BASE_URL/basic/skills/shoofly-basic/SKILL.md" -o ~/.openclaw/skills/shoofly-basic/SKILL.md
+curl -fsSL "$BASE_URL/basic/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
 ln -sf ~/.shoofly/policy/threats.yaml ~/.openclaw/skills/shoofly-basic/policy/threats.yaml
-curl -fsSL "$BASE_URL/bin/shoofly-daemon" -o ~/.shoofly/bin/shoofly-daemon
-curl -fsSL "$BASE_URL/bin/shoofly-notify" -o ~/.shoofly/bin/shoofly-notify
-curl -fsSL "$BASE_URL/bin/shoofly-policy-lint" -o ~/.shoofly/bin/shoofly-policy-lint
-curl -fsSL "$BASE_URL/bin/shoofly-status" -o ~/.shoofly/bin/shoofly-status
-curl -fsSL "$BASE_URL/bin/shoofly-health" -o ~/.shoofly/bin/shoofly-health
-curl -fsSL "$BASE_URL/bin/shoofly-log" -o ~/.shoofly/bin/shoofly-log
-curl -fsSL "$BASE_URL/bin/shoofly-scan" -o ~/.shoofly/bin/shoofly-scan
-chmod +x ~/.shoofly/bin/shoofly-daemon ~/.shoofly/bin/shoofly-notify ~/.shoofly/bin/shoofly-policy-lint ~/.shoofly/bin/shoofly-status ~/.shoofly/bin/shoofly-health ~/.shoofly/bin/shoofly-log ~/.shoofly/bin/shoofly-scan
-mkdir -p ~/.shoofly/lib
-curl -fsSL "$BASE_URL/lib/parse-policy.py" -o ~/.shoofly/lib/parse-policy.py
-
-# Check sqlite3 and initialize audit database
-if command -v sqlite3 >/dev/null 2>&1; then
-  sqlite3 ~/.shoofly/audit.db \
-    "CREATE TABLE IF NOT EXISTS tool_calls (
-       id         INTEGER PRIMARY KEY AUTOINCREMENT,
-       ts         TEXT NOT NULL,
-       session    TEXT,
-       agent      TEXT,
-       tier       TEXT,
-       tool       TEXT NOT NULL,
-       args       TEXT,
-       outcome    TEXT,
-       threat_id  TEXT,
-       rule_id    TEXT,
-       confidence TEXT
-     );
-     CREATE INDEX IF NOT EXISTS idx_ts    ON tool_calls(ts);
-     CREATE INDEX IF NOT EXISTS idx_tool  ON tool_calls(tool);
-     CREATE INDEX IF NOT EXISTS idx_agent ON tool_calls(agent);" 2>/dev/null || true
-  echo "  ✓ Audit database initialized: ~/.shoofly/audit.db"
-else
-  echo "WARN: sqlite3 not found — audit trail disabled. Install with: brew install sqlite3"
-fi
+curl -fsSL "$BASE_URL/basic/bin/shoofly-daemon" -o ~/.shoofly/bin/shoofly-daemon
+curl -fsSL "$BASE_URL/basic/bin/shoofly-notify" -o ~/.shoofly/bin/shoofly-notify
+chmod +x ~/.shoofly/bin/shoofly-daemon ~/.shoofly/bin/shoofly-notify
 
 # 4. Detect notification channel preference
 echo ""
@@ -60,10 +29,7 @@ echo "  3) Telegram"
 echo "  4) WhatsApp"
 echo "  5) macOS notifications (default)"
 echo "  Multiple: enter comma-separated numbers (e.g. 1,5)"
-read -r -t 30 -p "Choice [5]: " CHANNEL_CHOICE < /dev/tty
-if [[ -z "$CHANNEL_CHOICE" ]]; then
-  echo "(No input — defaulting to macOS notifications)"
-fi
+read -r -p "Choice [5]: " CHANNEL_CHOICE < /dev/tty
 CHANNEL_CHOICE=${CHANNEL_CHOICE:-5}
 
 # Map choices to channel names
@@ -101,8 +67,7 @@ cat > ~/.shoofly/config.json <<EOF
   "agent_id": "$AGENT_ID",
   "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "version": "1.0.0",
-  "policy_path": "$HOME/.shoofly/policy/threats.yaml",
-  "custom_policy_path": ""
+  "policy_path": "$HOME/.shoofly/policy/threats.yaml"
 }
 EOF
 chmod 600 ~/.shoofly/config.json
@@ -137,12 +102,5 @@ echo "✅ Shoofly Basic installed!"
 echo "   Alerts log: ~/.shoofly/logs/alerts.log"
 echo "   Policy:     ~/.shoofly/policy/threats.yaml"
 echo "   Docs:       https://shoofly.dev/docs"
-echo ""
-echo "   Run  shoofly-status   to see current operational status."
-echo "   Run  shoofly-health   to verify all components are healthy."
-echo ""
-echo "💡 Add a shoofly.yaml to your project to define custom detection rules."
-echo "   See examples/ for a template, or run: shoofly-policy-lint --help"
-echo "   Docs: https://shoofly.dev/docs/custom-policies"
 echo ""
 echo "🪰 Watching your agents. Stay safe."
