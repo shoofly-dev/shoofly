@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Drop-in runtime security for AI agents. See every action in real time. Open rules. Free to start." />
+  <meta name="description" data-cms-field="meta_description" content="Drop-in runtime security for OpenClaw AI agents. Open rules. No data sent to us. Free to start." />
   <meta name="color-scheme" content="light" />
-  <title>Shoofly: LLM Agent Security</title>
+  <title data-cms-field="page_title">Shoofly: LLM Agent Security</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪰</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,9 +21,10 @@
       <span></span><span></span><span></span>
     </button>
     <ul class="nav-links">
-      <li><a href="#pricing">Shoofly Basic</a></li>
-      <li><a href="#pricing-advanced">Shoofly Advanced</a></li>
-      <li><a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="#pricing" data-cms-field="nav_link_basic">Shoofly Basic</a></li>
+      <li><a href="#pricing-advanced" data-cms-field="nav_link_advanced">Shoofly Advanced</a></li>
+      <li><a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener" data-cms-field="nav_link_github">GitHub</a></li>
+      <li><a href="https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic" target="_blank" rel="noopener">OpenClaw</a></li>
     </ul>
   </nav>
 
@@ -31,12 +32,12 @@
   <section class="hero">
     <div class="container">
       <p class="hero-brand">🪰 Shoofly</p>
-      <h1 class="hero-headline">Know what your agents actually did.</h1>
-      <p class="hero-subheadline">Drop-in runtime security for OpenClaw AI agents. See every action in real time. Open rules. Free to start.</p>
+      <h1 class="hero-headline" data-cms-field="hero_headline">See everything your agents do. Catch everything they shouldn't.</h1>
+      <p class="hero-subheadline" data-cms-field="hero_subheadline">Drop-in runtime security for OpenClaw AI agents. Open rules. No data sent to us. Free to start.</p>
 
       <div class="hero-ctas">
-        <a href="#pricing" class="btn btn-primary">See Plans</a>
-        <a href="#email" class="btn btn-secondary">Stay in the Loop</a>
+        <a href="#pricing" class="btn btn-primary" data-cms-field="hero_cta_primary">See Plans</a>
+        <a href="#email" class="btn btn-secondary" data-cms-field="hero_cta_secondary">Stay in the Loop</a>
       </div>
     </div>
   </section>
@@ -45,10 +46,10 @@
   <section class="quick-start">
     <div class="container">
       <div class="quick-start-header">
-        <h2 class="quick-start-heading">Quick Start</h2>
-        <p class="quick-start-sub">Get started with OpenClaw LLM agent security</p>
+        <h2 class="quick-start-heading" data-cms-field="quickstart_heading">Quick Start</h2>
+        <p class="quick-start-sub" data-cms-field="quickstart_subtext">Get started with OpenClaw LLM agent security</p>
         <div class="quick-start-tier-row">
-          <span class="quick-start-tier-name">Shoofly Basic 🪰🧹</span>
+          <span class="quick-start-tier-name" data-cms-field="quickstart_tier_label">Shoofly Basic 🪰🧹</span>
           <span class="pricing-badge pricing-badge--free">FREE</span>
         </div>
       </div>
@@ -57,6 +58,7 @@
         <span class="terminal-prompt">$ curl -fsSL https://shoofly.dev/install.sh | bash</span>
         <button class="copy-btn" id="copyBtn" aria-label="Copy install command" data-command="curl -fsSL https://shoofly.dev/install.sh | bash">copy</button>
       </div>
+      <p class="quick-start-subtext">No account. No credit card. No data leaves your machine.</p>
     </div>
   </section>
 
@@ -72,27 +74,33 @@
         <div class="principles-grid">
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">🎯</span>
-            <h2 class="principle-title">Prompt injection detection.</h2>
-            <p class="principle-body">Catches attempts to hijack your agent mid-run before malicious instructions reach your tools.</p>
+            <h2 class="principle-title"><span data-cms-field="catch_card_1_icon">🎯</span> <span data-cms-field="catch_1_title">Prompt injection detection</span></h2>
+            <p class="principle-body" data-cms-field="catch_1_body">Catches 8 injection patterns including instruction suppression, jailbreak keywords, and base64 payloads.</p>
           </div>
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">🔐</span>
-            <h2 class="principle-title">Credential sniffing alerts.</h2>
-            <p class="principle-body">Flags any attempt to read, copy, or exfiltrate API keys, tokens, or env vars.</p>
+            <h2 class="principle-title"><span data-cms-field="catch_card_2_icon">🔐</span> <span data-cms-field="catch_2_title">Credential sniffing alerts</span></h2>
+            <p class="principle-body" data-cms-field="catch_2_body">Including Anthropic API keys, GitHub tokens, and AWS credentials.</p>
           </div>
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">🚫</span>
-            <h2 class="principle-title">Out-of-scope tool blocking.</h2>
-            <p class="principle-body">Stops your agent from calling tools it was never supposed to touch.</p>
+            <h2 class="principle-title"><span data-cms-field="catch_card_3_icon">🚫</span> <span data-cms-field="catch_3_title">Out-of-scope write detection</span></h2>
+            <p class="principle-body" data-cms-field="catch_3_body">Flags writes to sensitive paths — /etc/, ~/.ssh/, LaunchAgents — before damage is done.</p>
           </div>
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">🔁</span>
-            <h2 class="principle-title">Anomalous behavior detection.</h2>
-            <p class="principle-body">Knows what normal looks like for your agent. Flags when something's off.</p>
+            <h2 class="principle-title"><span data-cms-field="catch_card_4_icon">🔁</span> <span data-cms-field="catch_4_title">Runaway loop detection</span></h2>
+            <p class="principle-body" data-cms-field="catch_4_body">Detects 4 loop patterns: repeated tool calls, call floods, read-write cycles, URL hammering.</p>
+          </div>
+
+          <div class="principle-card">
+            <h2 class="principle-title"><span data-cms-field="catch_card_5_icon">🔍</span> <span data-cms-field="catch_5_title">Tool response injection</span></h2>
+            <p class="principle-body" data-cms-field="catch_5_body">Catches malicious instructions embedded in tool call results, HTML comments, JSON keys, and API responses.</p>
+          </div>
+
+          <div class="principle-card">
+            <h2 class="principle-title"><span data-cms-field="catch_card_6_icon">🔑</span> <span data-cms-field="catch_6_title">Secret detection at rest</span></h2>
+            <p class="principle-body" data-cms-field="catch_6_body">One-shot scan of your project directory for 10 credential patterns. CI-integrable.</p>
           </div>
 
         </div>
@@ -103,27 +111,33 @@
         <div class="principles-grid">
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">👁️</span>
-            <h2 class="principle-title">See everything.</h2>
-            <p class="principle-body">Know what your agents are doing, every action, in real time. No guessing.</p>
+            <h2 class="principle-title"><span data-cms-field="works_card_1_icon">👁️</span> <span data-cms-field="how_1_title">See everything</span></h2>
+            <p class="principle-body" data-cms-field="how_1_body">Every tool call logged to local SQLite. Full queryable timeline, not just threats.</p>
           </div>
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">📖</span>
-            <h2 class="principle-title">We show our work.</h2>
-            <p class="principle-body">The rules that protect your agents are open. Read them, fork them, run them yourself.</p>
+            <h2 class="principle-title"><span data-cms-field="works_card_2_icon">📖</span> <span data-cms-field="how_2_title">We show our work</span></h2>
+            <p class="principle-body" data-cms-field="how_2_body">Policy-as-code in YAML. Read it, fork it, audit it. No black box.</p>
           </div>
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">⚡</span>
-            <h2 class="principle-title">Free to start.</h2>
-            <p class="principle-body">One command in your terminal. No account, no credit card, no sales call.</p>
+            <h2 class="principle-title"><span data-cms-field="works_card_3_icon">⚡</span> <span data-cms-field="how_3_title">Free to start</span></h2>
+            <p class="principle-body" data-cms-field="how_3_body">No account. No credit card. No data leaves your machine.</p>
           </div>
 
           <div class="principle-card">
-            <span class="principle-icon" aria-hidden="true">🛡️</span>
-            <h2 class="principle-title">Pay when it matters.</h2>
-            <p class="principle-body">Basic is free forever. Upgrade to Advanced when you want attacks blocked automatically, not just flagged.</p>
+            <h2 class="principle-title"><span data-cms-field="works_card_4_icon">🛡️</span> <span data-cms-field="how_4_title">Pay when it matters</span></h2>
+            <p class="principle-body" data-cms-field="how_4_body">Basic detects and alerts. Advanced intercepts before execution. Same product, one upgrade.</p>
+          </div>
+
+          <div class="principle-card">
+            <h2 class="principle-title"><span data-cms-field="works_card_5_icon">📡</span> <span data-cms-field="how_5_title">Multi-channel alerts</span></h2>
+            <p class="principle-body" data-cms-field="how_5_body">Telegram, WhatsApp, macOS notifications, terminal, OpenClaw gateway. You choose where threats surface.</p>
+          </div>
+
+          <div class="principle-card">
+            <h2 class="principle-title"><span data-cms-field="works_card_6_icon">🏠</span> <span data-cms-field="how_6_title">100% local</span></h2>
+            <p class="principle-body" data-cms-field="how_6_body">Detection runs on your machine. No cloud API, no DPA, no data retention policy to worry about.</p>
           </div>
 
         </div>
@@ -141,26 +155,45 @@
       <div class="pricing-grid">
 
         <div class="pricing-card">
-          <span class="pricing-badge pricing-badge--free">FREE</span>
-          <h3>Shoofly Basic 🪰🧹</h3>
-          <p class="pricing-desc">Detects threats, sends notifications, never blocks. See exactly what your agents are doing.</p>
+          <span class="pricing-badge pricing-badge--free" data-cms-field="pricing_basic_price">FREE</span>
+          <h3 data-cms-field="pricing_basic_name">Shoofly Basic 🪰🧹</h3>
+          <p class="pricing-desc" data-cms-field="pricing_basic_description">Detects threats, sends notifications, never blocks. See exactly what your agents are doing.</p>
+          <ul class="pricing-features">
+            <li data-cms-field="pricing_basic_feature_1">Prompt injection detection (8 patterns)</li>
+            <li data-cms-field="pricing_basic_feature_2">Credential sniffing alerts</li>
+            <li data-cms-field="pricing_basic_feature_3">Out-of-scope write detection</li>
+            <li data-cms-field="pricing_basic_feature_4">Runaway loop detection</li>
+            <li data-cms-field="pricing_basic_feature_5">Data exfiltration detection</li>
+            <li data-cms-field="pricing_basic_feature_6">Tool response injection detection</li>
+            <li data-cms-field="pricing_basic_feature_7">Multi-channel notifications</li>
+            <li data-cms-field="pricing_basic_feature_8">Local SQLite audit trail</li>
+            <li data-cms-field="pricing_basic_feature_9">YAML policy-as-code</li>
+            <li data-cms-field="pricing_basic_feature_10">Custom YAML detection rules (detect + log)</li>
+            <li data-cms-field="pricing_basic_feature_11">Secret detection at rest</li>
+            <li data-cms-field="pricing_basic_feature_12">Unlimited detections, forever</li>
+            <li data-cms-field="pricing_basic_feature_13">No account required</li>
+          </ul>
           <div class="terminal-block">
-            <span class="terminal-prompt">$ curl -fsSL https://shoofly.dev/install.sh | bash</span>
+            <span class="terminal-prompt">$ <span data-cms-field="pricing_basic_install">curl -fsSL https://shoofly.dev/install.sh | bash</span></span>
             <button class="copy-btn copy-btn-pricing" aria-label="Copy install command" data-command="curl -fsSL https://shoofly.dev/install.sh | bash">copy</button>
           </div>
-          <button class="btn btn-secondary open-in-terminal-btn" data-command="curl -fsSL https://shoofly.dev/install.sh | bash" id="openInTerminalBtn">Open in Terminal</button>
+          <button class="btn btn-secondary open-in-terminal-btn" data-command="curl -fsSL https://shoofly.dev/install.sh | bash" id="openInTerminalBtn" data-cms-field="pricing_basic_cta">Open in Terminal</button>
         </div>
 
         <div class="pricing-card pricing-card--highlight" id="pricing-advanced">
-          <span class="pricing-badge pricing-badge--paid">$19/MO</span>
-          <h3>Shoofly Advanced ⚡🪰⚡</h3>
-          <p class="pricing-desc">Automatic blocking before threats reach your agents. Upgrades seamlessly from Basic.</p>
+          <span class="pricing-badge pricing-badge--paid" data-cms-field="pricing_adv_price">$19/MO</span>
+          <h3 data-cms-field="pricing_adv_name">Shoofly Advanced ⚡🪰⚡</h3>
+          <p class="pricing-desc" data-cms-field="pricing_adv_description">Basic sees threats and tells you. Advanced stops them before they execute. Same product, one upgrade.</p>
           <ul class="pricing-features">
-            <li>Pre-execution intercept</li>
-            <li>Auto-block on detection</li>
-            <li>Everything in Basic</li>
+            <li data-cms-field="pricing_adv_feature_1">Everything in Basic</li>
+            <li data-cms-field="pricing_adv_feature_2">Threats blocked before execution — tool calls intercepted before they fire, not after</li>
+            <li data-cms-field="pricing_adv_feature_3">Zero manual response needed — Advanced acts automatically, 24/7</li>
+            <li data-cms-field="pricing_adv_feature_4">Custom block/allow policies — YAML rules that block, alert via webhook, or rate limit</li>
+            <li data-cms-field="pricing_adv_feature_5">Org-wide policy — shared rules across all agents with per-agent overrides</li>
+            <li data-cms-field="pricing_adv_feature_6">Webhook alerts — fire to Slack, PagerDuty, or any endpoint on detection</li>
+            <li data-cms-field="pricing_adv_feature_7">Policy linting — validate your rules before deploying them</li>
           </ul>
-          <a href="https://shoofly-stripe-production.up.railway.app/upgrade" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Get Advanced</a>
+          <a href="https://shoofly-stripe-production.up.railway.app/upgrade" target="_blank" rel="noopener noreferrer" class="btn btn-primary" data-cms-field="pricing_adv_cta">Get Advanced</a>
         </div>
 
       </div>
@@ -170,8 +203,8 @@
   <!-- ===== WAITLIST ===== -->
   <section class="waitlist" id="email">
     <div class="container container--narrow">
-      <h2 class="waitlist-heading">Stay in the Loop</h2>
-      <p class="waitlist-subtext">Get updates on new features, security intel, and the occasional shoofly wisdom. No spam. Unsubscribe anytime.</p>
+      <h2 class="waitlist-heading" data-cms-field="waitlist_heading">Stay in the Loop</h2>
+      <p class="waitlist-subtext" data-cms-field="waitlist_subtext">Get updates on new features, security intel, and the occasional shoofly wisdom. No spam. Unsubscribe anytime.</p>
 
       <!-- Tally waitlist form -->
       <div class="waitlist-form-wrapper">
@@ -195,8 +228,9 @@
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
     <div class="container footer-inner">
-      <span class="footer-copy">&copy; 2026 Shoofly</span>
-      <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">github.com/shoofly-dev/shoofly</a>
+      <span class="footer-copy" data-cms-field="footer_copyright">&copy; 2026 Shoofly</span>
+      <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link" data-cms-field="footer_github_link">GitHub</a>
+      <a href="https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic" target="_blank" rel="noopener noreferrer" class="footer-link">OpenClaw</a>
     </div>
   </footer>
 

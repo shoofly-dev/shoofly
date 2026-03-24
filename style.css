@@ -308,13 +308,6 @@ a:hover {
   padding: 2rem 1.75rem;
 }
 
-.principle-icon {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  line-height: 1;
-}
-
 .principle-title {
   font-size: 1.15rem;
   font-weight: 700;
@@ -542,6 +535,13 @@ a:hover {
 
 .quick-start-tier-row .pricing-badge {
   margin-bottom: 0;
+}
+
+.quick-start-subtext {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: left;
+  margin-top: 1rem;
 }
 
 /* ----- Waitlist Subtext ----- */
