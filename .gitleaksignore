@@ -1,0 +1,11 @@
+# .gitleaksignore
+# These files contain credential-detection regex PATTERNS used by the scanner.
+# They do not contain real credentials — they contain the patterns used to DETECT credentials.
+# Flagging these files is a known false positive for security scanning tools.
+# See SECURITY.md for full explanation.
+
+basic/bin/shoofly-daemon
+basic/policy/threats.yaml
+basic/skills/shoofly-basic/SKILL.md
+advanced/bin/shoofly-daemon
+advanced/policy/threats.yaml
