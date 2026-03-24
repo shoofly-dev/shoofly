@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
 # Usage: shoofly-notify <channel> "<message>"
 CHANNEL="$1"
-MSG="$2"
+RAW_MSG="$2"
+MSG="$(printf '══════════════════════════════════════\n🛡️  SHOOFLY ALERT\n──────────────────────────────────────\n%s\n══════════════════════════════════════' "$RAW_MSG")"
 CONFIG="$HOME/.shoofly/config.json"
-ENV_FILE="$HOME/.shoofly/.env"
-[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+
+# Read credentials from config.json (never source .env as shell — F4)
+TELEGRAM_BOT_TOKEN=$(jq -r '.telegram_bot_token // ""' "$CONFIG" 2>/dev/null || echo "")
+TELEGRAM_CHAT_ID=$(jq -r '.telegram_chat_id // ""' "$CONFIG" 2>/dev/null || echo "")
+
+# Pre-encode for safe interpolation (F2)
+JSON_MSG=$(printf '%s' "$MSG" | jq -Rs .)
+SAFE_OSA_MSG=$(printf '%s' "$MSG" | sed 's/\\/\\\\/g; s/"/\\"/g')
 
 case "$CHANNEL" in
   telegram)
     curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-      -d "chat_id=${TELEGRAM_CHAT_ID}" \
-      -d "text=${MSG}" > /dev/null
+      --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+      --data-urlencode "text=${MSG}" > /dev/null
     ;;
   whatsapp)
     command -v wacli >/dev/null && wacli send --to "$(jq -r .whatsapp_number "$CONFIG")" --message "$MSG"
@@ -18,15 +25,16 @@ case "$CHANNEL" in
   openclaw_gateway)
     curl -s -X POST http://127.0.0.1:18789/chat \
       -H "Content-Type: application/json" \
-      -d "{\"message\": \"$MSG\"}" > /dev/null
+      -d "{\"message\": $JSON_MSG}" > /dev/null
     ;;
   terminal)
     echo "$MSG" >&2
     ;;
   macos)
-    osascript -e "display notification \"$MSG\" with title \"Shoofly 🪰\" sound name \"Basso\""
+    osascript -e "display notification \"$SAFE_OSA_MSG\" with title \"Shoofly 🪰\" sound name \"Basso\""
     ;;
 esac
 
 # Always log
-echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"channel\":\"$CHANNEL\",\"msg\":\"$MSG\"}" >> "$HOME/.shoofly/logs/alerts.log"
+jq -n -c --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg channel "$CHANNEL" --arg msg "$MSG" \
+  '{ts:$ts,channel:$channel,msg:$msg}' >> "$HOME/.shoofly/logs/alerts.log"

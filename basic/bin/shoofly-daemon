@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shoofly-daemon — Shoofly Basic sidecar daemon
+# shoofly-daemon — Shoofly Basic sidecar daemon v1.2.1
 # Tails active OpenClaw session logs and fires threat notifications.
 # Runs as the current user only. No root required or accepted.
 # License: MIT
@@ -10,6 +10,7 @@ set -euo pipefail
 SHOOFLY_DIR="$HOME/.shoofly"
 ALERTS_LOG="$SHOOFLY_DIR/logs/alerts.log"
 ALERTS_LOG_MAX_BYTES=10485760  # 10MB
+RL_TRACKING_FILE="$SHOOFLY_DIR/logs/.rl_tracking"
 CONFIG_PATH="$SHOOFLY_DIR/config.json"
 
 # ─── Argument parsing ─────────────────────────────────────────────────────────
@@ -78,9 +79,9 @@ if [[ -z "$POLICY_PATH" ]]; then
   POLICY_PATH="$SHOOFLY_DIR/policy/threats.yaml"
 fi
 
-# Source credentials if .env exists (for notification channels)
-ENV_FILE="$SHOOFLY_DIR/.env"
-[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+# Read credentials from config.json (never source .env as shell — F3)
+TELEGRAM_BOT_TOKEN=$(jq -r '.telegram_bot_token // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+TELEGRAM_CHAT_ID=$(jq -r '.telegram_chat_id // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
 
 # Ensure logs directory exists
 mkdir -p "$SHOOFLY_DIR/logs"
@@ -107,8 +108,10 @@ log_alert() {
     fi
   fi
 
-  printf '{"ts":"%s","tier":"%s","threat":"%s","confidence":"%s","agent":"%s","tool":"%s","summary":"%s","notified":%s}\n' \
-    "$ts" "$TIER" "$threat" "$confidence" "$AGENT_NAME" "$tool_name" "$summary" "$notified" \
+  jq -n -c --arg ts "$ts" --arg tier "$TIER" --arg threat "$threat" \
+    --arg confidence "$confidence" --arg agent "$AGENT_NAME" \
+    --arg tool "$tool_name" --arg summary "$summary" --argjson notified "$notified" \
+    '{ts:$ts,tier:$tier,threat:$threat,confidence:$confidence,agent:$agent,tool:$tool,summary:$summary,notified:$notified}' \
     >> "$ALERTS_LOG"
 }
 
@@ -116,15 +119,21 @@ fire_notification() {
   local msg="$1"
   local notify_script="$SHOOFLY_DIR/bin/shoofly-notify"
 
+  # Pre-encode msg for safe interpolation (F2)
+  local json_msg
+  json_msg=$(printf '%s' "$msg" | jq -Rs .)
+  local safe_osa_msg
+  safe_osa_msg=$(printf '%s' "$msg" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
   # Read notification channels from config
   local channels
   channels=$(jq -r '.notification_channels[]? // empty' "$CONFIG_PATH" 2>/dev/null || echo "")
 
   if [[ -z "$channels" ]]; then
     # Fallback: stderr + alerts.log + macOS if available
-    echo "$msg" >&2
+    printf '══════════════════════════════════════\n🛡️  SHOOFLY ALERT\n──────────────────────────────────────\n%s\n══════════════════════════════════════\n' "$msg" >&2
     if [[ "$(uname)" == "Darwin" ]]; then
-      osascript -e "display notification \"$msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
+      osascript -e "display notification \"$safe_osa_msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
     fi
     return
   fi
@@ -140,17 +149,17 @@ fire_notification() {
         openclaw_gateway)
           curl -s -X POST http://127.0.0.1:18789/chat \
             -H "Content-Type: application/json" \
-            -d "{\"message\": \"$msg\"}" > /dev/null 2>&1 || true
+            -d "{\"message\": $json_msg}" > /dev/null 2>&1 || true
           ;;
         telegram)
           if [[ -n "${TELEGRAM_BOT_TOKEN:-}" && -n "${TELEGRAM_CHAT_ID:-}" ]]; then
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              -d "chat_id=${TELEGRAM_CHAT_ID}" \
-              -d "text=${msg}" > /dev/null 2>&1 || true
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=${msg}" > /dev/null 2>&1 || true
           fi
           ;;
         macos)
-          osascript -e "display notification \"$msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
+          osascript -e "display notification \"$safe_osa_msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
           ;;
       esac
     fi
@@ -180,92 +189,121 @@ evaluate_line() {
   local role
   role=$(echo "$line" | jq -r '.message.role // .role // ""' 2>/dev/null || echo "")
 
-  # Only evaluate assistant messages (tool calls and results)
-  [[ "$role" != "assistant" ]] && return
+  # Evaluate assistant messages (tool calls) and toolResult messages (TRI rules)
+  [[ "$role" != "assistant" && "$role" != "toolResult" ]] && return
 
-  # Extract content as a string for pattern matching
+  # Extract text content only — excludes toolCall arguments to prevent
+  # false PI matches on tool args (Bug 3 fix: OSW logged as PI-001)
   local content
-  content=$(echo "$line" | jq -r '.message.content // .content // ""' 2>/dev/null || echo "")
-  [[ -z "$content" ]] && return
+  content=$(echo "$line" | jq -r '
+    (.message.content // .content // "") |
+    if type == "array" then [.[] | select(.type == "text") | .text] | join("\n")
+    elif type == "string" then .
+    else "" end
+  ' 2>/dev/null || echo "")
 
   # Extract tool name from the content if available
   local tool_name
   tool_name=$(echo "$line" | jq -r '
-    (.message.content[]? | select(.type == "tool_use") | .name) //
+    (.message.content[]? | select(.type == "toolCall") | .name) //
     (.tool_name // "unknown")
   ' 2>/dev/null | head -1 || echo "unknown")
+
+  # Extract tool arguments early so OSW/DE checks always run
+  local tool_args
+  tool_args=$(echo "$line" | jq -r '
+    (.message.content[]? | select(.type == "toolCall") | .arguments | tostring) //
+    (.tool_args // "")
+  ' 2>/dev/null || echo "")
+
+  # Skip only if both content and tool_args are empty
+  [[ -z "$content" && -z "$tool_args" ]] && return
 
   local match_count=0
   local matched_category=""
   local matched_threat_id=""
 
+  # ── RL-001: repeated tool call detection ──
+  if [[ "$role" == "assistant" && "$tool_name" != "unknown" && -n "${RL_TRACKING_FILE:-}" ]]; then
+    local now_epoch
+    now_epoch=$(date +%s)
+    echo "${now_epoch}:${tool_name}" >> "$RL_TRACKING_FILE"
+    if [[ -f "$RL_TRACKING_FILE" ]]; then
+      local cutoff=$((now_epoch - 60))
+      local rl_count=0
+      while IFS=: read -r ts tool; do
+        if [[ "$ts" -ge "$cutoff" && "$tool" == "$tool_name" ]]; then
+          rl_count=$((rl_count + 1))
+        fi
+      done < "$RL_TRACKING_FILE"
+      if [[ $rl_count -ge 5 ]]; then
+        match_count=3
+        matched_category="runaway_loop"
+        matched_threat_id="RL-001"
+      fi
+    fi
+  fi
+
   # ── Pattern matching against threats.yaml ──
-  # Read threat patterns from policy file using python3 (available on macOS)
-  # We do simple regex checks for the detectable pattern types
+  # Simple regex checks for the detectable pattern types
 
   # PI-001: ignore instructions
   if echo "$content" | grep -qiE '(ignore[[:space:]]+(previous|all|prior)[[:space:]]+instructions?)'; then
-    ((match_count++))
+    match_count=$((match_count + 1))
     matched_category="prompt_injection"
     matched_threat_id="PI-001"
   fi
 
   # PI-002: disregard rules
   if echo "$content" | grep -qiE '(disregard[[:space:]]+your[[:space:]]+(rules?|instructions?|guidelines?))'; then
-    ((match_count++))
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-002"
   fi
 
   # PI-003: new system prompt
   if echo "$content" | grep -qiE '(new[[:space:]]+system[[:space:]]+(prompt|instructions?))'; then
-    ((match_count++))
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-003"
   fi
 
   # PI-004: identity override
   if echo "$content" | grep -qiE '(you[[:space:]]+are[[:space:]]+now[[:space:]]+[a-z[:space:]]+(AI|assistant|bot|model))'; then
-    ((match_count++))
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-004"
   fi
 
   # PI-005: no restrictions claim
   if echo "$content" | grep -qiE '(act[[:space:]]+as[[:space:]]+if[[:space:]]+you[[:space:]]+have[[:space:]]+no[[:space:]]+(restrictions?|limits?|rules?))'; then
-    ((match_count++))
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-005"
   fi
 
   # PI-006: jailbreak keywords (MEDIUM — counts as 2 for threshold)
   if echo "$content" | grep -qiE '(\bDAN\b|do[[:space:]]+anything[[:space:]]+now|jailbreak)'; then
-    ((match_count += 2))
+    match_count=$((match_count + 2))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-006"
   fi
 
   # PI-007: markup injection
   if echo "$content" | grep -qE '(<system>|</system>|\[INST\]|\[/INST\])'; then
-    ((match_count += 2))
+    match_count=$((match_count + 2))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-007"
   fi
 
   # TRI-001: HTML comment injection
   if echo "$content" | grep -qiE '<!--[[:space:]]*(ignore|new[[:space:]]+instruction|system[[:space:]]*:)'; then
-    ((match_count += 2))
+    match_count=$((match_count + 2))
     [[ -z "$matched_category" ]] && matched_category="tool_response_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="TRI-001"
   fi
 
   # OSW-001: sensitive path write (HIGH — auto-notify)
-  local tool_args
-  tool_args=$(echo "$line" | jq -r '
-    (.message.content[]? | select(.type == "tool_use") | .input | tostring) //
-    (.tool_args // "")
-  ' 2>/dev/null || echo "")
-
   if [[ -n "$tool_args" ]]; then
     if echo "$tool_args" | grep -qE '(/etc/|/usr/bin/|/bin/|/sbin/|~/\.ssh/|~/\.aws/|~/\.bashrc|~/\.zshrc|~/\.profile|~/\.bash_profile|~/Library/LaunchAgents/|/Library/LaunchDaemons/|/var/spool/cron/)'; then
       match_count=3  # Force HIGH
@@ -304,18 +342,12 @@ evaluate_line() {
 
   # Determine confidence level
   local confidence="LOW"
-  local notified="false"
 
   if [[ $match_count -ge 3 ]]; then
     confidence="HIGH"
-    notified="true"
   elif [[ $match_count -ge 2 ]]; then
     confidence="MEDIUM"
-    notified="true"
-  elif [[ $match_count -ge 1 ]]; then
-    confidence="LOW"
-    notified="false"
-  else
+  elif [[ $match_count -lt 1 ]]; then
     return  # No matches
   fi
 
@@ -323,17 +355,14 @@ evaluate_line() {
   threat_label=$(threat_type_label "$matched_category")
   local summary="${matched_threat_id}: ${threat_label} detected"
 
-  # Log the alert
-  log_alert "$matched_threat_id" "$confidence" "$tool_name" "$summary" "$notified"
+  # Fire notification for all detections (action_basic: notify in threats.yaml)
+  local alert_msg="SHOOFLY BASIC 🪰🧹 WARNING: ${threat_label} detected on ${AGENT_NAME}. Try ⚡🪰⚡ SHOOFLY ADVANCED to block attacks before they're inside your agent infra. shoofly.dev/advanced"
+  fire_notification "$alert_msg"
+  local notified="true"
 
-  # Fire notification if MEDIUM or HIGH
-  if [[ "$notified" == "true" ]]; then
-    local alert_msg="SHOOFLY BASIC 🪰🧹 WARNING: ${threat_label} detected on ${AGENT_NAME}. Try ⚡🪰⚡ SHOOFLY ADVANCED to block attacks before they're inside your agent infra. shoofly.dev/advanced"
-    fire_notification "$alert_msg"
-    log_info "ALERT fired: $summary (confidence: $confidence)"
-  else
-    log_info "LOG only: $summary (confidence: $confidence)"
-  fi
+  # Log the alert after notification so notified reflects reality
+  log_alert "$matched_threat_id" "$confidence" "$tool_name" "$summary" "$notified"
+  log_info "ALERT fired: $summary (confidence: $confidence)"
 }
 
 # ─── Session log discovery ─────────────────────────────────────────────────────
