@@ -125,7 +125,7 @@ a:hover {
    HERO
    ========================================= */
 .hero {
-  padding: 6rem 0 4rem;
+  padding: 4rem 0 4rem;
   background-color: var(--bg);
   border-bottom: 1px solid var(--border);
 }
@@ -265,7 +265,7 @@ a:hover {
    PRINCIPLES
    ========================================= */
 .quick-start {
-  padding: 4rem 0;
+  padding: 2.5rem 0 4rem;
   background-color: var(--bg-alt);
   border-bottom: 1px solid var(--border);
 }
@@ -558,6 +558,9 @@ a:hover {
   color: var(--text-muted);
   text-align: left;
   margin-top: 1rem;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ----- Waitlist Subtext ----- */

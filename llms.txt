@@ -1,0 +1,61 @@
+# Shoofly
+
+> Drop-in runtime security for OpenClaw AI agents. Threats intercepted before they execute -- blocked, not detected.
+
+Shoofly is a security layer for OpenClaw AI agents that intercepts tool calls before they execute and blocks dangerous ones. It detects and blocks prompt injection, credential exfiltration, out-of-scope writes, runaway loops, and data exfiltration attempts.
+
+## What It Does
+
+Shoofly sits between an OpenClaw agent and its tools. Every tool call -- file writes, shell commands, web requests, API calls -- is evaluated against an open policy ruleset before execution. Dangerous calls are blocked before they fire. Safe calls proceed normally.
+
+Key capabilities:
+- Pre-execution blocking: tool calls intercepted via the before_tool_call hook before execution
+- Prompt injection detection: 8 patterns including instruction suppression, jailbreak keywords, base64 payloads
+- Credential sniffing alerts: Anthropic API keys, GitHub tokens, AWS credentials
+- Out-of-scope write detection: writes to /etc/, ~/.ssh/, LaunchAgents, and other sensitive paths
+- Runaway loop detection: repeated tool calls, call floods, read-write cycles, URL hammering
+- Data exfiltration detection: credentials in POST bodies, pipe exfiltration, read-then-network patterns
+- Tool response injection detection: malicious instructions embedded in tool call results
+- YAML policy-as-code: open, auditable rules -- read them, fork them, customize them
+- Multi-channel alerts: Telegram, WhatsApp, macOS notifications, terminal, OpenClaw gateway
+
+## Tiers
+
+### Shoofly Basic (Free)
+Detects threats and sends notifications. Never blocks. Install and forget -- it runs as a background daemon tailing your OpenClaw session logs.
+
+Install:
+```
+curl -fsSL https://shoofly.dev/install.sh | bash
+```
+
+### Shoofly Advanced ($19/mo)
+Two-layer prevention: daemon (monitors + alerts) and hook (intercepts tool calls before they fire). Dangerous calls are blocked -- not detected.
+
+- Daemon: background sidecar that monitors session logs, evaluates threats, fires alerts
+- Hook: OpenClaw plugin (shoofly-hook) that intercepts every tool call via before_tool_call and returns a block decision before execution
+
+Install:
+```
+curl -fsSL https://shoofly.dev/install-advanced.sh | bash
+```
+
+## Key Terms
+
+- Tool call interceptor
+- Pre-execution blocking
+- Agent security
+- Prompt injection blocker
+- Runtime protection
+- OpenClaw security skill
+- AI agent firewall
+- Blocked -- not detected
+
+## Links
+
+- Website: https://shoofly.dev
+- GitHub: https://github.com/shoofly-dev/shoofly
+- ClawHub (Basic): https://clawhub.com/skills/shoofly-basic
+- ClawHub (Advanced): https://clawhub.com/skills/shoofly-advanced
+- Install Basic: curl -fsSL https://shoofly.dev/install.sh | bash
+- Upgrade to Advanced: https://shoofly.dev/advanced
