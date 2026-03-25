@@ -11,14 +11,13 @@ Shoofly wraps your agent and checks every action against an open ruleset — cat
 ## How it works
 
 1. Run `curl -fsSL https://shoofly.dev/install.sh | bash` in your agent project
-2. Every action is logged and checked against the ruleset in real time
-3. Threats are flagged instantly — injection attempts, out-of-scope tool calls, credential sniffing
-4. Basic notifies. Advanced blocks automatically.
+2. **Basic:** Every tool call is logged and evaluated against an open ruleset in real time. Threats trigger alerts — prompt injection attempts, out-of-scope writes, credential sniffing.
+3. **Advanced:** Adds two components — a **daemon** (background sidecar that monitors and alerts) and a **hook** (OpenClaw plugin that intercepts tool calls before they execute and blocks them). Same product, one upgrade.
 
 ## Tiers
 
-- 🪰🧹 **Shoofly Basic** — Free forever. Detection + notifications. Never blocks.
-- ⚡🪰⚡ **Shoofly Advanced** — $19/mo. Automatic blocking before threats reach your agents.
+- 🪰🧹 **Shoofly Basic** — Free forever. Detect threats, send notifications. Never blocks. Install: `curl -fsSL https://shoofly.dev/install.sh | bash`
+- ⚡🪰⚡ **Shoofly Advanced** — $19/mo. Daemon + hook. Tool calls blocked before execution, 24/7, automatic. Upgrade: `curl -fsSL https://shoofly.dev/install-advanced.sh | bash`
 
 ## Open source
 
