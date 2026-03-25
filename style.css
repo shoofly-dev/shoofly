@@ -629,11 +629,11 @@ a:hover {
   }
 
   .hero {
-    padding: 2rem 0 2rem;
+    padding: 2.5rem 0 2.5rem;
   }
 
   .hero-headline {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.75rem;
   }
 
   .hero-break {
@@ -642,7 +642,7 @@ a:hover {
 
   .hero-prevention {
     font-size: 0.85rem;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.6rem;
   }
 
   .hero-subheadline {
@@ -651,7 +651,7 @@ a:hover {
 
   .hero-subheadline--secondary {
     font-size: 0.9rem;
-    margin-bottom: 0.6rem;
+    margin-bottom: 1rem;
   }
 
   .hero-ctas {
