@@ -6,7 +6,7 @@ Drop-in runtime security for OpenClaw AI agents.
 curl -fsSL https://shoofly.dev/install.sh | bash
 ```
 
-Shoofly wraps your agent and checks every action against an open ruleset — catching prompt injection, anomalous tool use, and credential sniffing before they reach your infrastructure.
+Shoofly intercepts your agent's tool calls and blocks dangerous ones before they execute. Prompt injection, credential sniffing, and out-of-scope writes are blocked — not detected.
 
 ## How it works
 
@@ -17,7 +17,7 @@ Shoofly wraps your agent and checks every action against an open ruleset — cat
 ## Tiers
 
 - 🪰🧹 **Shoofly Basic** — Free forever. Detect threats, send notifications. Never blocks. Install: `curl -fsSL https://shoofly.dev/install.sh | bash`
-- ⚡🪰⚡ **Shoofly Advanced** — $19/mo. Daemon + hook. Tool calls blocked before execution, 24/7, automatic. Upgrade: `curl -fsSL https://shoofly.dev/install-advanced.sh | bash`
+- ⚡🪰⚡ **Shoofly Advanced** — $19/mo. Tool call interceptor. Prompt injection, data exfiltration, and dangerous writes blocked before execution. Upgrade: `curl -fsSL https://shoofly.dev/install-advanced.sh | bash`
 
 ## Open source
 
