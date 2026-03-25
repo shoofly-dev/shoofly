@@ -148,10 +148,26 @@ a:hover {
   margin-bottom: 1.25rem;
 }
 
+.hero-break {
+  display: none;
+}
+
+.hero-prevention {
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  font-weight: 500;
+  color: var(--text);
+  max-width: 640px;
+  margin-bottom: 0.5rem;
+}
+
 .hero-subheadline {
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   color: var(--text-muted);
   max-width: 640px;
+  margin-bottom: 0;
+}
+
+.hero-subheadline--secondary {
   margin-bottom: 1.25rem;
 }
 
@@ -611,6 +627,14 @@ a:hover {
 
   .hero {
     padding: 3.5rem 0 3rem;
+  }
+
+  .hero-headline {
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-break {
+    display: block;
   }
 
   .principles-grid {
