@@ -213,7 +213,7 @@ async function runBasic() {
 
   // ── Step 1: Channels
   let channels = bail(await multiselect({
-    message: 'Where should Shoofly send threat alerts?\n  Space to select multiple · Enter to confirm',
+    message: 'Where should Shoofly send threat alerts?\n  Press Space to select · Arrow keys to navigate · Enter to confirm',
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
     required: true,
@@ -240,7 +240,7 @@ async function runBasic() {
       value: channels,
       edit: async () => {
         const v = bail(await multiselect({
-          message: 'Where should Shoofly send threat alerts?\n  Space to select multiple · Enter to confirm',
+          message: 'Where should Shoofly send threat alerts?\n  Press Space to select · Arrow keys to navigate · Enter to confirm',
           options: channelOptions(),
           initialValues: channels,
           required: true,
@@ -338,7 +338,7 @@ async function runAdvanced() {
 
   // ── Step 2: Channels
   let channels = bail(await multiselect({
-    message: 'Where should Shoofly send alerts and block notifications?\n  Space to select multiple · Enter to confirm',
+    message: 'Where should Shoofly send alerts and block notifications?\n  Press Space to select · Arrow keys to navigate · Enter to confirm',
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
     required: true,
@@ -403,7 +403,7 @@ async function runAdvanced() {
       value: channels,
       edit: async () => {
         const v = bail(await multiselect({
-          message: 'Where should Shoofly send alerts?\n  Space to select multiple · Enter to confirm',
+          message: 'Where should Shoofly send alerts?\n  Press Space to select · Arrow keys to navigate · Enter to confirm',
           options: channelOptions(),
           initialValues: channels,
           required: true,
