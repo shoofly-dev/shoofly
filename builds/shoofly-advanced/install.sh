@@ -135,10 +135,14 @@ echo "  ✓ shoofly-hook downloaded: $HOOK_DIR/index.ts"
 OPENCLAW_CFG="$HOME/.openclaw/openclaw.json"
 if [[ -f "$OPENCLAW_CFG" ]]; then
   HOOK_PATH="$HOME/.openclaw/extensions/shoofly-hook/index.ts"
-  ALREADY=$(jq --arg p "$HOOK_PATH" '(.plugins.entries // []) | map(.path) | contains([$p])' "$OPENCLAW_CFG" 2>/dev/null || echo "false")
+  HOOK_KEY="shoofly-hook"
+  # plugins.entries is a dict keyed by name, not an array
+  ALREADY=$(jq --arg k "$HOOK_KEY" '.plugins.entries | has($k)' "$OPENCLAW_CFG" 2>/dev/null || echo "false")
   if [[ "$ALREADY" != "true" ]]; then
     _TMP=$(mktemp)
-    jq --arg p "$HOOK_PATH" '(.plugins.entries //= []) | .plugins.entries += [{"path": $p, "enabled": true}]' "$OPENCLAW_CFG" > "$_TMP" && mv "$_TMP" "$OPENCLAW_CFG"
+    jq --arg k "$HOOK_KEY" --arg p "$HOOK_PATH" \
+      '.plugins.entries //= {} | .plugins.entries[$k] = {"path": $p, "enabled": true}' \
+      "$OPENCLAW_CFG" > "$_TMP" && mv "$_TMP" "$OPENCLAW_CFG"
     echo "  ✓ shoofly-hook registered in openclaw.json"
   else
     echo "  ✓ shoofly-hook already registered in openclaw.json"
