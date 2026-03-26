@@ -176,6 +176,23 @@ command -v node >/dev/null 2>&1 || {
   exit 1
 }
 node ~/.shoofly/bin/shoofly-setup --tier advanced
+WIZARD_EXIT=$?
+if [ $WIZARD_EXIT -ne 0 ]; then
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "ℹ️  Setup was cancelled."
+  echo ""
+  if [ -f ~/.shoofly/config.json ]; then
+    echo "   Your existing Shoofly install is unchanged and still active."
+    echo "   Run  shoofly-status  to check in."
+  else
+    echo "   No changes were made."
+    echo "   Run the installer again whenever you're ready."
+  fi
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  exit 0
+fi
 
 # ─── Step 8: Initialize log files and audit database ─────────────────────────
 touch ~/.shoofly/logs/alerts.log

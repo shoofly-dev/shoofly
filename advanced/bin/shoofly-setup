@@ -64,7 +64,15 @@ const CONFIG_PATH = join(SHOOFLY_DIR, 'config.json');
 const PLATFORM = process.platform;
 
 function bail(value) {
-  if (isCancel(value)) { cancel('Setup cancelled.'); process.exit(0); }
+  if (isCancel(value)) {
+    const existing = readExistingConfig();
+    if (existing) {
+      cancel('No changes made — your existing setup is still active.\nRun shoofly-status to check in.');
+    } else {
+      cancel('Setup cancelled. Run the installer again whenever you\'re ready.');
+    }
+    process.exit(1);
+  }
   return value;
 }
 
@@ -229,7 +237,7 @@ async function runBasic() {
   let agentName = bail(await text({
     message: 'Confirm your agent name',
     initialValue: existing?.agent_name || agentInfo.name,
-    hint: 'Labels every alert so you know which agent fired — press Enter to keep',
+    hint: 'Press Enter to keep as-is, or type a new name',
   }));
 
   // ── Review
@@ -354,7 +362,7 @@ async function runAdvanced() {
   let agentName = bail(await text({
     message: 'Confirm your agent name',
     initialValue: existing?.agent_name || agentInfo.name,
-    hint: 'Labels every alert and block event — press Enter to keep',
+    hint: 'Press Enter to keep as-is, or type a new name',
   }));
 
   // ── Step 4: Auto-start
