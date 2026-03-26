@@ -1,30 +1,91 @@
 #!/usr/bin/env bash
+# Shoofly Basic — one-command installer
+# Usage: curl -fsSL https://shoofly.dev/install.sh | bash
+
 set -euo pipefail
 
-# 1. Verify dependencies
-command -v jq >/dev/null || { echo "jq required: brew install jq"; exit 1; }
-command -v curl >/dev/null || { echo "curl required"; exit 1; }
-command -v openclaw >/dev/null || { echo "openclaw required: see openclaw.ai/install"; exit 1; }
+BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 
-# 2. Create directories
+echo ""
+echo "🪰 Shoofly Basic Installer"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# ─── Step 1: Verify dependencies ──────────────────────────────────────────────
+echo "Checking dependencies..."
+
+command -v jq >/dev/null 2>&1 || {
+  echo "ERROR: jq is required but not installed."
+  echo "  macOS:   brew install jq"
+  echo "  Ubuntu:  sudo apt-get install jq"
+  exit 1
+}
+
+command -v curl >/dev/null 2>&1 || {
+  echo "ERROR: curl is required but not installed."
+  exit 1
+}
+
+command -v openclaw >/dev/null 2>&1 || {
+  echo "ERROR: openclaw is required but not installed."
+  echo "  See: https://openclaw.ai/install"
+  exit 1
+}
+
+command -v node >/dev/null 2>&1 || {
+  echo "ERROR: node is required but not installed."
+  echo "  macOS:   brew install node"
+  echo "  Ubuntu:  sudo apt-get install nodejs"
+  exit 1
+}
+
+echo "  ✓ jq, curl, openclaw, node found"
+
+# ─── Step 2: Create directories ───────────────────────────────────────────────
+echo "Creating directories..."
 mkdir -p ~/.shoofly/{bin,policy,logs}
 mkdir -p ~/.openclaw/skills/shoofly-basic/policy
+echo "  ✓ Directories ready"
 
-# 3. Download files
-BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
+# ─── Step 3: Download core files ──────────────────────────────────────────────
+echo "Downloading Shoofly Basic files..."
+
 curl -fsSL "$BASE_URL/basic/skills/shoofly-basic/SKILL.md" -o ~/.openclaw/skills/shoofly-basic/SKILL.md
-curl -fsSL "$BASE_URL/basic/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
-ln -sf ~/.shoofly/policy/threats.yaml ~/.openclaw/skills/shoofly-basic/policy/threats.yaml
-curl -fsSL "$BASE_URL/basic/bin/shoofly-daemon" -o ~/.shoofly/bin/shoofly-daemon
-curl -fsSL "$BASE_URL/basic/bin/shoofly-notify" -o ~/.shoofly/bin/shoofly-notify
-chmod +x ~/.shoofly/bin/shoofly-daemon ~/.shoofly/bin/shoofly-notify
+echo "  ✓ SKILL.md installed"
 
-# 4. Download shoofly-setup wizard
+curl -fsSL "$BASE_URL/basic/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
+echo "  ✓ Policy downloaded: ~/.shoofly/policy/threats.yaml"
+
+ln -sf ~/.shoofly/policy/threats.yaml ~/.openclaw/skills/shoofly-basic/policy/threats.yaml
+echo "  ✓ Policy symlinked into skill directory"
+
+curl -fsSL "$BASE_URL/basic/bin/shoofly-daemon" -o ~/.shoofly/bin/shoofly-daemon
+chmod +x ~/.shoofly/bin/shoofly-daemon
+echo "  ✓ Daemon downloaded: ~/.shoofly/bin/shoofly-daemon"
+
+curl -fsSL "$BASE_URL/basic/bin/shoofly-notify" -o ~/.shoofly/bin/shoofly-notify
+chmod +x ~/.shoofly/bin/shoofly-notify
+echo "  ✓ Notify dispatcher downloaded: ~/.shoofly/bin/shoofly-notify"
+
+# Operational visibility binaries (shared with Advanced)
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-status" -o ~/.shoofly/bin/shoofly-status
+chmod +x ~/.shoofly/bin/shoofly-status
+echo "  ✓ shoofly-status downloaded: ~/.shoofly/bin/shoofly-status"
+
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-health" -o ~/.shoofly/bin/shoofly-health
+chmod +x ~/.shoofly/bin/shoofly-health
+echo "  ✓ shoofly-health downloaded: ~/.shoofly/bin/shoofly-health"
+
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-log" -o ~/.shoofly/bin/shoofly-log
+chmod +x ~/.shoofly/bin/shoofly-log
+echo "  ✓ shoofly-log downloaded: ~/.shoofly/bin/shoofly-log"
+
+# ─── Step 4: Download shoofly-setup wizard ────────────────────────────────────
 curl -fsSL "$BASE_URL/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
 chmod +x ~/.shoofly/bin/shoofly-setup
+echo "  ✓ Setup wizard downloaded"
 
-# 5. Run interactive setup wizard (writes ~/.shoofly/config.json)
-command -v node >/dev/null || { echo "node required: brew install node"; exit 1; }
+# ─── Step 5: Run interactive setup wizard (writes ~/.shoofly/config.json) ─────
 run_wizard() {
   node ~/.shoofly/bin/shoofly-setup --tier basic
 }
@@ -58,7 +119,34 @@ while [ $WIZARD_EXIT -ne 0 ]; do
   esac
 done
 
-# 8. Install launchd plist (macOS) to auto-start daemon
+# ─── Step 6: Initialize log files and audit database ──────────────────────────
+touch ~/.shoofly/logs/alerts.log
+echo "  ✓ Log file initialized: ~/.shoofly/logs/alerts.log"
+
+if command -v sqlite3 >/dev/null 2>&1; then
+  sqlite3 ~/.shoofly/audit.db \
+    "CREATE TABLE IF NOT EXISTS tool_calls (
+       id         INTEGER PRIMARY KEY AUTOINCREMENT,
+       ts         TEXT NOT NULL,
+       session    TEXT,
+       agent      TEXT,
+       tier       TEXT,
+       tool       TEXT NOT NULL,
+       args       TEXT,
+       outcome    TEXT,
+       threat_id  TEXT,
+       rule_id    TEXT,
+       confidence TEXT
+     );
+     CREATE INDEX IF NOT EXISTS idx_ts    ON tool_calls(ts);
+     CREATE INDEX IF NOT EXISTS idx_tool  ON tool_calls(tool);
+     CREATE INDEX IF NOT EXISTS idx_agent ON tool_calls(agent);" 2>/dev/null || true
+  echo "  ✓ Audit database initialized: ~/.shoofly/audit.db"
+else
+  echo "  WARN: sqlite3 not found — audit trail disabled. Install with: brew install sqlite3"
+fi
+
+# ─── Step 7: Install launchd plist (macOS auto-start) ─────────────────────────
 if [[ "$(uname)" == "Darwin" ]]; then
   cat > ~/Library/LaunchAgents/dev.shoofly.daemon.plist <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -77,12 +165,18 @@ if [[ "$(uname)" == "Darwin" ]]; then
   <key>StandardErrorPath</key><string>$HOME/.shoofly/logs/daemon.err</string>
 </dict></plist>
 PLIST
+  launchctl unload ~/Library/LaunchAgents/dev.shoofly.daemon.plist 2>/dev/null || true
   launchctl load ~/Library/LaunchAgents/dev.shoofly.daemon.plist 2>/dev/null || true
+  echo "  ✓ LaunchAgent installed (auto-restart on crash)"
 fi
 
-# 9. Start daemon in foreground for first run verification, then background
-~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify && echo "✓ Shoofly daemon verified"
+# ─── Step 8: Verify daemon ────────────────────────────────────────────────────
+echo ""
+echo "Verifying Shoofly Basic daemon..."
+~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify \
+  && echo "  ✓ Daemon verified"
 
+# ─── Done ─────────────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅  You're all set."
