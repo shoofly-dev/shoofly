@@ -170,51 +170,41 @@ echo ""
 echo "⚡🪰⚡ Shoofly Advanced — notification setup"
 echo "Where should Shoofly send threat alerts and block events?"
 echo "  1) Terminal only"
-echo "  2) OpenClaw gateway (local)"
-echo "  3) Telegram"
-echo "  4) WhatsApp"
-echo "  5) macOS notifications (default)"
-echo "  Multiple: enter comma-separated numbers (e.g. 1,5)"
-read -r -t 30 -p "Choice [5]: " CHANNEL_CHOICE < /dev/tty
+echo "  2) OpenClaw (recommended — uses your existing OpenClaw channels)"
+echo "  3) Telegram direct (separate bot — only if not using OpenClaw)"
+echo "  4) macOS notifications"
+echo "  Multiple: enter comma-separated numbers (e.g. 1,2)"
+echo ""
+echo "  💡 If you use OpenClaw, pick 2 — alerts will route through your"
+echo "     existing Telegram/WhatsApp/Discord setup automatically."
+echo ""
+read -r -t 30 -p "Choice [2]: " CHANNEL_CHOICE < /dev/tty
 if [[ -z "$CHANNEL_CHOICE" ]]; then
-  echo "(No input — defaulting to macOS notifications)"
+  echo "(No input — defaulting to OpenClaw gateway)"
 fi
-CHANNEL_CHOICE=${CHANNEL_CHOICE:-5}
+CHANNEL_CHOICE=${CHANNEL_CHOICE:-2}
 
 CHANNELS=()
 [[ "$CHANNEL_CHOICE" == *"1"* ]] && CHANNELS+=("terminal")
 [[ "$CHANNEL_CHOICE" == *"2"* ]] && CHANNELS+=("openclaw_gateway")
 [[ "$CHANNEL_CHOICE" == *"3"* ]] && CHANNELS+=("telegram")
-[[ "$CHANNEL_CHOICE" == *"4"* ]] && CHANNELS+=("whatsapp")
-[[ "$CHANNEL_CHOICE" == *"5"* ]] && CHANNELS+=("macos")
+[[ "$CHANNEL_CHOICE" == *"4"* ]] && CHANNELS+=("macos")
 
 # Default if nothing selected
-[[ ${#CHANNELS[@]} -eq 0 ]] && CHANNELS+=("macos")
+[[ ${#CHANNELS[@]} -eq 0 ]] && CHANNELS+=("openclaw_gateway")
 
-# Collect Telegram credentials if needed — inherit from OpenClaw config if available
+# Collect Telegram credentials only if direct Telegram chosen (not OpenClaw)
 if [[ "$CHANNEL_CHOICE" == *"3"* ]]; then
-  OPENCLAW_CFG="$HOME/.openclaw/openclaw.json"
-  # Try to inherit bot token and chat ID from existing OpenClaw Telegram config
-  OC_TG_TOKEN=""
-  OC_TG_CHAT_ID=""
-  if [[ -f "$OPENCLAW_CFG" ]]; then
-    OC_TG_TOKEN=$(jq -r '.channels.telegram.botToken // ""' "$OPENCLAW_CFG" 2>/dev/null || echo "")
-    OC_TG_CHAT_ID=$(jq -r '.channels.telegram.defaultTarget // .channels.telegram.chatId // ""' "$OPENCLAW_CFG" 2>/dev/null || echo "")
-  fi
-
-  if [[ -n "$OC_TG_TOKEN" && -n "$OC_TG_CHAT_ID" ]]; then
-    echo "  ✓ Telegram credentials inherited from OpenClaw config"
-    TG_TOKEN="$OC_TG_TOKEN"
-    TG_CHAT_ID="$OC_TG_CHAT_ID"
-  else
-    # Fall back to manual entry
-    read -r -p "Telegram Bot Token: " TG_TOKEN < /dev/tty
-    read -r -p "Telegram Chat ID (the numeric chat/user ID): " TG_CHAT_ID < /dev/tty
-  fi
-
+  echo ""
+  echo "  Direct Telegram setup — you'll need a Telegram bot token."
+  echo "  Create one via @BotFather on Telegram, then get your chat ID"
+  echo "  by messaging your bot and visiting:"
+  echo "  https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates"
+  echo ""
+  read -r -p "Telegram Bot Token: " TG_TOKEN < /dev/tty
+  read -r -p "Telegram Chat ID: " TG_CHAT_ID < /dev/tty
   touch ~/.shoofly/.env
   chmod 600 ~/.shoofly/.env
-  # Only write if not already set
   grep -q "TELEGRAM_BOT_TOKEN" ~/.shoofly/.env 2>/dev/null || echo "TELEGRAM_BOT_TOKEN=${TG_TOKEN}" >> ~/.shoofly/.env
   grep -q "TELEGRAM_CHAT_ID" ~/.shoofly/.env 2>/dev/null || echo "TELEGRAM_CHAT_ID=${TG_CHAT_ID}" >> ~/.shoofly/.env
   echo "  ✓ Telegram credentials saved to ~/.shoofly/.env (chmod 600)"
