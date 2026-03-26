@@ -1,0 +1,16 @@
+{
+  "name": "advanced",
+  "version": "1.0.0",
+  "description": "**Pre-execution threat blocking for AI agents.**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@clack/prompts": "^1.1.0"
+  }
+}

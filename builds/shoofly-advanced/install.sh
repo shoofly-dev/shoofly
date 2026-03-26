@@ -165,85 +165,17 @@ echo "  ✓ shoofly-hook extension ready"
 # For now, Advanced is available without a license key.
 echo "  (License check: deferred — no key required for now)"
 
-# ─── Step 5: Notification channel setup ───────────────────────────────────────
-echo ""
-echo "⚡🪰⚡ Shoofly Advanced — where should alerts go?"
-echo ""
-echo "  1) OpenClaw  (default — delivers via your existing OpenClaw setup)"
-echo "  2) macOS notifications"
-echo "  3) Terminal only"
-echo "  4) Telegram  (requires a separate bot token)"
-echo ""
-read -r -t 30 -p "Choice [1]: " CHANNEL_CHOICE < /dev/tty
-if [[ -z "$CHANNEL_CHOICE" ]]; then
-  echo "(No input — defaulting to OpenClaw gateway)"
-fi
-CHANNEL_CHOICE=${CHANNEL_CHOICE:-1}
+# ─── Step 5: Download shoofly-setup wizard ────────────────────────────────────
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
+chmod +x ~/.shoofly/bin/shoofly-setup
 
-CHANNELS=()
-[[ "$CHANNEL_CHOICE" == *"1"* ]] && CHANNELS+=("openclaw_gateway")
-[[ "$CHANNEL_CHOICE" == *"2"* ]] && CHANNELS+=("macos")
-[[ "$CHANNEL_CHOICE" == *"3"* ]] && CHANNELS+=("terminal")
-[[ "$CHANNEL_CHOICE" == *"4"* ]] && CHANNELS+=("telegram")
-
-# Default if nothing selected
-[[ ${#CHANNELS[@]} -eq 0 ]] && CHANNELS+=("openclaw_gateway")
-
-# Collect Telegram credentials only if Telegram chosen
-if [[ "$CHANNEL_CHOICE" == *"4"* ]]; then
-  echo ""
-  echo "  Direct Telegram setup — you'll need a Telegram bot token."
-  echo "  Create one via @BotFather on Telegram, then get your chat ID"
-  echo "  by messaging your bot and visiting:"
-  echo "  https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates"
-  echo ""
-  read -r -p "Telegram Bot Token: " TG_TOKEN < /dev/tty
-  read -r -p "Telegram Chat ID: " TG_CHAT_ID < /dev/tty
-  touch ~/.shoofly/.env
-  chmod 600 ~/.shoofly/.env
-  grep -q "TELEGRAM_BOT_TOKEN" ~/.shoofly/.env 2>/dev/null || echo "TELEGRAM_BOT_TOKEN=${TG_TOKEN}" >> ~/.shoofly/.env
-  grep -q "TELEGRAM_CHAT_ID" ~/.shoofly/.env 2>/dev/null || echo "TELEGRAM_CHAT_ID=${TG_CHAT_ID}" >> ~/.shoofly/.env
-  echo "  ✓ Telegram credentials saved to ~/.shoofly/.env (chmod 600)"
-fi
-
-# ─── Step 6: Agent name and ID ────────────────────────────────────────────────
-AGENT_NAME=$(openclaw status 2>/dev/null | jq -r '.agentName // "agent"' 2>/dev/null || echo "agent")
-read -r -p "Agent name [$AGENT_NAME]: " INPUT_NAME < /dev/tty
-AGENT_NAME=${INPUT_NAME:-$AGENT_NAME}
-
-AGENT_ID=$(openclaw status 2>/dev/null | jq -r '.agentId // ""' 2>/dev/null || echo "")
-
-# ─── Step 7: Write config ─────────────────────────────────────────────────────
-# Build JSON array of channel names
-CHANNELS_JSON=$(printf '"%s",' "${CHANNELS[@]}" | sed 's/,$//')
-
-# Check if config already exists (upgrading from Basic)
-if [[ -f ~/.shoofly/config.json ]]; then
-  echo ""
-  echo "Existing Shoofly config found — upgrading to Advanced tier..."
-  # Update tier to advanced, add custom_policy_path if missing, preserve other settings
-  _TMP=$(mktemp)
-  jq '.tier = "advanced" | .custom_policy_path //= ""' ~/.shoofly/config.json > "$_TMP" \
-    && mv "$_TMP" ~/.shoofly/config.json
-  chmod 600 ~/.shoofly/config.json
-  echo "  ✓ Config updated: tier → advanced"
-else
-  # Fresh install
-  cat > ~/.shoofly/config.json <<EOF
-{
-  "tier": "advanced",
-  "notification_channels": [${CHANNELS_JSON}],
-  "agent_name": "${AGENT_NAME}",
-  "agent_id": "${AGENT_ID}",
-  "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "version": "1.0.0",
-  "policy_path": "${HOME}/.shoofly/policy/threats.yaml",
-  "custom_policy_path": ""
+# ─── Step 6: Run interactive setup wizard (writes ~/.shoofly/config.json) ─────
+command -v node >/dev/null 2>&1 || {
+  echo "ERROR: node is required but not installed."
+  echo "  macOS:   brew install node"
+  exit 1
 }
-EOF
-  chmod 600 ~/.shoofly/config.json
-  echo "  ✓ Config written: ~/.shoofly/config.json (chmod 600)"
-fi
+node ~/.shoofly/bin/shoofly-setup --tier advanced
 
 # ─── Step 8: Initialize log files and audit database ─────────────────────────
 touch ~/.shoofly/logs/alerts.log
