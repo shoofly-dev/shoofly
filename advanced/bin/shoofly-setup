@@ -303,14 +303,8 @@ async function runAdvanced() {
     initialValue: true,
   }));
 
-  if (autoStart && !dryRun && PLATFORM === 'darwin') {
-    const plistPath = join(HOME, 'Library', 'LaunchAgents', 'dev.shoofly.daemon.plist');
-    if (!existsSync(plistPath)) {
-      log.info('launchd plist not found — run the installer to set up auto-start');
-    } else {
-      log.success('Auto-start already configured via launchd');
-    }
-  }
+  // Auto-start config is handled by the bash installer (launchd plist)
+  // No action needed here — just capture the preference in config
 
   // Summary
   note(
