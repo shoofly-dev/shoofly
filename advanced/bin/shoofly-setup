@@ -178,11 +178,10 @@ async function runBasic() {
 
   // Channels
   const channels = bail(await multiselect({
-    message: 'Where should Shoofly send threat alerts?',
+    message: 'Where should Shoofly send threat alerts?\n  Space to select multiple · Enter to confirm',
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
     required: true,
-    hint: 'Space to toggle, Enter to confirm — pick as many as you want',
   }));
 
   if (channels.includes('telegram')) await setupTelegram();
@@ -229,9 +228,8 @@ async function runBasic() {
 
   // Smoke test
   const doSmoke = bail(await confirm({
-    message: 'Run a quick smoke test to confirm everything works?',
+    message: 'Run a quick smoke test?\n  Sends a fake threat — confirms your alerts are firing  (takes ~3s)',
     initialValue: true,
-    hint: 'Sends a harmless fake threat through Shoofly and checks an alert fires — takes 3 seconds (tech: injects a PI-001 pattern and verifies daemon detection)',
   }));
   if (doSmoke && !dryRun) await runSmokeTest();
 
@@ -269,11 +267,10 @@ async function runAdvanced() {
 
   // Channels
   const channels = bail(await multiselect({
-    message: 'Where should Shoofly send alerts and block notifications?',
+    message: 'Where should Shoofly send alerts and block notifications?\n  Space to select multiple · Enter to confirm',
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
     required: true,
-    hint: 'Space to toggle, Enter to confirm — pick as many as you want',
   }));
 
   if (channels.includes('telegram')) await setupTelegram();
@@ -302,10 +299,8 @@ async function runAdvanced() {
 
   // Auto-start
   const autoStart = bail(await confirm({
-    message: 'Keep Shoofly running in the background automatically?',
+    message: 'Keep Shoofly running in the background automatically?\n  Starts at login, no manual launch needed  (tech: launchd / systemd)',
     initialValue: true,
-    // hint shown below message in @clack
-    hint: 'Starts the detection engine when you log in — no need to remember to run it (tech: registers a launchd/systemd service)',
   }));
 
   if (autoStart && !dryRun && PLATFORM === 'darwin') {
@@ -354,9 +349,8 @@ async function runAdvanced() {
 
   // Smoke test
   const doSmoke = bail(await confirm({
-    message: 'Run a quick smoke test?',
+    message: 'Run a quick smoke test?\n  Sends a fake threat — confirms blocking is active  (takes ~3s)',
     initialValue: true,
-    hint: 'Sends a harmless fake threat and checks it gets blocked — takes 3 seconds (tech: verifies daemon --verify and hook intercept pipeline)',
   }));
   if (doSmoke && !dryRun) await runSmokeTest();
 
