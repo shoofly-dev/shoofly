@@ -220,10 +220,16 @@ async function runBasic() {
   }
 
   // ── Step 1: Channels
+  // Only inherit existing channel selections if config is also Basic tier
+  // — don't bleed Advanced selections (desktop, terminal) into a Basic setup
+  const basicDefaults = (existing?.tier === 'basic' && existing?.notification_channels?.length)
+    ? existing.notification_channels
+    : ['openclaw_gateway'];
+
   let channels = bail(await multiselect({
     message: 'Where should Shoofly send threat alerts?\n  Press Space to select · Arrow keys to navigate · Enter to confirm',
     options: channelOptions(),
-    initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
+    initialValues: basicDefaults,
     required: true,
   }));
 
