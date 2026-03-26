@@ -16,15 +16,10 @@ const candidatePaths = [
   '/opt/homebrew/lib/node_modules/@clack/prompts',
   join(os.homedir(), '.shoofly', 'node_modules', '@clack', 'prompts'),
 ];
-
 for (const p of candidatePaths) {
-  if (existsSync(p)) {
-    try { clack = require(p); break; } catch {}
-  }
+  if (existsSync(p)) { try { clack = require(p); break; } catch {} }
 }
-
 if (!clack) {
-  // Auto-install as last resort
   const installDir = join(os.homedir(), '.shoofly');
   mkdirSync(installDir, { recursive: true });
   console.log('Installing @clack/prompts...');
@@ -39,7 +34,7 @@ if (!clack) {
 
 const { intro, outro, text, select, multiselect, confirm, note, spinner, cancel, isCancel, log } = clack;
 
-// ── Args ────────────────────────────────────────────────────────────────────
+// ── Args ─────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const tierIdx = args.indexOf('--tier');
 const tier = tierIdx !== -1 ? args[tierIdx + 1] : null;
@@ -53,11 +48,6 @@ if (args.includes('--help') || args.includes('-h')) {
     node shoofly-setup --tier basic     Set up Shoofly Basic (detection)
     node shoofly-setup --tier advanced  Set up Shoofly Advanced (blocking)
     node shoofly-setup --dry-run        Preview without writing config
-
-  Options:
-    --tier <basic|advanced>   Required.
-    --dry-run                 Show config that would be written, don't save.
-    --help, -h                Show this help.
 `);
   process.exit(0);
 }
@@ -67,11 +57,11 @@ if (!tier || !['basic', 'advanced'].includes(tier)) {
   process.exit(1);
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 const HOME = os.homedir();
 const SHOOFLY_DIR = join(HOME, '.shoofly');
 const CONFIG_PATH = join(SHOOFLY_DIR, 'config.json');
-const PLATFORM = process.platform; // darwin | linux | win32
+const PLATFORM = process.platform;
 
 function bail(value) {
   if (isCancel(value)) { cancel('Setup cancelled.'); process.exit(0); }
@@ -91,60 +81,70 @@ function readExistingConfig() {
 }
 
 function countRules() {
-  const policyPath = join(SHOOFLY_DIR, 'policy', 'threats.yaml');
-  if (!existsSync(policyPath)) return 0;
-  try {
-    const content = readFileSync(policyPath, 'utf8');
-    return (content.match(/^  - id:/gm) || []).length;
-  } catch { return 0; }
+  const p = join(SHOOFLY_DIR, 'policy', 'threats.yaml');
+  if (!existsSync(p)) return 0;
+  try { return (readFileSync(p, 'utf8').match(/^  - id:/gm) || []).length; } catch { return 0; }
 }
 
 function desktopLabel() {
-  if (PLATFORM === 'darwin') return 'macOS notifications';
-  if (PLATFORM === 'linux') return 'Desktop notifications  (notify-send)';
-  return 'Desktop notifications  (Windows toast)';
+  if (PLATFORM === 'darwin') return 'macOS notifications  · banner + sound';
+  if (PLATFORM === 'linux')  return 'Desktop notifications  · notify-send';
+  return                            'Desktop notifications  · Windows toast';
 }
 
-// ── Channel options (shared) ─────────────────────────────────────────────────
+function channelLabel(v) {
+  const map = {
+    openclaw_gateway: 'OpenClaw',
+    desktop: PLATFORM === 'darwin' ? 'macOS notifications' : 'Desktop notifications',
+    terminal: 'Terminal',
+    telegram: 'Telegram',
+  };
+  return map[v] || v;
+}
+
+// ── Channel options ───────────────────────────────────────────────────────────
 function channelOptions() {
   return [
-    { value: 'openclaw_gateway', label: 'OpenClaw', hint: 'recommended — routes through your existing setup' },
-    { value: 'desktop', label: desktopLabel() },
-    { value: 'terminal', label: 'Terminal', hint: 'printed inline' },
-    { value: 'telegram', label: 'Telegram', hint: 'requires a bot token' },
+    { value: 'openclaw_gateway', label: 'OpenClaw', hint: 'alerts appear in your existing OpenClaw chat' },
+    { value: 'desktop',          label: desktopLabel() },
+    { value: 'terminal',         label: 'Terminal', hint: 'printed where Shoofly runs — good for logging' },
+    { value: 'telegram',         label: 'Telegram', hint: 'direct message to a Telegram chat' },
   ];
 }
 
-// ── Telegram setup (shared) ──────────────────────────────────────────────────
-async function setupTelegram() {
-  log.info('You\'ll need a Telegram bot. Create one via @BotFather, then get your chat ID:');
-  log.info('  1. Send a message to your bot');
-  log.info('  2. Visit: https://api.telegram.org/bot<TOKEN>/getUpdates');
-  log.info('  3. Copy the "chat" → "id" value');
+// ── Telegram setup ────────────────────────────────────────────────────────────
+async function setupTelegram(existing) {
+  console.log('');
+  log.info('Have a bot already? Paste your token below.');
+  log.info('Need one? Open Telegram → search @BotFather → type /newbot  (takes ~30 sec)');
   console.log('');
 
   const tgToken = bail(await text({
     message: 'Bot token',
-    placeholder: '1234567890:ABC-DEF1234ghIkl...',
+    initialValue: existing?.telegram_bot_token || '',
+    placeholder: '1234567890:ABC-DEF...',
     validate: v => !v ? 'Bot token is required' : undefined,
   }));
   const tgChatId = bail(await text({
-    message: 'Chat ID',
+    message: 'Chat ID  (where should alerts land?)',
+    initialValue: existing?.telegram_chat_id || '',
     placeholder: '123456789',
+    hint: 'Message your bot once, then visit api.telegram.org/bot<TOKEN>/getUpdates — look for "chat" → "id"',
     validate: v => !v ? 'Chat ID is required' : undefined,
   }));
 
   if (!dryRun) {
     const envPath = join(SHOOFLY_DIR, '.env');
-    let envContent = existsSync(envPath) ? readFileSync(envPath, 'utf8') : '';
-    if (!envContent.includes('TELEGRAM_BOT_TOKEN')) envContent += `TELEGRAM_BOT_TOKEN=${tgToken}\n`;
-    if (!envContent.includes('TELEGRAM_CHAT_ID')) envContent += `TELEGRAM_CHAT_ID=${tgChatId}\n`;
-    writeFileSync(envPath, envContent, { mode: 0o600 });
+    let env = existsSync(envPath) ? readFileSync(envPath, 'utf8') : '';
+    if (!env.includes('TELEGRAM_BOT_TOKEN')) env += `TELEGRAM_BOT_TOKEN=${tgToken}\n`;
+    if (!env.includes('TELEGRAM_CHAT_ID'))   env += `TELEGRAM_CHAT_ID=${tgChatId}\n`;
+    writeFileSync(envPath, env, { mode: 0o600 });
     log.success('Telegram credentials saved');
   }
+  return { telegram_bot_token: tgToken, telegram_chat_id: tgChatId };
 }
 
-// ── Smoke test (shared) ──────────────────────────────────────────────────────
+// ── Smoke test ────────────────────────────────────────────────────────────────
 async function runSmokeTest() {
   const s = spinner();
   s.start('Running smoke test...');
@@ -152,62 +152,120 @@ async function runSmokeTest() {
     const daemonPath = join(SHOOFLY_DIR, 'bin', 'shoofly-daemon');
     if (existsSync(daemonPath)) {
       execSync(`"${daemonPath}" --config "${CONFIG_PATH}" --verify`, { stdio: 'ignore', timeout: 10000 });
-      s.stop('Smoke test passed');
+      s.stop('Smoke test passed  ✓');
       return true;
-    } else {
-      s.stop('Smoke test skipped — run shoofly-health after install completes');
-      return null;
     }
+    s.stop('Smoke test skipped — run shoofly-health once install finishes');
+    return null;
   } catch {
     s.stop('Smoke test failed — run shoofly-health to diagnose');
     return false;
   }
 }
 
-// ── BASIC flow ───────────────────────────────────────────────────────────────
+// ── Review screen (shared) ────────────────────────────────────────────────────
+// Returns true if user confirmed, false if they want to restart
+async function reviewStep(answers, labelFn) {
+  while (true) {
+    // Build display lines
+    const lines = answers.map((a, i) =>
+      `  [${i + 1}]  ${a.label.padEnd(18)}${a.display}`
+    );
+
+    note(
+      lines.join('\n') +
+      '\n\n  Type a number to change it, or press Enter to continue.',
+      'Review your settings'
+    );
+
+    const choice = bail(await text({
+      message: 'Change a setting (1–' + answers.length + ') or press Enter to continue',
+      placeholder: 'Enter to save',
+      validate: v => {
+        if (!v) return; // Enter = continue
+        const n = parseInt(v);
+        if (isNaN(n) || n < 1 || n > answers.length) return `Enter a number between 1 and ${answers.length}, or press Enter`;
+      },
+    }));
+
+    if (!choice) return true; // Enter pressed — continue
+
+    const idx = parseInt(choice) - 1;
+    const newVal = await answers[idx].edit();
+    if (isCancel(newVal)) { cancel('Setup cancelled.'); process.exit(0); }
+    answers[idx].value = newVal.value;
+    answers[idx].display = newVal.display;
+    if (newVal.side) Object.assign(answers[idx], { side: newVal.side });
+  }
+}
+
+// ── BASIC flow ────────────────────────────────────────────────────────────────
 async function runBasic() {
-  intro('🪰  Shoofly Basic — Real-time threat detection for your AI agents.');
+  intro('🪰  Shoofly Basic\n│  Real-time threat detection for your AI agents.\n│  Flags threats the moment they appear — you stay in control.');
 
   const existing = readExistingConfig();
   if (existing) {
     note(
-      `Already configured as ${existing.tier} (agent: ${existing.agent_name || 'unknown'}).\nYour settings will be updated.`,
+      `Already configured as ${existing.tier}  (agent: ${existing.agent_name || 'unknown'}).\nWe\'ll update your settings — nothing breaks.`,
       'Existing Install'
     );
   }
 
-  // Channels
-  const channels = bail(await multiselect({
+  // ── Step 1: Channels
+  let channels = bail(await multiselect({
     message: 'Where should Shoofly send threat alerts?\n  Space to select multiple · Enter to confirm',
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
     required: true,
   }));
 
-  if (channels.includes('telegram')) await setupTelegram();
+  let telegramCreds = null;
+  if (channels.includes('telegram')) {
+    telegramCreds = await setupTelegram(existing);
+  }
 
-  // Agent name
+  // ── Step 2: Agent name
   const agentInfo = getAgentInfo();
-  const agentName = bail(await text({
+  let agentName = bail(await text({
     message: 'Confirm your agent name',
     initialValue: existing?.agent_name || agentInfo.name,
-    hint: 'This labels every alert so you know which agent fired — edit or press Enter to keep',
+    hint: 'Labels every alert so you know which agent fired — press Enter to keep',
   }));
 
-  // Summary
-  const ruleCount = countRules();
-  note(
-    [
-      `Tier:       Basic (detection only)`,
-      `Channels:   ${channels.join(', ')}`,
-      `Agent:      ${agentName}`,
-      ruleCount ? `Rules:      ${ruleCount} threat patterns loaded` : null,
-      `Log:        ~/.shoofly/logs/alerts.log`,
-    ].filter(Boolean).join('\n'),
-    'Ready to watch'
-  );
+  // ── Review
+  const answers = [
+    {
+      label: 'Alert channels',
+      display: channels.map(channelLabel).join(', '),
+      value: channels,
+      edit: async () => {
+        const v = bail(await multiselect({
+          message: 'Where should Shoofly send threat alerts?\n  Space to select multiple · Enter to confirm',
+          options: channelOptions(),
+          initialValues: channels,
+          required: true,
+        }));
+        if (v.includes('telegram') && !telegramCreds) telegramCreds = await setupTelegram(existing);
+        return { value: v, display: v.map(channelLabel).join(', ') };
+      },
+    },
+    {
+      label: 'Agent name',
+      display: agentName,
+      value: agentName,
+      edit: async () => {
+        const v = bail(await text({ message: 'Confirm your agent name', initialValue: agentName }));
+        return { value: v, display: v };
+      },
+    },
+  ];
 
-  // Write config
+  await reviewStep(answers);
+  channels   = answers[0].value;
+  agentName  = answers[1].value;
+
+  // ── Write config
+  const ruleCount = countRules();
   const config = {
     tier: 'basic',
     notification_channels: channels,
@@ -223,12 +281,24 @@ async function runBasic() {
   } else {
     mkdirSync(SHOOFLY_DIR, { recursive: true });
     writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n', { mode: 0o600 });
-    log.success('Config saved');
+    log.success('Configuration saved');
   }
 
-  // Smoke test
+  // ── Summary
+  note(
+    [
+      `Tier:      Basic (detection)`,
+      `Channels:  ${channels.map(channelLabel).join(', ')}`,
+      `Agent:     ${agentName}`,
+      ruleCount ? `Rules:     ${ruleCount} threat patterns loaded` : null,
+      `Log:       ~/.shoofly/logs/alerts.log`,
+    ].filter(Boolean).join('\n'),
+    'All set'
+  );
+
+  // ── Smoke test
   const doSmoke = bail(await confirm({
-    message: 'Run a quick smoke test?\n  Sends a fake threat — confirms your alerts are firing  (takes ~3s)',
+    message: 'Run a quick smoke test?\n  Sends a harmless fake threat — confirms your alerts are working  (~3 sec)',
     initialValue: true,
   }));
   if (doSmoke && !dryRun) await runSmokeTest();
@@ -238,88 +308,140 @@ async function runBasic() {
 
 // ── ADVANCED flow ─────────────────────────────────────────────────────────────
 async function runAdvanced() {
-  intro('🪰⚡  Shoofly Advanced — Pre-execution blocking. Threats stopped before they fire.');
+  intro('🪰⚡  Shoofly Advanced\n│  Pre-execution blocking.\n│  Threats stopped before they fire — not detected after the damage is done.');
 
   const existing = readExistingConfig();
   if (existing?.tier === 'basic') {
     note(
-      `Shoofly Basic detected (agent: ${existing.agent_name || 'unknown'}).\n` +
-      `Advanced adds the hook layer — blocks threats before execution, not after.`,
+      `Shoofly Basic detected  (agent: ${existing.agent_name || 'unknown'}).\n` +
+      `Advanced adds the hook layer — intercepts every tool call before it runs.\n` +
+      `Your Basic settings carry over.`,
       'Upgrading from Basic'
     );
   } else if (existing?.tier === 'advanced') {
     note(
-      `Already configured as Advanced (agent: ${existing.agent_name || 'unknown'}).\nSettings will be updated.`,
+      `Already configured as Advanced  (agent: ${existing.agent_name || 'unknown'}).\nYour settings will be updated.`,
       'Existing Install'
     );
   }
 
-  // Blocking sensitivity
-  const sensitivity = bail(await select({
+  // ── Step 1: Blocking sensitivity
+  let sensitivity = bail(await select({
     message: 'How aggressively should Shoofly block?',
     options: [
-      { value: 'balanced', label: 'Balanced', hint: 'block HIGH confidence threats — recommended starting point' },
-      { value: 'strict', label: 'Strict', hint: 'block MEDIUM + HIGH — more coverage, occasional false positives' },
-      { value: 'watch', label: 'Watch mode', hint: 'detect everything, block nothing — good for first week' },
+      { value: 'balanced', label: 'Balanced', hint: 'blocks HIGH confidence threats — recommended starting point' },
+      { value: 'strict',   label: 'Strict',   hint: 'blocks MEDIUM + HIGH — more coverage, occasional false positives' },
+      { value: 'watch',    label: 'Watch',    hint: 'detects everything, blocks nothing — good for your first week' },
     ],
-    initialValue: 'balanced',
+    initialValue: existing?.blocking_sensitivity || 'balanced',
   }));
 
-  // Channels
-  const channels = bail(await multiselect({
+  // ── Step 2: Channels
+  let channels = bail(await multiselect({
     message: 'Where should Shoofly send alerts and block notifications?\n  Space to select multiple · Enter to confirm',
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length ? existing.notification_channels : ['openclaw_gateway'],
     required: true,
   }));
 
-  if (channels.includes('telegram')) await setupTelegram();
+  let telegramCreds = null;
+  if (channels.includes('telegram')) {
+    telegramCreds = await setupTelegram(existing);
+  }
 
-  // Agent name
+  // ── Step 3: Agent name
   const agentInfo = getAgentInfo();
-  const agentName = bail(await text({
+  let agentName = bail(await text({
     message: 'Confirm your agent name',
     initialValue: existing?.agent_name || agentInfo.name,
-    hint: 'This labels every alert and block event — edit or press Enter to keep',
+    hint: 'Labels every alert and block event — press Enter to keep',
   }));
 
-  // Hook status
+  // ── Step 4: Auto-start
+  let autoStart = bail(await confirm({
+    message: 'Keep Shoofly running in the background automatically?\n  Starts at login, no manual launch needed  (tech: launchd / systemd)',
+    initialValue: existing?.auto_start !== false,
+  }));
+
+  // ── Hook status (informational)
   const hookPath = join(HOME, '.openclaw', 'extensions', 'shoofly-hook', 'index.ts');
   if (existsSync(hookPath)) {
     note(
-      `Location:  ~/.openclaw/extensions/shoofly-hook/index.ts\nStatus:    installed — every tool call passes through this hook`,
-      'shoofly-hook'
+      `Installed at  ~/.openclaw/extensions/shoofly-hook/index.ts\nEvery tool call passes through this hook before it fires.\nBlocking is active.`,
+      'shoofly-hook  ✓'
     );
   } else {
     note(
-      `Hook not found — the installer will download it.\nBlocking won't be active until the hook is registered with OpenClaw.`,
-      'shoofly-hook'
+      `The hook will be downloaded by the installer.\nBlocking won\'t activate until it\'s registered with OpenClaw.`,
+      'shoofly-hook  (pending)'
     );
   }
 
-  // Auto-start
-  const autoStart = bail(await confirm({
-    message: 'Keep Shoofly running in the background automatically?\n  Starts at login, no manual launch needed  (tech: launchd / systemd)',
-    initialValue: true,
-  }));
+  // ── Review
+  const sensitivityLabels = { balanced: 'Balanced', strict: 'Strict', watch: 'Watch mode' };
+  const answers = [
+    {
+      label: 'Blocking',
+      display: sensitivityLabels[sensitivity],
+      value: sensitivity,
+      edit: async () => {
+        const v = bail(await select({
+          message: 'How aggressively should Shoofly block?',
+          options: [
+            { value: 'balanced', label: 'Balanced', hint: 'blocks HIGH confidence threats' },
+            { value: 'strict',   label: 'Strict',   hint: 'blocks MEDIUM + HIGH' },
+            { value: 'watch',    label: 'Watch',    hint: 'detects everything, blocks nothing' },
+          ],
+          initialValue: sensitivity,
+        }));
+        return { value: v, display: sensitivityLabels[v] };
+      },
+    },
+    {
+      label: 'Alert channels',
+      display: channels.map(channelLabel).join(', '),
+      value: channels,
+      edit: async () => {
+        const v = bail(await multiselect({
+          message: 'Where should Shoofly send alerts?\n  Space to select multiple · Enter to confirm',
+          options: channelOptions(),
+          initialValues: channels,
+          required: true,
+        }));
+        if (v.includes('telegram') && !telegramCreds) telegramCreds = await setupTelegram(existing);
+        return { value: v, display: v.map(channelLabel).join(', ') };
+      },
+    },
+    {
+      label: 'Agent name',
+      display: agentName,
+      value: agentName,
+      edit: async () => {
+        const v = bail(await text({ message: 'Confirm your agent name', initialValue: agentName }));
+        return { value: v, display: v };
+      },
+    },
+    {
+      label: 'Auto-start',
+      display: autoStart ? 'Yes' : 'No',
+      value: autoStart,
+      edit: async () => {
+        const v = bail(await confirm({
+          message: 'Keep Shoofly running in the background automatically?',
+          initialValue: autoStart,
+        }));
+        return { value: v, display: v ? 'Yes' : 'No' };
+      },
+    },
+  ];
 
-  // Auto-start config is handled by the bash installer (launchd plist)
-  // No action needed here — just capture the preference in config
+  await reviewStep(answers);
+  sensitivity = answers[0].value;
+  channels    = answers[1].value;
+  agentName   = answers[2].value;
+  autoStart   = answers[3].value;
 
-  // Summary
-  note(
-    [
-      `Tier:         Advanced (blocking)`,
-      `Sensitivity:  ${sensitivity}`,
-      `Channels:     ${channels.join(', ')}`,
-      `Agent:        ${agentName}`,
-      `Auto-start:   ${autoStart ? 'yes' : 'no'}`,
-      `Block log:    ~/.shoofly/logs/hook-alerts.log`,
-    ].join('\n'),
-    'All systems go'
-  );
-
-  // Write config
+  // ── Write config
   const config = {
     tier: 'advanced',
     notification_channels: channels,
@@ -338,12 +460,25 @@ async function runAdvanced() {
   } else {
     mkdirSync(SHOOFLY_DIR, { recursive: true });
     writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n', { mode: 0o600 });
-    log.success('Config saved');
+    log.success('Configuration saved');
   }
 
-  // Smoke test
+  // ── Summary
+  note(
+    [
+      `Tier:         Advanced (blocking)`,
+      `Blocking:     ${sensitivityLabels[sensitivity]}`,
+      `Channels:     ${channels.map(channelLabel).join(', ')}`,
+      `Agent:        ${agentName}`,
+      `Auto-start:   ${autoStart ? 'Yes' : 'No'}`,
+      `Block log:    ~/.shoofly/logs/hook-alerts.log`,
+    ].join('\n'),
+    'All systems go'
+  );
+
+  // ── Smoke test
   const doSmoke = bail(await confirm({
-    message: 'Run a quick smoke test?\n  Sends a fake threat — confirms blocking is active  (takes ~3s)',
+    message: 'Run a quick smoke test?\n  Sends a fake threat — confirms blocking is active  (~3 sec)',
     initialValue: true,
   }));
   if (doSmoke && !dryRun) await runSmokeTest();
@@ -351,7 +486,7 @@ async function runAdvanced() {
   outro('⚡🪰⚡  Threats blocked. You\'re protected.\n\nRun  shoofly-status  to see what\'s been stopped.\nRun  shoofly-health  to verify all components.');
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 (async () => {
   try {
     if (tier === 'basic') await runBasic();
