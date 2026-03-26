@@ -167,34 +167,30 @@ echo "  (License check: deferred — no key required for now)"
 
 # ─── Step 5: Notification channel setup ───────────────────────────────────────
 echo ""
-echo "⚡🪰⚡ Shoofly Advanced — notification setup"
-echo "Where should Shoofly send threat alerts and block events?"
-echo "  1) Terminal only"
-echo "  2) OpenClaw (recommended — uses your existing OpenClaw channels)"
-echo "  3) Telegram direct (separate bot — only if not using OpenClaw)"
-echo "  4) macOS notifications"
-echo "  Multiple: enter comma-separated numbers (e.g. 1,2)"
+echo "⚡🪰⚡ Shoofly Advanced — where should alerts go?"
 echo ""
-echo "  💡 If you use OpenClaw, pick 2 — alerts will route through your"
-echo "     existing Telegram/WhatsApp/Discord setup automatically."
+echo "  1) OpenClaw  (default — delivers via your existing OpenClaw setup)"
+echo "  2) macOS notifications"
+echo "  3) Terminal only"
+echo "  4) Telegram  (requires a separate bot token)"
 echo ""
-read -r -t 30 -p "Choice [2]: " CHANNEL_CHOICE < /dev/tty
+read -r -t 30 -p "Choice [1]: " CHANNEL_CHOICE < /dev/tty
 if [[ -z "$CHANNEL_CHOICE" ]]; then
   echo "(No input — defaulting to OpenClaw gateway)"
 fi
-CHANNEL_CHOICE=${CHANNEL_CHOICE:-2}
+CHANNEL_CHOICE=${CHANNEL_CHOICE:-1}
 
 CHANNELS=()
-[[ "$CHANNEL_CHOICE" == *"1"* ]] && CHANNELS+=("terminal")
-[[ "$CHANNEL_CHOICE" == *"2"* ]] && CHANNELS+=("openclaw_gateway")
-[[ "$CHANNEL_CHOICE" == *"3"* ]] && CHANNELS+=("telegram")
-[[ "$CHANNEL_CHOICE" == *"4"* ]] && CHANNELS+=("macos")
+[[ "$CHANNEL_CHOICE" == *"1"* ]] && CHANNELS+=("openclaw_gateway")
+[[ "$CHANNEL_CHOICE" == *"2"* ]] && CHANNELS+=("macos")
+[[ "$CHANNEL_CHOICE" == *"3"* ]] && CHANNELS+=("terminal")
+[[ "$CHANNEL_CHOICE" == *"4"* ]] && CHANNELS+=("telegram")
 
 # Default if nothing selected
 [[ ${#CHANNELS[@]} -eq 0 ]] && CHANNELS+=("openclaw_gateway")
 
-# Collect Telegram credentials only if direct Telegram chosen (not OpenClaw)
-if [[ "$CHANNEL_CHOICE" == *"3"* ]]; then
+# Collect Telegram credentials only if Telegram chosen
+if [[ "$CHANNEL_CHOICE" == *"4"* ]]; then
   echo ""
   echo "  Direct Telegram setup — you'll need a Telegram bot token."
   echo "  Create one via @BotFather on Telegram, then get your chat ID"
