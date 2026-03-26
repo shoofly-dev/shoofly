@@ -333,6 +333,7 @@ a:hover {
   padding: 2.5rem 2rem;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .pricing-card--highlight {
