@@ -97,9 +97,6 @@ echo "  ✓ shoofly-check downloaded: ~/.shoofly/bin/shoofly-check"
 curl -fsSL "$BASE_URL/advanced/bin/shoofly-policy-lint" -o ~/.shoofly/bin/shoofly-policy-lint
 chmod +x ~/.shoofly/bin/shoofly-policy-lint
 echo "  ✓ shoofly-policy-lint downloaded: ~/.shoofly/bin/shoofly-policy-lint"
-mkdir -p ~/.shoofly/lib
-curl -fsSL "$BASE_URL/advanced/lib/parse-policy.py" -o ~/.shoofly/lib/parse-policy.py
-echo "  ✓ parse-policy.py downloaded: ~/.shoofly/lib/parse-policy.py"
 
 # shoofly-status and shoofly-health (operational visibility)
 curl -fsSL "$BASE_URL/advanced/bin/shoofly-status" -o ~/.shoofly/bin/shoofly-status
