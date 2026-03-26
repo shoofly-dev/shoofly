@@ -132,3 +132,59 @@
     });
   }
 })();
+
+  // --- Purchase confirmation banner (?purchased=1) ---
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    if (!params.get('purchased')) return;
+
+    var banner = document.createElement('div');
+    banner.id = 'purchase-banner';
+    banner.innerHTML = [
+      '<span style="font-size:1.1rem;">✅</span>',
+      '<span>Purchase confirmed — check your email for your personal install command.</span>',
+      '<button id="purchase-banner-close" aria-label="Dismiss">✕</button>'
+    ].join('');
+    banner.style.cssText = [
+      'position:fixed',
+      'top:0',
+      'left:0',
+      'right:0',
+      'z-index:9999',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'gap:10px',
+      'padding:14px 20px',
+      'background:#052e16',
+      'border-bottom:1px solid #166534',
+      'color:#86efac',
+      'font-family:inherit',
+      'font-size:0.95rem',
+      'line-height:1.4',
+      'text-align:center'
+    ].join(';');
+
+    document.body.prepend(banner);
+
+    // Push body content down so banner doesn't overlap nav
+    document.body.style.paddingTop = (banner.offsetHeight + 'px');
+
+    // Scroll to pricing section
+    var pricing = document.getElementById('pricing');
+    if (pricing) {
+      setTimeout(function () {
+        pricing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+
+    // Dismiss button
+    document.getElementById('purchase-banner-close').addEventListener('click', function () {
+      banner.remove();
+      document.body.style.paddingTop = '';
+      // Clean URL without reload
+      var url = new URL(window.location.href);
+      url.searchParams.delete('purchased');
+      window.history.replaceState({}, '', url.toString());
+    });
+  })();
