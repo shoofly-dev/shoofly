@@ -9,8 +9,33 @@
 
 set -euo pipefail
 
-# Pinned to release tag — update on each publish
-BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/v1.2.2"
+# ─── Step 0: Validate install token ───────────────────────────────────────────
+INSTALL_TOKEN="${SHOOFLY_TOKEN:-}"
+if [[ -z "$INSTALL_TOKEN" ]]; then
+  echo ""
+  echo "⚠️  This installer requires a personal install token."
+  echo "   Your token was included in your purchase confirmation email."
+  echo "   Usage: SHOOFLY_TOKEN=your_token bash <(curl -fsSL https://shoofly.dev/install-advanced.sh)"
+  echo "   Or contact support@shoofly.dev for help."
+  echo ""
+  exit 1
+fi
+
+echo "Validating install token..."
+VALIDATE_STATUS=$(/usr/bin/curl -s -o /dev/null -w "%{http_code}" \
+  "https://shoofly-stripe-production.up.railway.app/validate?token=${INSTALL_TOKEN}")
+
+if [[ "$VALIDATE_STATUS" != "200" ]]; then
+  echo ""
+  echo "⚠️  Token validation failed (status: $VALIDATE_STATUS)."
+  echo "   This token may have already been used or may have expired (48h)."
+  echo "   Contact support@shoofly.dev for a new install link."
+  echo ""
+  exit 1
+fi
+echo "  ✓ Token validated"
+
+BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 
 echo ""
 echo "⚡🪰⚡ Shoofly Advanced Installer"
