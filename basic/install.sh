@@ -9,7 +9,7 @@ set -euo pipefail
 # stdin is the pipe, not the terminal — keyboard input breaks.
 # Fix: download self to /tmp and re-exec with /dev/tty as stdin.
 if [ ! -t 0 ]; then
-  SELF=$(mktemp /tmp/shoofly-basic-XXXXXX.sh)
+  SELF=$(mktemp /tmp/shoofly-basic-XXXXXX)
   curl -fsSL "https://shoofly.dev/install.sh" -o "$SELF"
   chmod +x "$SELF"
   exec bash "$SELF" < /dev/tty
