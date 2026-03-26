@@ -1,0 +1,15 @@
+{
+  "name": "shoofly-stripe-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "stripe": "^14.0.0",
+    "resend": "^3.0.0"
+  }
+}

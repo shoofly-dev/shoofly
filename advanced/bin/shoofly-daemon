@@ -325,7 +325,10 @@ evaluate_rl_checks() {
 #
 # Socket is chmod 600 — only accessible by the current user.
 
-SOCKET_SERVER_FIFO="$(mktemp -u /tmp/shoofly-sock-XXXXXX)"
+SHOOFLY_SOCK_DIR="$HOME/.shoofly/run"
+mkdir -p "$SHOOFLY_SOCK_DIR"
+SOCKET_SERVER_FIFO=$(mktemp "$SHOOFLY_SOCK_DIR/fifo-XXXXXX")
+rm "$SOCKET_SERVER_FIFO"
 mkfifo "$SOCKET_SERVER_FIFO"
 
 start_socket_server() {
@@ -619,7 +622,8 @@ cleanup() {
 trap cleanup SIGTERM SIGINT
 
 # Named pipe for tail output
-FIFO="$(mktemp -u /tmp/shoofly-daemon-XXXXXX)"
+FIFO=$(mktemp "$SHOOFLY_SOCK_DIR/fifo-XXXXXX")
+rm "$FIFO"
 mkfifo "$FIFO"
 trap 'rm -f "$FIFO" "$SOCKET_SERVER_FIFO"; cleanup' EXIT
 

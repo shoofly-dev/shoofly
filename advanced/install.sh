@@ -9,6 +9,8 @@
 
 set -euo pipefail
 
+# DEV COPY — never serve this file directly to users; use builds/shoofly-advanced/install.sh for distribution
+# (builds/ copy has BASE_URL pinned to release tag; this source copy intentionally tracks main)
 BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 
 echo ""
@@ -75,6 +77,30 @@ echo "  ✓ Advanced SKILL.md installed"
 ln -sf ~/.shoofly/policy/threats.yaml ~/.openclaw/skills/shoofly-advanced/policy/threats.yaml
 echo "  ✓ Policy symlinked into skill directory"
 
+
+# ─── Step 3b: Install shoofly-hook extension (Advanced: pre-execution blocking) ──
+echo "Installing shoofly-hook extension (Advanced tier: pre-execution blocking)..."
+HOOK_DIR="$HOME/.openclaw/extensions/shoofly-hook"
+mkdir -p "$HOOK_DIR"
+curl -fsSL "$BASE_URL/extensions/shoofly-hook/index.ts" -o "$HOOK_DIR/index.ts"
+echo "  ✓ shoofly-hook downloaded: $HOOK_DIR/index.ts"
+# Register in openclaw.json if present and not already registered
+OPENCLAW_CFG="$HOME/.openclaw/openclaw.json"
+if [[ -f "$OPENCLAW_CFG" ]]; then
+  HOOK_PATH="$HOME/.openclaw/extensions/shoofly-hook/index.ts"
+  ALREADY=$(jq --arg p "$HOOK_PATH" '(.plugins.entries // []) | map(.path) | contains([$p])' "$OPENCLAW_CFG" 2>/dev/null || echo "false")
+  if [[ "$ALREADY" != "true" ]]; then
+    _TMP=$(mktemp)
+    jq --arg p "$HOOK_PATH" '(.plugins.entries //= []) | .plugins.entries += [{"path": $p, "enabled": true}]' "$OPENCLAW_CFG" > "$_TMP" && mv "$_TMP" "$OPENCLAW_CFG"
+    echo "  ✓ shoofly-hook registered in openclaw.json"
+  else
+    echo "  ✓ shoofly-hook already registered in openclaw.json"
+  fi
+else
+  echo "  WARN: ~/.openclaw/openclaw.json not found — register hook manually by adding shoofly-hook to plugins.entries"
+fi
+echo "  ✓ shoofly-hook extension ready"
+
 # ─── Step 4: License check placeholder ───────────────────────────────────────
 # DEFERRED: Stripe license check not yet implemented.
 #
@@ -139,8 +165,9 @@ if [[ -f ~/.shoofly/config.json ]]; then
   echo ""
   echo "Existing Shoofly config found — upgrading to Advanced tier..."
   # Update tier to advanced, preserve other settings
-  jq '.tier = "advanced"' ~/.shoofly/config.json > /tmp/shoofly-cfg-adv.json \
-    && mv /tmp/shoofly-cfg-adv.json ~/.shoofly/config.json
+  _TMP=$(mktemp)
+  jq '.tier = "advanced" | .custom_policy_path //= ""' ~/.shoofly/config.json > "$_TMP" \
+    && mv "$_TMP" ~/.shoofly/config.json
   chmod 600 ~/.shoofly/config.json
   echo "  ✓ Config updated: tier → advanced"
 else
@@ -202,6 +229,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ Shoofly Advanced installed!"
 echo ""
+echo "   Hook:        ~/.openclaw/extensions/shoofly-hook/index.ts"
 echo "   Skill:       ~/.openclaw/skills/shoofly-advanced/SKILL.md"
 echo "   Check:       ~/.shoofly/bin/shoofly-check"
 echo "   Daemon:      ~/.shoofly/bin/shoofly-daemon"
