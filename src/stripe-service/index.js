@@ -125,7 +125,7 @@ app.get("/upgrade", async (_req, res) => {
       after_completion: {
         type: "hosted_confirmation",
         hosted_confirmation: {
-          custom_message: "You're all set! 🎉 Check your email for instructions to download and install Shoofly Advanced. If you don't see it within a few minutes, check your spam folder. Questions? Email us at hello@shoofly.dev",
+          custom_message: "You're all set! 🎉 Check your email for instructions to download and install Shoofly Advanced. If you don't see it within a few minutes, check your spam folder. Questions? Email us at support@shoofly.dev",
         },
       },
       cancel_url: "https://shoofly.dev/advanced",
