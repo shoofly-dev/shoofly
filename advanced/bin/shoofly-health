@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# shoofly-health — Verify Shoofly Basic installation health
+# Usage: shoofly-health [--config <path>]
+#
+# Exit codes:
+#   0 = all checks pass
+#   1 = one or more checks failed
+#
+# License: MIT
+
+set -euo pipefail
+
+SHOOFLY_DIR="$HOME/.shoofly"
+CONFIG_PATH="$SHOOFLY_DIR/config.json"
+PID_FILE="$SHOOFLY_DIR/daemon.pid"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --config) CONFIG_PATH="$2"; shift 2 ;;
+    -h|--help)
+      echo "Usage: shoofly-health [--config <path>]"
+      echo "Exit 0 = all checks pass. Exit 1 = failures found."
+      exit 0
+      ;;
+    *) echo "Unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
+
+# ─── Fail gracefully if ~/.shoofly doesn't exist ──────────────────────────────
+if [[ ! -d "$SHOOFLY_DIR" ]]; then
+  echo "Shoofly is not installed. Run: curl -fsSL https://shoofly.dev/install.sh | bash" >&2
+  exit 1
+fi
+
+# ─── Check helpers ────────────────────────────────────────────────────────────
+PASS_COUNT=0
+FAIL_COUNT=0
+
+pass() {
+  printf "PASS  %s\n" "$1"
+  (( PASS_COUNT++ )) || true
+}
+
+fail() {
+  printf "FAIL  %s\n" "$1"
+  (( FAIL_COUNT++ )) || true
+}
+
+# ─── 1. Config file readable + valid JSON ─────────────────────────────────────
+if [[ -r "$CONFIG_PATH" ]]; then
+  if command -v jq >/dev/null 2>&1 && jq empty "$CONFIG_PATH" 2>/dev/null; then
+    pass "Config: $CONFIG_PATH readable"
+  else
+    fail "Config: $CONFIG_PATH not valid JSON"
+  fi
+else
+  fail "Config: $CONFIG_PATH not found or not readable"
+fi
+
+# ─── 2. Daemon running (PID file + process alive) ─────────────────────────────
+DAEMON_PID=""
+if [[ -f "$PID_FILE" ]]; then
+  DAEMON_PID=$(cat "$PID_FILE" 2>/dev/null | tr -d '[:space:]' || echo "")
+fi
+if [[ -n "$DAEMON_PID" ]] && kill -0 "$DAEMON_PID" 2>/dev/null; then
+  pass "Daemon: running (PID $DAEMON_PID)"
+else
+  fail "Daemon: not running (start with: shoofly-daemon --config $CONFIG_PATH &)"
+fi
+
+# ─── 3. policy_path file exists and readable ──────────────────────────────────
+POLICY_PATH="$SHOOFLY_DIR/policy/threats.yaml"
+if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
+  CFG_POLICY=$(jq -r '.policy_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+  [[ -n "$CFG_POLICY" ]] && POLICY_PATH="$CFG_POLICY"
+fi
+if [[ -r "$POLICY_PATH" ]]; then
+  RULE_COUNT=$(grep -c "^  - id:" "$POLICY_PATH" 2>/dev/null || echo 0)
+  pass "Policy: $RULE_COUNT threat rules loaded"
+else
+  fail "Policy: $POLICY_PATH not found"
+fi
+
+# ─── 4. jq available ──────────────────────────────────────────────────────────
+if command -v jq >/dev/null 2>&1; then
+  JQ_PATH=$(command -v jq)
+  pass "jq: found at $JQ_PATH"
+else
+  fail "jq: not found (install with: brew install jq)"
+fi
+
+# ─── 5. curl available ────────────────────────────────────────────────────────
+if command -v curl >/dev/null 2>&1; then
+  pass "curl: found in PATH"
+else
+  fail "curl: not found"
+fi
+
+# ─── 6. alerts.log directory exists and is writable ───────────────────────────
+LOGS_DIR="$SHOOFLY_DIR/logs"
+if [[ -d "$LOGS_DIR" && -w "$LOGS_DIR" ]]; then
+  pass "Logs: $LOGS_DIR writable"
+else
+  fail "Logs: $LOGS_DIR not found or not writable"
+fi
+
+# ─── 10. custom_policy_path: if set and non-empty, file exists ────────────────
+if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
+  CUSTOM_POLICY=$(jq -r '.custom_policy_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+  if [[ -n "$CUSTOM_POLICY" ]]; then
+    if [[ -r "$CUSTOM_POLICY" ]]; then
+      pass "Custom policy: $CUSTOM_POLICY found"
+    else
+      fail "Custom policy: $CUSTOM_POLICY not found (set custom_policy_path in config or remove key)"
+    fi
+  fi
+fi
+
+# ─── Summary ──────────────────────────────────────────────────────────────────
+echo ""
+printf "%d checks passed, %d failed.\n" "$PASS_COUNT" "$FAIL_COUNT"
+if [[ $FAIL_COUNT -gt 0 ]]; then
+  echo "Exit 1 (fix failures before relying on Shoofly)"
+  exit 1
+else
+  echo "Exit 0 (all checks pass)"
+  exit 0
+fi

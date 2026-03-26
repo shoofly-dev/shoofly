@@ -1,0 +1,317 @@
+#!/usr/bin/env bash
+# shoofly-scan — Scan a project directory for leaked secrets/credentials
+# No daemon required. Works offline. Uses grep + find only.
+# Bash 3 compatible (macOS default shell).
+# License: MIT
+
+set -euo pipefail
+
+# ─── Credential patterns ──────────────────────────────────────────────────────
+# Format: "PATTERN_ID|Pattern Name|regex"
+PATTERNS=(
+  "SCAN-001|OpenAI API key|sk-[a-zA-Z0-9]{20,}"
+  "SCAN-002|GitHub token|ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{82}"
+  "SCAN-003|AWS access key|AKIA[A-Z0-9]{16}"
+  "SCAN-004|AWS secret key|[Aa][Ww][Ss].*['\"][0-9a-zA-Z/+]{40}['\"]"
+  "SCAN-005|Private key block|-----BEGIN (RSA|EC|OPENSSH|DSA|PGP) PRIVATE KEY-----"
+  "SCAN-006|Stripe live secret|sk_live_[a-zA-Z0-9]{24,}"
+  "SCAN-007|Stripe test secret|sk_test_[a-zA-Z0-9]{24,}"
+  "SCAN-008|Generic high-entropy|['\"][a-zA-Z0-9+/]{40,}['\"]"
+  "SCAN-009|Telegram bot token|[0-9]{8,10}:[a-zA-Z0-9_-]{35}"
+  "SCAN-010|Resend API key|re_[a-zA-Z0-9]{32}"
+)
+
+# ─── Defaults ─────────────────────────────────────────────────────────────────
+SCAN_PATH="."
+MAX_DEPTH=10
+JSON_OUTPUT=false
+NO_GIT=false
+INCLUDE_HISTORY=false
+QUIET=false
+
+# ─── Argument parsing ─────────────────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --depth)
+      MAX_DEPTH="$2"
+      shift 2
+      ;;
+    --json)
+      JSON_OUTPUT=true
+      shift
+      ;;
+    --no-git)
+      NO_GIT=true
+      shift
+      ;;
+    --include-history)
+      INCLUDE_HISTORY=true
+      shift
+      ;;
+    -q|--quiet)
+      QUIET=true
+      shift
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      echo "Usage: shoofly-scan [path] [--depth <n>] [--json] [--no-git] [--include-history] [-q]" >&2
+      exit 2
+      ;;
+    *)
+      SCAN_PATH="$1"
+      shift
+      ;;
+  esac
+done
+
+# Resolve to absolute path
+SCAN_PATH="$(cd "$SCAN_PATH" 2>/dev/null && pwd)" || {
+  echo "ERROR: Cannot access directory: $SCAN_PATH" >&2
+  exit 2
+}
+
+# ─── Temp file for file list ───────────────────────────────────────────────────
+FILELIST="$(mktemp /tmp/shoofly-scan-XXXXXX)"
+trap 'rm -f "$FILELIST"' EXIT
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+progress() {
+  if [[ "$QUIET" == "false" && "$JSON_OUTPUT" == "false" ]]; then
+    echo "$*"
+  fi
+}
+
+# Redact: show first 4 chars + ...REDACTED
+redact() {
+  local match="$1"
+  local prefix="${match:0:4}"
+  echo "${prefix}...REDACTED"
+}
+
+FINDING_COUNT=0
+
+emit_finding() {
+  local pattern_id="$1"
+  local pattern_name="$2"
+  local file="$3"
+  local line="$4"
+  local match="$5"
+  local context="${6:-}"
+
+  FINDING_COUNT=$(( FINDING_COUNT + 1 ))
+  local snippet
+  snippet="$(redact "$match")"
+
+  if [[ "$JSON_OUTPUT" == "true" ]]; then
+    local safe_name="${pattern_name//\"/\\\"}"
+    local safe_file="${file//\"/\\\"}"
+    local safe_snippet="${snippet//\"/\\\"}"
+    # Use quoted line for git history (commit hash), unquoted for file line numbers
+    local line_json
+    if [[ "$file" == "GIT HISTORY" ]]; then
+      line_json="\"$line\""
+    else
+      line_json="$line"
+    fi
+    if [[ -n "$context" ]]; then
+      local safe_ctx="${context//\"/\\\"}"
+      printf '{"pattern_id":"%s","name":"%s","file":"%s","line":%s,"snippet":"%s","context":"%s"}\n' \
+        "$pattern_id" "$safe_name" "$safe_file" "$line_json" "$safe_snippet" "$safe_ctx"
+    else
+      printf '{"pattern_id":"%s","name":"%s","file":"%s","line":%s,"snippet":"%s"}\n' \
+        "$pattern_id" "$safe_name" "$safe_file" "$line_json" "$safe_snippet"
+    fi
+  else
+    echo ""
+    if [[ -n "$context" ]]; then
+      echo "FINDING  $pattern_id  $pattern_name  [$context]"
+    else
+      echo "FINDING  $pattern_id  $pattern_name"
+    fi
+    echo "  File:   ${file}:${line}"
+    echo "  Snip:   ${snippet}"
+  fi
+}
+
+# ─── Check if file is binary (look for null bytes) ───────────────────────────
+is_binary() {
+  local file="$1"
+  # LC_ALL=C grep -qP doesn't work on all macOS greps; use tr/od approach
+  # Check for null byte using od: if any null bytes found, it's binary
+  if od -c "$file" 2>/dev/null | grep -q '\\0'; then
+    return 0
+  fi
+  return 1
+}
+
+# ─── Build file list into FILELIST temp file ─────────────────────────────────
+build_file_list() {
+  if [[ "$NO_GIT" == "false" && -f "$SCAN_PATH/.gitignore" ]] && command -v git >/dev/null 2>&1; then
+    # Use git ls-files to respect .gitignore
+    git -C "$SCAN_PATH" ls-files --others --cached --exclude-standard 2>/dev/null \
+      | grep -v '\.min\.js$' \
+      | grep -v '\.map$' \
+      | while IFS= read -r f; do
+          [[ -z "$f" ]] && continue
+          local full="$SCAN_PATH/$f"
+          [[ -f "$full" ]] && echo "$full"
+        done > "$FILELIST" || true
+  else
+    find "$SCAN_PATH" \
+      -maxdepth "$MAX_DEPTH" \
+      -type f \
+      ! -path "*/node_modules/*" \
+      ! -path "*/.git/*" \
+      ! -path "*/vendor/*" \
+      ! -path "*/dist/*" \
+      ! -path "*/build/*" \
+      ! -name "*.min.js" \
+      ! -name "*.map" \
+      2>/dev/null > "$FILELIST" || true
+  fi
+}
+
+# ─── Scan a single file against all patterns ─────────────────────────────────
+scan_file() {
+  local file="$1"
+  local context="${2:-}"
+
+  # Skip files > 1MB
+  local size
+  size=$(wc -c < "$file" 2>/dev/null || echo 0)
+  size="${size// /}"
+  if [[ "$size" -gt 1048576 ]]; then
+    return
+  fi
+
+  # Skip binary files
+  if is_binary "$file"; then
+    return
+  fi
+
+  local pattern_entry
+  for pattern_entry in "${PATTERNS[@]}"; do
+    local pattern_id pattern_name regex rest
+    pattern_id="${pattern_entry%%|*}"
+    rest="${pattern_entry#*|}"
+    pattern_name="${rest%%|*}"
+    regex="${rest#*|}"
+
+    while IFS= read -r grep_line; do
+      [[ -z "$grep_line" ]] && continue
+      local linenum content match
+      linenum="${grep_line%%:*}"
+      content="${grep_line#*:}"
+      # Extract matching portion for redaction
+      match=$(echo "$content" | grep -oE "$regex" 2>/dev/null | head -1 || true)
+      [[ -z "$match" ]] && match="$content"
+      emit_finding "$pattern_id" "$pattern_name" "$file" "$linenum" "$match" "$context"
+    done < <(grep -nE "$regex" "$file" 2>/dev/null || true)
+  done
+}
+
+# ─── Scan git history ─────────────────────────────────────────────────────────
+scan_git_history() {
+  if ! command -v git >/dev/null 2>&1; then
+    echo "WARN: git not found — skipping history scan" >&2
+    return
+  fi
+
+  if ! git -C "$SCAN_PATH" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "WARN: $SCAN_PATH is not a git repository — skipping history scan" >&2
+    return
+  fi
+
+  progress "Scanning git history (this may be slow)..."
+
+  local current_commit=""
+
+  while IFS= read -r hist_line; do
+    # Track commit hashes
+    if [[ "$hist_line" =~ ^commit\ ([a-f0-9]+) ]]; then
+      current_commit="${BASH_REMATCH[1]:0:8}"
+      continue
+    fi
+
+    # Only scan added lines in diffs
+    case "$hist_line" in
+      "+"*) ;;
+      *) continue ;;
+    esac
+    # Skip diff file headers
+    case "$hist_line" in
+      "+++"*) continue ;;
+    esac
+
+    local diff_content="${hist_line:1}"
+    local pattern_entry
+    for pattern_entry in "${PATTERNS[@]}"; do
+      local pattern_id pattern_name regex rest
+      pattern_id="${pattern_entry%%|*}"
+      rest="${pattern_entry#*|}"
+      pattern_name="${rest%%|*}"
+      regex="${rest#*|}"
+
+      if echo "$diff_content" | grep -qE "$regex" 2>/dev/null; then
+        local match
+        match=$(echo "$diff_content" | grep -oE "$regex" 2>/dev/null | head -1 || true)
+        [[ -z "$match" ]] && match="$diff_content"
+        emit_finding "$pattern_id" "$pattern_name" "GIT HISTORY" "$current_commit" "$match" "GIT HISTORY: $current_commit"
+      fi
+    done
+  done < <(git -C "$SCAN_PATH" log --all -p --follow -- . 2>/dev/null)
+}
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+
+if [[ "$JSON_OUTPUT" == "false" ]]; then
+  progress "🪰 Shoofly Scan — $SCAN_PATH"
+fi
+
+# Build file list
+build_file_list
+
+FILE_COUNT=0
+if [[ -s "$FILELIST" ]]; then
+  FILE_COUNT=$(wc -l < "$FILELIST" | tr -d ' ')
+fi
+
+progress "Scanning $FILE_COUNT files..."
+
+# Scan each file
+if [[ -s "$FILELIST" ]]; then
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    [[ -f "$f" ]] || continue
+    scan_file "$f"
+  done < "$FILELIST"
+fi
+
+# Optionally scan git history
+if [[ "$INCLUDE_HISTORY" == "true" ]]; then
+  scan_git_history
+fi
+
+# ─── Summary (table mode only) ────────────────────────────────────────────────
+if [[ "$JSON_OUTPUT" == "false" ]]; then
+  echo ""
+  echo "────────────────────────────────────────"
+  if [[ "$FINDING_COUNT" -eq 0 ]]; then
+    echo "No secrets found in $FILE_COUNT files."
+  elif [[ "$FINDING_COUNT" -eq 1 ]]; then
+    echo "1 secret found in $FILE_COUNT files."
+    echo "Run \`git rm --cached <file>\` if these files were committed."
+    echo "Tip: add these files to .gitignore to prevent future commits."
+  else
+    echo "$FINDING_COUNT secrets found in $FILE_COUNT files."
+    echo "Run \`git rm --cached <file>\` if these files were committed."
+    echo "Tip: add these files to .gitignore to prevent future commits."
+  fi
+fi
+
+# Exit codes: 0 = no findings, 1 = findings found
+if [[ "$FINDING_COUNT" -gt 0 ]]; then
+  exit 1
+fi
+exit 0

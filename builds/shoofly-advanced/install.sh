@@ -50,52 +50,52 @@ echo "  ✓ Directories ready"
 echo "Downloading Shoofly Advanced files..."
 
 # Threat policy
-curl -fsSL "$BASE_URL/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
+curl -fsSL "$BASE_URL/advanced/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
 echo "  ✓ Policy downloaded: ~/.shoofly/policy/threats.yaml"
 
 # shoofly-daemon (Advanced version with socket server)
-curl -fsSL "$BASE_URL/bin/shoofly-daemon" -o ~/.shoofly/bin/shoofly-daemon
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-daemon" -o ~/.shoofly/bin/shoofly-daemon
 chmod +x ~/.shoofly/bin/shoofly-daemon
 echo "  ✓ Daemon downloaded: ~/.shoofly/bin/shoofly-daemon"
 
 # shoofly-notify
-curl -fsSL "$BASE_URL/bin/shoofly-notify" -o ~/.shoofly/bin/shoofly-notify
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-notify" -o ~/.shoofly/bin/shoofly-notify
 chmod +x ~/.shoofly/bin/shoofly-notify
 echo "  ✓ Notify dispatcher downloaded: ~/.shoofly/bin/shoofly-notify"
 
 # shoofly-check (Advanced-only pre-execution intercept)
-curl -fsSL "$BASE_URL/bin/shoofly-check" -o ~/.shoofly/bin/shoofly-check
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-check" -o ~/.shoofly/bin/shoofly-check
 chmod +x ~/.shoofly/bin/shoofly-check
 echo "  ✓ shoofly-check downloaded: ~/.shoofly/bin/shoofly-check"
 
 # shoofly-policy-lint and parse-policy.py (custom policy support)
-curl -fsSL "$BASE_URL/bin/shoofly-policy-lint" -o ~/.shoofly/bin/shoofly-policy-lint
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-policy-lint" -o ~/.shoofly/bin/shoofly-policy-lint
 chmod +x ~/.shoofly/bin/shoofly-policy-lint
 echo "  ✓ shoofly-policy-lint downloaded: ~/.shoofly/bin/shoofly-policy-lint"
 mkdir -p ~/.shoofly/lib
-curl -fsSL "$BASE_URL/lib/parse-policy.py" -o ~/.shoofly/lib/parse-policy.py
+curl -fsSL "$BASE_URL/advanced/lib/parse-policy.py" -o ~/.shoofly/lib/parse-policy.py
 echo "  ✓ parse-policy.py downloaded: ~/.shoofly/lib/parse-policy.py"
 
 # shoofly-status and shoofly-health (operational visibility)
-curl -fsSL "$BASE_URL/bin/shoofly-status" -o ~/.shoofly/bin/shoofly-status
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-status" -o ~/.shoofly/bin/shoofly-status
 chmod +x ~/.shoofly/bin/shoofly-status
 echo "  ✓ shoofly-status downloaded: ~/.shoofly/bin/shoofly-status"
-curl -fsSL "$BASE_URL/bin/shoofly-health" -o ~/.shoofly/bin/shoofly-health
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-health" -o ~/.shoofly/bin/shoofly-health
 chmod +x ~/.shoofly/bin/shoofly-health
 echo "  ✓ shoofly-health downloaded: ~/.shoofly/bin/shoofly-health"
 
 # shoofly-log (audit trail query CLI)
-curl -fsSL "$BASE_URL/bin/shoofly-log" -o ~/.shoofly/bin/shoofly-log
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-log" -o ~/.shoofly/bin/shoofly-log
 chmod +x ~/.shoofly/bin/shoofly-log
 echo "  ✓ shoofly-log downloaded: ~/.shoofly/bin/shoofly-log"
 
 # shoofly-scan (secret detection at rest)
-curl -fsSL "$BASE_URL/bin/shoofly-scan" -o ~/.shoofly/bin/shoofly-scan
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-scan" -o ~/.shoofly/bin/shoofly-scan
 chmod +x ~/.shoofly/bin/shoofly-scan
 echo "  ✓ shoofly-scan downloaded: ~/.shoofly/bin/shoofly-scan"
 
 # Advanced SKILL.md
-curl -fsSL "$BASE_URL/skills/shoofly-advanced/SKILL.md" -o ~/.openclaw/skills/shoofly-advanced/SKILL.md
+curl -fsSL "$BASE_URL/advanced/skills/shoofly-advanced/SKILL.md" -o ~/.openclaw/skills/shoofly-advanced/SKILL.md
 echo "  ✓ Advanced SKILL.md installed"
 
 # Symlink policy into skill directory

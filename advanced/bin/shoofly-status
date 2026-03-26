@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+# shoofly-status — Shoofly Basic operational dashboard
+# Usage: shoofly-status [--config <path>]
+# License: MIT
+
+set -euo pipefail
+
+SHOOFLY_DIR="$HOME/.shoofly"
+CONFIG_PATH="$SHOOFLY_DIR/config.json"
+ALERTS_LOG="$SHOOFLY_DIR/logs/alerts.log"
+HOOK_ALERTS_LOG="$SHOOFLY_DIR/logs/hook-alerts.log"
+PID_FILE="$SHOOFLY_DIR/daemon.pid"
+POLICY_CACHE="$SHOOFLY_DIR/policy-cache.json"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --config) CONFIG_PATH="$2"; shift 2 ;;
+    -h|--help)
+      echo "Usage: shoofly-status [--config <path>]"
+      exit 0
+      ;;
+    *) echo "Unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
+
+# ─── Fail gracefully if ~/.shoofly doesn't exist ──────────────────────────────
+if [[ ! -d "$SHOOFLY_DIR" ]]; then
+  echo "Shoofly is not installed. Run: curl -fsSL https://shoofly.dev/install.sh | bash" >&2
+  exit 1
+fi
+
+# ─── Config ───────────────────────────────────────────────────────────────────
+TIER="basic"
+AGENT_NAME="unknown"
+POLICY_PATH="$SHOOFLY_DIR/policy/threats.yaml"
+CUSTOM_POLICY_PATH=""
+
+if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
+  TIER=$(jq -r '.tier // "basic"' "$CONFIG_PATH" 2>/dev/null || echo "basic")
+  AGENT_NAME=$(jq -r '.agent_name // "unknown"' "$CONFIG_PATH" 2>/dev/null || echo "unknown")
+  CFG_POLICY=$(jq -r '.policy_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+  [[ -n "$CFG_POLICY" ]] && POLICY_PATH="$CFG_POLICY"
+  CUSTOM_POLICY_PATH=$(jq -r '.custom_policy_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+fi
+
+# ─── Daemon PID file ──────────────────────────────────────────────────────────
+DAEMON_PID=""
+DAEMON_RUNNING=false
+DAEMON_UPTIME=""
+
+if [[ -f "$PID_FILE" ]]; then
+  DAEMON_PID=$(cat "$PID_FILE" 2>/dev/null | tr -d '[:space:]' || echo "")
+  if [[ -n "$DAEMON_PID" ]] && kill -0 "$DAEMON_PID" 2>/dev/null; then
+    DAEMON_RUNNING=true
+    # Compute uptime from ps etime (format: [[DD-]HH:]MM:SS)
+    ELAPSED=$(ps -o etime= -p "$DAEMON_PID" 2>/dev/null | tr -d ' ' || echo "")
+    if [[ -n "$ELAPSED" ]]; then
+      TOTAL_SECS=0
+      if [[ "$ELAPSED" == *-* ]]; then
+        DAYS="${ELAPSED%%-*}"
+        ELAPSED="${ELAPSED#*-}"
+        TOTAL_SECS=$(( DAYS * 86400 ))
+      fi
+      IFS=: read -ra EPARTS <<< "$ELAPSED"
+      case ${#EPARTS[@]} in
+        3) TOTAL_SECS=$(( TOTAL_SECS + 10#${EPARTS[0]} * 3600 + 10#${EPARTS[1]} * 60 + 10#${EPARTS[2]} )) ;;
+        2) TOTAL_SECS=$(( TOTAL_SECS + 10#${EPARTS[0]} * 60 + 10#${EPARTS[1]} )) ;;
+        1) TOTAL_SECS=$(( TOTAL_SECS + 10#${EPARTS[0]} )) ;;
+      esac
+      HRS=$(( TOTAL_SECS / 3600 ))
+      MINS=$(( (TOTAL_SECS % 3600) / 60 ))
+      if [[ $HRS -gt 0 ]]; then
+        DAEMON_UPTIME="${HRS}h ${MINS}m"
+      else
+        DAEMON_UPTIME="${MINS}m"
+      fi
+    fi
+  fi
+fi
+
+# ─── Rule counts ──────────────────────────────────────────────────────────────
+RULE_COUNT=0
+if [[ -r "$POLICY_PATH" ]]; then
+  RULE_COUNT=$(grep -c "^  - id:" "$POLICY_PATH" 2>/dev/null || echo 0)
+fi
+
+CUSTOM_RULE_COUNT=0
+SHOW_CUSTOM=false
+if [[ -n "$CUSTOM_POLICY_PATH" && -r "$POLICY_CACHE" ]] && command -v jq >/dev/null 2>&1; then
+  CUSTOM_RULE_COUNT=$(jq '.rules | length' "$POLICY_CACHE" 2>/dev/null || echo 0)
+  SHOW_CUSTOM=true
+fi
+
+# ─── Today's alerts ───────────────────────────────────────────────────────────
+TODAY=$(date -u +%Y-%m-%d)
+ALERTS_TODAY=0
+HIGH_TODAY=0
+MEDIUM_TODAY=0
+LOW_TODAY=0
+LAST_ALERT_TS=""
+LAST_ALERT_SUMMARY=""
+DEDUP_LINES=""
+
+# Merge daemon alerts + hook alerts into a single stream for display
+# Hook alerts (Advanced only) are in HOOK_ALERTS_LOG; same JSONL format
+_MERGED_ALERTS() {
+  [[ -r "$ALERTS_LOG" ]] && cat "$ALERTS_LOG"
+  [[ -r "$HOOK_ALERTS_LOG" ]] && cat "$HOOK_ALERTS_LOG"
+}
+
+if [[ -r "$ALERTS_LOG" || -r "$HOOK_ALERTS_LOG" ]]; then
+  # Count today's alerts by confidence (single awk pass over merged JSONL)
+  read -r ALERTS_TODAY HIGH_TODAY MEDIUM_TODAY LOW_TODAY < <(
+    _MERGED_ALERTS | awk -v today="$TODAY" -F'"ts":"' '
+      NF>1 {
+        ts = substr($2, 1, 10)
+        if (ts == today) {
+          total++
+          if ($0 ~ /"confidence":"HIGH"/) high++
+          else if ($0 ~ /"confidence":"MEDIUM"/) med++
+          else low++
+        }
+      }
+      END { print total+0, high+0, med+0, low+0 }
+    ' 2>/dev/null || echo "0 0 0 0"
+  )
+
+  # Last alert with notified:true (daemon log only — hook alerts don't set notified)
+  LAST_NOTIFIED=$(grep '"notified":true' "$ALERTS_LOG" 2>/dev/null | tail -1 || echo "")
+  if [[ -n "$LAST_NOTIFIED" ]] && command -v jq >/dev/null 2>&1; then
+    LAST_ALERT_TS=$(echo "$LAST_NOTIFIED" | jq -r '.ts // ""' 2>/dev/null || echo "")
+    LAST_ALERT_SUMMARY=$(echo "$LAST_NOTIFIED" | jq -r '.summary // .threat // ""' 2>/dev/null || echo "")
+  fi
+
+  # Deduplication: group threat IDs with count + last-seen timestamp (merged)
+  if [[ "$ALERTS_TODAY" -gt 0 ]]; then
+    DEDUP_LINES=$(
+      _MERGED_ALERTS | awk -v today="$TODAY" '
+        {
+          ts = ""; threat = ""
+          n = split($0, a, "\"ts\":\"")
+          if (n > 1) { split(a[2], b, "\""); ts = b[1] }
+          if (substr(ts, 1, 10) != today) next
+
+          n = split($0, a, "\"threat\":\"")
+          if (n > 1) { split(a[2], b, "\""); threat = b[1] }
+          else {
+            n = split($0, a, "\"rule_id\":\"")
+            if (n > 1) { split(a[2], b, "\""); threat = b[1] }
+          }
+          if (threat == "") next
+
+          count[threat]++
+          if (ts > last_ts[threat]) last_ts[threat] = ts
+        }
+        END {
+          for (t in count) print count[t] " " last_ts[t] " " t
+        }
+      ' 2>/dev/null | sort -rn
+    )
+  fi
+fi
+
+# ─── Print dashboard ──────────────────────────────────────────────────────────
+SEP="────────────────────────────────────────────────────"
+TIER_LABEL=$(echo "$TIER" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+printf "🪰 Shoofly %s  —  agent: %s\n" "$TIER_LABEL" "$AGENT_NAME"
+echo "$SEP"
+
+# Daemon
+if [[ "$DAEMON_RUNNING" == "true" ]]; then
+  if [[ -n "$DAEMON_UPTIME" ]]; then
+    printf "%-14s running  (PID %s, uptime %s)\n" "Daemon" "$DAEMON_PID" "$DAEMON_UPTIME"
+  else
+    printf "%-14s running  (PID %s)\n" "Daemon" "$DAEMON_PID"
+  fi
+else
+  printf "%-14s stopped\n" "Daemon"
+fi
+
+# Policy
+printf "%-14s %s  (%s rules)\n" "Policy" "$POLICY_PATH" "$RULE_COUNT"
+
+# Custom rules (omit if not configured)
+if [[ "$SHOW_CUSTOM" == "true" ]]; then
+  printf "%-14s %s  (%s rules)\n" "Custom rules" "$CUSTOM_POLICY_PATH" "$CUSTOM_RULE_COUNT"
+fi
+
+echo "$SEP"
+
+# Alerts today
+if [[ "$ALERTS_TODAY" -gt 0 ]]; then
+  printf "%-16s %-4s (%s HIGH · %s MEDIUM · %s LOW)\n" \
+    "Alerts today" "$ALERTS_TODAY" "$HIGH_TODAY" "$MEDIUM_TODAY" "$LOW_TODAY"
+else
+  printf "%-16s 0\n" "Alerts today"
+fi
+
+# Blocked today (Basic: detect only)
+if [[ "$TIER" == "advanced" && -f "$HOOK_ALERTS_LOG" ]]; then
+  BLOCKED_TODAY=$(awk -v cutoff="$TODAY" 'BEGIN{c=0} {if(index($0,cutoff)>0)c++} END{print c}' "$HOOK_ALERTS_LOG" 2>/dev/null || echo 0)
+  printf "%-16s —   %s (hook blocks today)\n" "Blocked today" "$BLOCKED_TODAY"
+else
+  printf "%-16s —   (Basic: detect only)\n" "Blocked today"
+fi
+
+# Last alert
+if [[ -n "$LAST_ALERT_TS" ]]; then
+  printf "%-16s %s  %s\n" "Last alert" "$LAST_ALERT_TS" "$LAST_ALERT_SUMMARY"
+else
+  printf "%-16s none\n" "Last alert"
+fi
+
+# Threat ID deduplication breakdown
+if [[ -n "$DEDUP_LINES" ]]; then
+  echo "$SEP"
+  while IFS=' ' read -r cnt ts_val threat_id; do
+    [[ "$cnt" -eq 1 ]] && suffix="detection" || suffix="detections"
+    printf "  %-16s %s %s  (last %s)\n" "$threat_id" "$cnt" "$suffix" "$ts_val"
+  done <<< "$DEDUP_LINES"
+fi
+
+echo "$SEP"
+echo "Run \`shoofly-health\` to verify installation."

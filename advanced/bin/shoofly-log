@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# shoofly-log — Query the Shoofly audit trail (SQLite)
+# Usage: shoofly-log [options]
+# License: MIT
+
+set -euo pipefail
+
+AUDIT_DB="$HOME/.shoofly/audit.db"
+
+# Defaults
+SHOW_ALL=false
+FILTER_TOOL=""
+FILTER_THREATS=false
+LIMIT=50
+OUTPUT_JSON=false
+OUTPUT_STATS=false
+
+usage() {
+  cat <<'EOF'
+shoofly-log [options]
+  --today          Show today's tool calls (default)
+  --all            Show all records
+  --tool <name>    Filter by tool name
+  --threats        Show only alerted/blocked rows
+  --limit <n>      Limit rows (default 50)
+  --json           Output as JSONL instead of table
+  --stats          Show summary stats instead of rows
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --today)   SHOW_ALL=false; shift ;;
+    --all)     SHOW_ALL=true; shift ;;
+    --tool)    FILTER_TOOL="${2:?--tool requires a value}"; shift 2 ;;
+    --threats) FILTER_THREATS=true; shift ;;
+    --limit)   LIMIT="${2:?--limit requires a value}"; shift 2 ;;
+    --json)    OUTPUT_JSON=true; shift ;;
+    --stats)   OUTPUT_STATS=true; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *)         echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
+  esac
+done
+
+# ── Dependency check ────────────────────────────────────────────────────────────
+if ! command -v sqlite3 >/dev/null 2>&1; then
+  echo "sqlite3 not found — audit trail disabled. Install with: brew install sqlite3"
+  exit 1
+fi
+
+# ── DB existence check ──────────────────────────────────────────────────────────
+if [[ ! -f "$AUDIT_DB" ]]; then
+  echo "No audit database found at $AUDIT_DB"
+  echo "Run shoofly-daemon to start collecting tool call data."
+  exit 0
+fi
+
+# ── Build WHERE clause (call with "false" to exclude --threats filter) ──────────
+_build_where() {
+  local include_threats="${1:-true}"
+  local conds=()
+
+  if [[ "$SHOW_ALL" != "true" ]]; then
+    conds+=("date(ts) = date('now')")
+  fi
+  if [[ -n "$FILTER_TOOL" ]]; then
+    local ft="${FILTER_TOOL//\'/\'\'}"
+    conds+=("tool = '${ft}'")
+  fi
+  if [[ "$include_threats" == "true" && "$FILTER_THREATS" == "true" ]]; then
+    conds+=("outcome IN ('alerted','blocked')")
+  fi
+
+  if [[ ${#conds[@]} -eq 0 ]]; then
+    echo ""
+    return
+  fi
+
+  local sql="WHERE "
+  local first=true
+  for c in "${conds[@]}"; do
+    [[ "$first" != "true" ]] && sql+=" AND "
+    sql+="$c"
+    first=false
+  done
+  echo "$sql"
+}
+
+# ── Stats mode ──────────────────────────────────────────────────────────────────
+if [[ "$OUTPUT_STATS" == "true" ]]; then
+  PERIOD_LABEL="today"
+  [[ "$SHOW_ALL" == "true" ]] && PERIOD_LABEL="total"
+
+  W=$(_build_where false)
+
+  # Threat ID sub-filter
+  if [[ -n "$W" ]]; then
+    W_THREATS="${W} AND threat_id != '' AND threat_id IS NOT NULL"
+  else
+    W_THREATS="WHERE threat_id != '' AND threat_id IS NOT NULL"
+  fi
+
+  # Single query for all outcome counts
+  ROW=$(sqlite3 "$AUDIT_DB" \
+    "SELECT
+       COALESCE(COUNT(*), 0),
+       COALESCE(SUM(CASE WHEN outcome='allowed' THEN 1 ELSE 0 END), 0),
+       COALESCE(SUM(CASE WHEN outcome='alerted' THEN 1 ELSE 0 END), 0),
+       COALESCE(SUM(CASE WHEN outcome='blocked' THEN 1 ELSE 0 END), 0)
+     FROM tool_calls ${W};" 2>/dev/null || echo "0|0|0|0")
+
+  IFS='|' read -r TOTAL ALLOWED ALERTED BLOCKED <<< "$ROW"
+
+  # Top tools
+  TOP_TOOLS=$(sqlite3 "$AUDIT_DB" \
+    "SELECT tool || '(' || COUNT(*) || ')' FROM tool_calls ${W} GROUP BY tool ORDER BY COUNT(*) DESC LIMIT 5;" \
+    2>/dev/null | tr '\n' ',' | sed 's/,$//' || true)
+
+  # Top threats
+  TOP_THREATS=$(sqlite3 "$AUDIT_DB" \
+    "SELECT threat_id || '(' || COUNT(*) || ')' FROM tool_calls ${W_THREATS} GROUP BY threat_id ORDER BY COUNT(*) DESC LIMIT 5;" \
+    2>/dev/null | tr '\n' ',' | sed 's/,$//' || true)
+
+  echo "Tool calls ${PERIOD_LABEL}: ${TOTAL}"
+  printf "  allowed: %4d\n" "$ALLOWED"
+  printf "  alerted: %4d\n" "$ALERTED"
+  printf "  blocked: %4d\n" "$BLOCKED"
+  [[ -n "$TOP_TOOLS" ]]   && echo "Top tools: ${TOP_TOOLS}"
+  [[ -n "$TOP_THREATS" ]] && echo "Top threats: ${TOP_THREATS}"
+  exit 0
+fi
+
+# ── Main query ──────────────────────────────────────────────────────────────────
+W=$(_build_where true)
+
+QUERY="SELECT substr(ts,12,8), tool, outcome,
+              COALESCE(threat_id,''), COALESCE(rule_id,''), COALESCE(agent,'')
+       FROM tool_calls ${W}
+       ORDER BY ts DESC
+       LIMIT ${LIMIT};"
+
+if [[ "$OUTPUT_JSON" == "true" ]]; then
+  sqlite3 "$AUDIT_DB" "$QUERY" 2>/dev/null | while IFS='|' read -r time tool outcome threat_id rule_id agent; do
+    printf '{"ts":"%s","tool":"%s","outcome":"%s","threat_id":"%s","rule_id":"%s","agent":"%s"}\n' \
+      "$time" "$tool" "$outcome" "$threat_id" "$rule_id" "$agent"
+  done
+  exit 0
+fi
+
+# Table output
+printf "%-14s %-14s %-10s %-8s %-8s %s\n" "TIME" "TOOL" "OUTCOME" "THREAT" "RULE" "AGENT"
+sqlite3 "$AUDIT_DB" "$QUERY" 2>/dev/null | while IFS='|' read -r time tool outcome threat_id rule_id agent; do
+  printf "%-14s %-14s %-10s %-8s %-8s %s\n" "$time" "$tool" "$outcome" "$threat_id" "$rule_id" "$agent"
+done
