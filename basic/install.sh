@@ -25,7 +25,38 @@ chmod +x ~/.shoofly/bin/shoofly-setup
 
 # 5. Run interactive setup wizard (writes ~/.shoofly/config.json)
 command -v node >/dev/null || { echo "node required: brew install node"; exit 1; }
-node ~/.shoofly/bin/shoofly-setup --tier basic
+run_wizard() {
+  node ~/.shoofly/bin/shoofly-setup --tier basic
+}
+
+run_wizard
+WIZARD_EXIT=$?
+while [ $WIZARD_EXIT -ne 0 ]; do
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  if [ -f ~/.shoofly/config.json ]; then
+    echo "   Happens to the best of us. 🙂"
+    echo ""
+    echo "   Your install is active — Shoofly is watching right now."
+    echo "   No changes were saved."
+  else
+    echo "   No worries — nothing was changed."
+  fi
+  echo ""
+  printf "   Want to run through setup again? (Y/N) "
+  read -r RETRY </dev/tty
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  case "$RETRY" in
+    y|Y|yes|Yes|YES)
+      run_wizard
+      WIZARD_EXIT=$?
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+done
 
 # 8. Install launchd plist (macOS) to auto-start daemon
 if [[ "$(uname)" == "Darwin" ]]; then
