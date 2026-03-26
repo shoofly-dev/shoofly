@@ -262,8 +262,14 @@ async function runBasic() {
       display: agentName,
       value: agentName,
       edit: async () => {
-        const v = bail(await text({ message: 'Confirm your agent name', initialValue: agentName }));
-        return { value: v, display: v };
+        const v = bail(await text({
+          message: 'Agent name',
+          placeholder: agentName,
+          hint: 'Press Enter to keep "' + agentName + '", or type a new name',
+          validate: () => undefined,
+        }));
+        const final = v || agentName;
+        return { value: final, display: final };
       },
     },
   ];
