@@ -191,15 +191,32 @@ CHANNELS=()
 # Default if nothing selected
 [[ ${#CHANNELS[@]} -eq 0 ]] && CHANNELS+=("macos")
 
-# Collect Telegram credentials if needed
+# Collect Telegram credentials if needed — inherit from OpenClaw config if available
 if [[ "$CHANNEL_CHOICE" == *"3"* ]]; then
-  read -r -p "Telegram Bot Token: " TG_TOKEN < /dev/tty
-  read -r -p "Telegram Chat ID: " TG_CHAT_ID < /dev/tty
-  # Append to .env (do not overwrite existing keys)
+  OPENCLAW_CFG="$HOME/.openclaw/openclaw.json"
+  # Try to inherit bot token and chat ID from existing OpenClaw Telegram config
+  OC_TG_TOKEN=""
+  OC_TG_CHAT_ID=""
+  if [[ -f "$OPENCLAW_CFG" ]]; then
+    OC_TG_TOKEN=$(jq -r '.channels.telegram.botToken // ""' "$OPENCLAW_CFG" 2>/dev/null || echo "")
+    OC_TG_CHAT_ID=$(jq -r '.channels.telegram.defaultTarget // .channels.telegram.chatId // ""' "$OPENCLAW_CFG" 2>/dev/null || echo "")
+  fi
+
+  if [[ -n "$OC_TG_TOKEN" && -n "$OC_TG_CHAT_ID" ]]; then
+    echo "  ✓ Telegram credentials inherited from OpenClaw config"
+    TG_TOKEN="$OC_TG_TOKEN"
+    TG_CHAT_ID="$OC_TG_CHAT_ID"
+  else
+    # Fall back to manual entry
+    read -r -p "Telegram Bot Token: " TG_TOKEN < /dev/tty
+    read -r -p "Telegram Chat ID (the numeric chat/user ID): " TG_CHAT_ID < /dev/tty
+  fi
+
   touch ~/.shoofly/.env
   chmod 600 ~/.shoofly/.env
-  echo "TELEGRAM_BOT_TOKEN=${TG_TOKEN}" >> ~/.shoofly/.env
-  echo "TELEGRAM_CHAT_ID=${TG_CHAT_ID}" >> ~/.shoofly/.env
+  # Only write if not already set
+  grep -q "TELEGRAM_BOT_TOKEN" ~/.shoofly/.env 2>/dev/null || echo "TELEGRAM_BOT_TOKEN=${TG_TOKEN}" >> ~/.shoofly/.env
+  grep -q "TELEGRAM_CHAT_ID" ~/.shoofly/.env 2>/dev/null || echo "TELEGRAM_CHAT_ID=${TG_CHAT_ID}" >> ~/.shoofly/.env
   echo "  ✓ Telegram credentials saved to ~/.shoofly/.env (chmod 600)"
 fi
 
