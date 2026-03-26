@@ -1,10 +1,53 @@
 import express from "express";
 import Stripe from "stripe";
+import { randomBytes } from "node:crypto";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+const Database = require("better-sqlite3");
 import { sendFulfillmentEmail } from "./email.js";
 
 const app = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const PORT = process.env.PORT || 3000;
+
+// ---------- Token store (SQLite, persistent volume) ----------
+
+const DB_PATH = process.env.TOKENS_DB_PATH || "/data/tokens.db";
+// Ensure the directory exists (Railway volume may not pre-create subdirs)
+try { mkdirSync(dirname(DB_PATH), { recursive: true }); } catch {}
+const db = new Database(DB_PATH);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tokens (
+    token TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    used_at INTEGER
+  )
+`);
+
+function createToken(email, sessionId) {
+  const token = randomBytes(24).toString("hex");
+  db.prepare(
+    "INSERT INTO tokens (token, email, session_id, created_at) VALUES (?, ?, ?, ?)"
+  ).run(token, email, sessionId, Date.now());
+  return token;
+}
+
+function validateToken(token) {
+  const row = db.prepare("SELECT * FROM tokens WHERE token = ?").get(token);
+  if (!row) return { valid: false, reason: "unknown_token" };
+  if (row.used_at) return { valid: false, reason: "already_used" };
+  // Tokens expire after 48h
+  if (Date.now() - row.created_at > 48 * 60 * 60 * 1000) {
+    return { valid: false, reason: "expired" };
+  }
+  // Mark used
+  db.prepare("UPDATE tokens SET used_at = ? WHERE token = ?").run(Date.now(), token);
+  return { valid: true, email: row.email };
+}
 
 // ---------- GET / — Landing page ----------
 
@@ -28,114 +71,63 @@ const landingPage = `<!DOCTYPE html>
       --text-muted: #a3a3a3;
       --accent: #6ee7b7;
       --highlight: #3b82f6;
-      --font-body: 'Inter', system-ui, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --danger: #f87171;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg); color: var(--text); font-family: var(--font-body);
-      font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased;
-      min-height: 100vh; display: flex; flex-direction: column;
-    }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    .container { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; width: 100%; }
-
-    /* Nav */
-    .nav { border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; }
-    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; }
-
-    /* Hero */
-    .hero { padding: 5rem 0 4rem; text-align: center; }
-    .hero-badge {
-      display: inline-block; font-family: var(--font-mono); font-size: 0.8rem;
-      font-weight: 700; padding: 4px 14px; border-radius: 20px;
-      background: #1e3a5f; color: var(--highlight); margin-bottom: 1.5rem;
-    }
-    .hero h1 {
-      font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700;
-      line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1rem;
-    }
-    .hero p { color: var(--text-muted); font-size: 1.05rem; margin-bottom: 2.5rem; max-width: 520px; margin-left: auto; margin-right: auto; }
-
-    .subscribe-btn {
-      display: inline-block; padding: 14px 32px; font-size: 1rem; font-weight: 700;
-      font-family: var(--font-body); border-radius: 4px; cursor: pointer;
-      background: var(--highlight); color: #fff; border: 1px solid var(--highlight);
-      text-decoration: none; transition: opacity 0.15s, transform 0.1s;
-    }
-    .subscribe-btn:hover { opacity: 0.88; transform: translateY(-1px); text-decoration: none; }
-
-    /* Features */
-    .features { padding: 3rem 0 4rem; border-top: 1px solid var(--border); }
-    .features h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; text-align: center; }
-    .features ul { list-style: none; max-width: 440px; margin: 0 auto; }
-    .features li {
-      font-size: 0.95rem; color: var(--text-muted); padding: 0.5rem 0;
-      padding-left: 1.75rem; position: relative;
-    }
-    .features li::before { content: "\\2713"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
-
-    /* Footer */
-    .footer { margin-top: auto; padding: 1.5rem; border-top: 1px solid var(--border); text-align: center; }
-    .footer span { color: var(--text-muted); font-size: 0.8rem; }
-    .footer a { color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-mono); }
-
-    @media (max-width: 480px) {
-      .hero { padding: 3rem 0 2.5rem; }
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 48px; max-width: 520px; width: 100%; text-align: center; }
+    .logo { font-size: 40px; margin-bottom: 8px; }
+    h1 { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+    .tagline { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+    .price { font-size: 48px; font-weight: 700; color: #fff; }
+    .price span { font-size: 16px; color: var(--text-muted); font-weight: 400; }
+    .features { list-style: none; text-align: left; margin: 24px 0 32px; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 16px 20px; }
+    .features li { padding: 8px 0; font-size: 14px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; }
+    .features li:last-child { border-bottom: none; }
+    .features li::before { content: "✓"; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .btn { display: inline-block; padding: 14px 40px; background: var(--accent); color: #000; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; border: none; width: 100%; transition: opacity 0.2s; }
+    .btn:hover { opacity: 0.85; }
+    .fine { font-size: 12px; color: #555; margin-top: 16px; }
   </style>
 </head>
 <body>
-  <nav class="nav">
-    <a href="https://shoofly.dev" class="nav-logo">🪰 Shoofly</a>
-  </nav>
-
-  <section class="hero">
-    <div class="container">
-      <span class="hero-badge">$19/MO</span>
-      <h1>Shoofly Advanced ⚡🪰⚡</h1>
-      <p>Automatic blocking before threats reach your agents. Pre-execution intercept. Upgrades seamlessly from Basic.</p>
-      <a href="/upgrade" class="subscribe-btn">Subscribe</a>
-    </div>
-  </section>
-
-  <section class="features">
-    <div class="container">
-      <h2>What you get</h2>
-      <ul>
-        <li>Pre-execution intercept — block threats before they run</li>
-        <li>Auto-block on detection</li>
-        <li>shoofly-daemon (Advanced runtime)</li>
-        <li>shoofly-hook (pre-execution blocking)</li>
-        <li>shoofly-check, shoofly-status, shoofly-health, shoofly-log</li>
-        <li>Everything in Basic</li>
-      </ul>
-    </div>
-  </section>
-
-  <footer class="footer">
-    <span>&copy; 2026 Shoofly</span> &nbsp;
-    <a href="https://shoofly.dev/terms.html">Terms</a> &nbsp;
-    <a href="https://shoofly.dev/privacy.html">Privacy</a>
-  </footer>
+  <div class="card">
+    <div class="logo">🪰⚡</div>
+    <h1>Shoofly Advanced</h1>
+    <p class="tagline">Pre-execution blocking for OpenClaw AI agents.</p>
+    <div class="price">$19<span>/mo</span></div>
+    <ul class="features">
+      <li>Intercepts tool calls before they execute</li>
+      <li>Automatic threat blocking (not just detection)</li>
+      <li>Unix socket daemon + shoofly-hook extension</li>
+      <li>Unified alert + block timeline</li>
+      <li>Telegram, WhatsApp & macOS alerts</li>
+      <li>Priority support</li>
+    </ul>
+    <a href="/upgrade" class="btn">Subscribe now →</a>
+    <p class="fine">Billed monthly. Cancel anytime.</p>
+  </div>
 </body>
 </html>`;
 
 app.get("/", (_req, res) => {
-  res.type("html").send(landingPage);
+  res.setHeader("Content-Type", "text/html");
+  res.send(landingPage);
 });
 
-// ---------- GET /upgrade — Stripe Checkout redirect ----------
+// ---------- GET /upgrade — Create Stripe Checkout session ----------
 
 app.get("/upgrade", async (_req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
-      success_url: "https://shoofly.dev/advanced?purchased=1",
+      after_completion: {
+        type: "hosted_confirmation",
+        hosted_confirmation: {
+          custom_message: "You're all set! 🎉 Check your email for instructions to download and install Shoofly Advanced. If you don't see it within a few minutes, check your spam folder. Questions? Email us at hello@shoofly.dev",
+        },
+      },
       cancel_url: "https://shoofly.dev/advanced",
       customer_email: undefined,
       metadata: { source: "shoofly-advanced" },
@@ -144,6 +136,23 @@ app.get("/upgrade", async (_req, res) => {
   } catch (err) {
     console.error("[upgrade] checkout session failed:", err.message);
     res.status(500).send("Something went wrong. Please try again.");
+  }
+});
+
+// ---------- GET /validate — Token validation endpoint ----------
+
+app.get("/validate", (req, res) => {
+  const { token } = req.query;
+  if (!token || typeof token !== "string") {
+    return res.status(400).json({ valid: false, reason: "missing_token" });
+  }
+  const result = validateToken(token);
+  if (result.valid) {
+    console.log(`[validate] token used successfully`);
+    return res.json({ valid: true });
+  } else {
+    console.warn(`[validate] rejected — ${result.reason}`);
+    return res.status(403).json({ valid: false, reason: result.reason });
   }
 });
 
@@ -166,7 +175,8 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
       const email = session.customer_details?.email;
       if (email) {
         try {
-          await sendFulfillmentEmail(email);
+          const token = createToken(email, session.id);
+          await sendFulfillmentEmail(email, token);
           console.log(`[fulfillment] sent to ${email.replace(/(?<=.{3}).(?=.*@)/g, "*")} session=${session.id}`);
         } catch (err) {
           console.error(`[fulfillment] email send failed for session=${session.id}:`, err.message);
@@ -187,6 +197,20 @@ app.post("/webhook", express.raw({ type: "application/json" }), async (req, res)
   res.json({ received: true });
 });
 
+// ---------- GET /admin/token — create a token manually (admin only) ----------
+
+app.get("/admin/token", (req, res) => {
+  const secret = req.query.secret;
+  const email = req.query.email || "admin@shoofly.dev";
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ error: "forbidden" });
+  }
+  const token = createToken(email, "admin-" + Date.now());
+  console.log(`[admin] token created for ${email}`);
+  const ts = Date.now();
+  res.json({ token, install: `rm -f /tmp/shoofly-install.sh && curl -fsSL "https://shoofly.dev/install-advanced.sh?v=${ts}" -o /tmp/shoofly-install.sh && SHOOFLY_TOKEN=${token} bash /tmp/shoofly-install.sh` });
+});
+
 // ---------- GET /health ----------
 
 app.get("/health", (_req, res) => {
@@ -197,4 +221,7 @@ app.get("/health", (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`shoofly-stripe-service listening on :${PORT}`);
+  console.log(`Upgrade:  https://shoofly-stripe-production.up.railway.app/upgrade`);
+  console.log(`Webhook:  https://shoofly-stripe-production.up.railway.app/webhook`);
+  console.log(`Validate: https://shoofly-stripe-production.up.railway.app/validate?token=<token>`);
 });
