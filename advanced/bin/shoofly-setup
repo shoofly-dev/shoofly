@@ -67,9 +67,9 @@ function bail(value) {
   if (isCancel(value)) {
     const existing = readExistingConfig();
     if (existing) {
-      cancel('No changes made — your existing setup is still active.\nRun shoofly-status to check in.');
+      cancel('No worries — you\'re still protected. Nothing changed.');
     } else {
-      cancel('Setup cancelled. Run the installer again whenever you\'re ready.');
+      cancel('No worries. You can start over anytime — just run the installer again.');
     }
     process.exit(1);
   }

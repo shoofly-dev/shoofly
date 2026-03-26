@@ -175,24 +175,38 @@ command -v node >/dev/null 2>&1 || {
   echo "  macOS:   brew install node"
   exit 1
 }
-node ~/.shoofly/bin/shoofly-setup --tier advanced
+run_wizard() {
+  node ~/.shoofly/bin/shoofly-setup --tier advanced
+}
+
+run_wizard
 WIZARD_EXIT=$?
-if [ $WIZARD_EXIT -ne 0 ]; then
+while [ $WIZARD_EXIT -ne 0 ]; do
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "ℹ️  Setup was cancelled."
-  echo ""
   if [ -f ~/.shoofly/config.json ]; then
-    echo "   Your existing Shoofly install is unchanged and still active."
-    echo "   Run  shoofly-status  to check in."
+    echo "   Happens to the best of us. 🙂"
+    echo ""
+    echo "   Your install is active — Shoofly is watching right now."
+    echo "   No changes were saved."
   else
-    echo "   No changes were made."
-    echo "   Run the installer again whenever you're ready."
+    echo "   No worries — nothing was changed."
   fi
+  echo ""
+  printf "   Want to run through setup again? (y/N) "
+  read -r RETRY </dev/tty
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
-  exit 0
-fi
+  case "$RETRY" in
+    y|Y|yes|Yes|YES)
+      run_wizard
+      WIZARD_EXIT=$?
+      ;;
+    *)
+      exit 0
+      ;;
+  esac
+done
 
 # ─── Step 8: Initialize log files and audit database ─────────────────────────
 touch ~/.shoofly/logs/alerts.log
