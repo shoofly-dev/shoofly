@@ -4,6 +4,17 @@
 
 set -euo pipefail
 
+# ─── TTY guard — re-exec with a real TTY if piped from curl ──────────────────
+# @clack/prompts requires an interactive terminal. When run as `curl | bash`,
+# stdin is the pipe, not the terminal — keyboard input breaks.
+# Fix: download self to /tmp and re-exec with /dev/tty as stdin.
+if [ ! -t 0 ]; then
+  SELF=$(mktemp /tmp/shoofly-basic-XXXXXX.sh)
+  curl -fsSL "https://shoofly.dev/install.sh" -o "$SELF"
+  chmod +x "$SELF"
+  exec bash "$SELF" < /dev/tty
+fi
+
 BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 
 echo ""
