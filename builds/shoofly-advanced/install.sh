@@ -193,7 +193,7 @@ while [ $WIZARD_EXIT -ne 0 ]; do
     echo "   No worries — nothing was changed."
   fi
   echo ""
-  printf "   Want to run through setup again? (y/N) "
+  printf "   Want to run through setup again? (Y/N) "
   read -r RETRY </dev/tty
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
