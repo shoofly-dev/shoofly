@@ -539,6 +539,7 @@ a:hover {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
   padding-top: 0.75rem;
   margin-top: 0.75rem;
   border-top: 1px solid var(--border);
