@@ -529,6 +529,21 @@ a:hover {
   text-decoration: none;
 }
 
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.footer-legal {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
 /* ----- Quick Start ----- */
 .quick-start .terminal-block {
   max-width: 100%;
