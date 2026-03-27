@@ -106,3 +106,4 @@ echo "   Agent:      $AGENT_NAME"
 echo "   Docs:       https://github.com/shoofly-dev/shoofly"
 echo ""
 echo "🪰 Watching your agents. Stay safe."
+# cache-bust 1774583301
