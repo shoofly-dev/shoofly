@@ -134,10 +134,10 @@ async function setupTelegram(existing) {
     validate: v => !v ? 'Bot token is required' : undefined,
   }));
   const tgChatId = bail(await text({
-    message: 'Chat ID  (where should alerts land?)',
+    message: 'Chat ID — where should alerts land?',
     initialValue: existing?.telegram_chat_id || '',
     placeholder: '123456789',
-    hint: 'Message your bot once, then visit api.telegram.org/bot<TOKEN>/getUpdates — look for "chat" → "id"',
+    hint: "Tip: Don't know yours? Message @[YourBotsName] on Telegram — it replies with your ID instantly.",
     validate: v => !v ? 'Chat ID is required' : undefined,
   }));
 
