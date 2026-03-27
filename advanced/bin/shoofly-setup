@@ -77,10 +77,17 @@ function bail(value) {
 }
 
 function getAgentInfo() {
+  // Try to read from existing config first (most reliable)
   try {
-    const raw = execSync('openclaw status 2>/dev/null', { encoding: 'utf8', timeout: 3000 });
+    const cfg = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+    if (cfg.agent_name) return { name: cfg.agent_name, id: cfg.agent_id || '' };
+  } catch {}
+  // Fall back to openclaw status, then hostname
+  try {
+    const OPENCLAW = execSync('command -v openclaw 2>/dev/null || echo /opt/homebrew/bin/openclaw', { encoding: 'utf8' }).trim();
+    const raw = execSync(`"${OPENCLAW}" status 2>/dev/null`, { encoding: 'utf8', timeout: 3000 });
     const info = JSON.parse(raw);
-    return { name: info.agentName || 'agent', id: info.agentId || '' };
+    return { name: info.agentName || os.hostname().split('.')[0] || 'agent', id: info.agentId || '' };
   } catch { return { name: os.hostname().split('.')[0] || 'agent', id: '' }; }
 }
 
