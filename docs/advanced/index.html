@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shoofly Advanced setup guide — installation, CLI reference, and troubleshooting for Advanced tier runtime security." />
+  <meta name="color-scheme" content="dark" />
+  <title>Shoofly Advanced — Setup Guide</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Dark-theme docs page — inherits design language from shoofly.dev */
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700; color: var(--accent);
+      text-decoration: none; letter-spacing: -0.01em; white-space: nowrap;
+    }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-label {
+      font-size: 15px; font-weight: 500; color: var(--text-muted);
+    }
+
+    /* Layout */
+    .container { width: 100%; max-width: 860px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Hero */
+    .hero {
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-title {
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 0.5rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-muted);
+    }
+
+    /* Sections */
+    .doc-section {
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-section:last-of-type { border-bottom: none; }
+
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--text);
+      margin-bottom: 1rem; letter-spacing: -0.01em;
+    }
+
+    .section-text {
+      font-size: 0.95rem; color: var(--text-muted); line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+
+    /* Lists */
+    .tool-list {
+      list-style: none; padding: 0;
+    }
+    .tool-list li {
+      font-size: 0.95rem; color: var(--text-muted);
+      padding: 0.4rem 0 0.4rem 1.5rem; position: relative;
+    }
+    .tool-list li::before {
+      content: ">";
+      position: absolute; left: 0;
+      color: var(--accent); font-family: var(--font-mono); font-weight: 700;
+    }
+    .tool-list code {
+      font-family: var(--font-mono); font-size: 0.9rem;
+      color: #6ee7b7; background: var(--accent-dim);
+      padding: 2px 6px; border-radius: 3px;
+    }
+
+    /* Code block */
+    .code-block {
+      background-color: #010409;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #6ee7b7;
+      overflow-x: auto;
+      margin-bottom: 0.75rem;
+      white-space: pre;
+      line-height: 1.5;
+    }
+
+    .note {
+      font-size: 0.85rem; color: var(--text-muted); font-style: italic;
+    }
+
+    /* Wizard steps */
+    .wizard-list {
+      list-style: decimal; padding-left: 1.25rem;
+    }
+    .wizard-list li {
+      font-size: 0.95rem; color: var(--text-muted);
+      padding: 0.3rem 0; line-height: 1.65;
+    }
+    .wizard-list li strong { color: var(--text); font-weight: 600; }
+
+    /* CLI table */
+    .cli-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .cli-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      display: flex; align-items: baseline; gap: 1rem;
+    }
+    .cli-card code {
+      font-family: var(--font-mono); font-size: 0.9rem;
+      color: #6ee7b7; white-space: nowrap; flex-shrink: 0;
+    }
+    .cli-card span {
+      font-size: 0.9rem; color: var(--text-muted);
+    }
+    .cli-badge {
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+      background: #1d4ed833; color: #93c5fd;
+      padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+    }
+
+    /* Troubleshooting */
+    .trouble-item { margin-bottom: 1rem; }
+    .trouble-item strong {
+      color: var(--text); font-weight: 600; font-size: 0.95rem;
+      display: block; margin-bottom: 0.25rem;
+    }
+    .trouble-item p {
+      font-size: 0.9rem; color: var(--text-muted); line-height: 1.6;
+    }
+    .trouble-item code {
+      font-family: var(--font-mono); font-size: 0.85rem;
+      color: #6ee7b7; background: var(--accent-dim);
+      padding: 2px 6px; border-radius: 3px;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link {
+      color: var(--text-muted); font-size: 0.875rem;
+      font-family: var(--font-mono); transition: color 0.15s;
+    }
+    .footer-link:hover { color: var(--accent); text-decoration: none; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero { padding: 2.5rem 0 2rem; }
+      .doc-section { padding: 2rem 0; }
+      .cli-card { flex-direction: column; gap: 0.35rem; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="site-nav">
+    <a href="/" class="nav-logo">🪰 Shoofly</a>
+    <span class="nav-label">Docs</span>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-title">Shoofly Advanced — Setup Guide</h1>
+      <p class="hero-sub">Installation, CLI reference, and troubleshooting for Advanced tier runtime security.</p>
+    </div>
+  </section>
+
+  <!-- What's Installed -->
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">What's Installed</h2>
+      <p class="section-text">Shoofly Advanced includes the following components:</p>
+      <ul class="tool-list">
+        <li><code>shoofly-daemon</code> — Advanced tier runtime monitor</li>
+        <li><code>shoofly-hook</code> — pre-execution blocking hook</li>
+        <li><code>shoofly-check</code> — threat scanner</li>
+        <li><code>shoofly-status</code> — daemon status and tier info</li>
+        <li><code>shoofly-health</code> — health check diagnostics</li>
+        <li><code>shoofly-log</code> — recent agent activity viewer</li>
+        <li><code>shoofly-block-log</code> — blocked event log</li>
+        <li><code>shoofly-policy-lint</code> — policy file validator</li>
+        <li><code>shoofly-notify</code> — test notification sender</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Installation -->
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Installation</h2>
+      <p class="section-text">You received a personal install command in your welcome email. Run it in your terminal:</p>
+      <div class="code-block">SHOOFLY_TOKEN=your_token bash &lt;(curl -fsSL https://shoofly.dev/install-advanced.sh)</div>
+      <p class="note">Your install token is one-time use. Do not share it.</p>
+    </div>
+  </section>
+
+  <!-- Wizard Setup -->
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Wizard Setup</h2>
+      <p class="section-text">During installation you'll be guided through initial configuration:</p>
+      <ol class="wizard-list">
+        <li><strong>Notification channel</strong> — OpenClaw gateway, Telegram, macOS Desktop, or skip</li>
+        <li><strong>Agent name</strong> — a label for this machine in alerts and logs</li>
+        <li><strong>Auto-start on login</strong> — optionally launch the daemon at login</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- CLI Reference -->
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">CLI Reference</h2>
+      <div class="cli-grid">
+        <div class="cli-card">
+          <code>shoofly-status</code>
+          <span>Show daemon status and tier</span>
+        </div>
+        <div class="cli-card">
+          <code>shoofly-health</code>
+          <span>Run a health check</span>
+        </div>
+        <div class="cli-card">
+          <code>shoofly-log</code>
+          <span>View recent agent activity</span>
+        </div>
+        <div class="cli-card">
+          <code>shoofly-check</code>
+          <span>Run a threat scan</span>
+        </div>
+        <div class="cli-card">
+          <code>shoofly-block-log</code>
+          <span>View blocked events <span class="cli-badge">Advanced only</span></span>
+        </div>
+        <div class="cli-card">
+          <code>shoofly-policy-lint</code>
+          <span>Validate your policy file</span>
+        </div>
+        <div class="cli-card">
+          <code>shoofly-notify</code>
+          <span>Send a test notification</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Troubleshooting -->
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Troubleshooting</h2>
+      <div class="trouble-item">
+        <strong>Daemon not running</strong>
+        <p>Run <code>shoofly-health</code> for diagnostics. It will report what's misconfigured and suggest fixes.</p>
+      </div>
+      <div class="trouble-item">
+        <strong>Need a new install link</strong>
+        <p>Contact support — we'll issue a fresh token for your account.</p>
+      </div>
+      <div class="trouble-item">
+        <strong>Uninstall</strong>
+        <p>Email <a href="mailto:support@shoofly.dev">support@shoofly.dev</a> and we'll walk you through removal.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">Shoofly Advanced docs</span>
+      <a href="/" class="footer-link">shoofly.dev</a>
+      <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+    </div>
+  </footer>
+
+</body>
+</html>
