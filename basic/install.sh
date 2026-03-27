@@ -188,6 +188,18 @@ echo "Verifying Shoofly Basic daemon..."
 ~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify \
   && echo "  ✓ Daemon verified"
 
+# ─── Step 8: Add ~/.shoofly/bin to PATH ──────────────────────────────────────
+SHOOFLY_PATH_LINE='export PATH="$HOME/.shoofly/bin:$PATH"'
+for rc in ~/.zshrc ~/.bash_profile ~/.bashrc; do
+  if [[ -f "$rc" ]] && ! grep -q '.shoofly/bin' "$rc" 2>/dev/null; then
+    echo "" >> "$rc"
+    echo "# Shoofly CLI tools" >> "$rc"
+    echo "$SHOOFLY_PATH_LINE" >> "$rc"
+  fi
+done
+export PATH="$HOME/.shoofly/bin:$PATH"
+echo "  ✓ ~/.shoofly/bin added to PATH"
+
 # ─── Done ─────────────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
