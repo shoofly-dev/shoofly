@@ -526,7 +526,7 @@ a:hover {
 }
 
 .footer-link:hover {
-  color: #fff;
+  color: #a7f3d0;
   text-decoration: none;
 }
 
@@ -551,8 +551,9 @@ a:hover {
 }
 
 .footer-sub {
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
 }
 
 .footer-sub em {
