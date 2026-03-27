@@ -122,12 +122,7 @@ app.get("/upgrade", async (_req, res) => {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
-      after_completion: {
-        type: "hosted_confirmation",
-        hosted_confirmation: {
-          custom_message: "You're all set! 🎉 Check your email for instructions to download and install Shoofly Advanced. If you don't see it within a few minutes, check your spam folder. Questions? Email us at support@shoofly.dev",
-        },
-      },
+      success_url: "https://shoofly-stripe-production.up.railway.app/success",
       cancel_url: "https://shoofly.dev/advanced",
       customer_email: undefined,
       metadata: { source: "shoofly-advanced" },
@@ -209,6 +204,47 @@ app.get("/admin/token", (req, res) => {
   console.log(`[admin] token created for ${email}`);
   const ts = Date.now();
   res.json({ token, install: `rm -f /tmp/shoofly-install.sh && curl -fsSL "https://shoofly.dev/install-advanced.sh?v=${ts}" -o /tmp/shoofly-install.sh && SHOOFLY_TOKEN=${token} bash /tmp/shoofly-install.sh` });
+});
+
+// ---------- GET /success — Post-purchase confirmation page ----------
+
+const successPage = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're all set — Shoofly Advanced</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪰</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#0a0a0a; --bg-card:#111118; --border:#2d2d3d; --text:#e5e5e5; --text-muted:#a3a3a3; --accent:#6ee7b7; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:520px; width:100%; text-align:center; }
+    .logo { font-size:48px; margin-bottom:16px; }
+    h1 { font-size:26px; font-weight:700; color:#fff; margin-bottom:12px; }
+    p { font-size:15px; color:var(--text-muted); line-height:1.7; margin-bottom:12px; }
+    .highlight { color:var(--accent); font-weight:600; }
+    .back { display:inline-block; margin-top:24px; color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:13px; text-decoration:none; }
+    .back:hover { text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🪰⚡</div>
+    <h1>You're all set! 🎉</h1>
+    <p>Check your email for instructions to download and install <span class="highlight">Shoofly Advanced</span>.</p>
+    <p>If you don't see it within a few minutes, check your spam folder.</p>
+    <p style="font-size:13px;">Questions? <a href="mailto:support@shoofly.dev" style="color:var(--accent);">support@shoofly.dev</a></p>
+    <a href="https://shoofly.dev" class="back">← back to shoofly.dev</a>
+  </div>
+</body>
+</html>`;
+
+app.get("/success", (_req, res) => {
+  res.setHeader("Content-Type", "text/html");
+  res.send(successPage);
 });
 
 // ---------- GET /health ----------
