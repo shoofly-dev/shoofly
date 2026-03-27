@@ -166,7 +166,7 @@ echo "  ✓ shoofly-hook extension ready"
 echo "  (License check: deferred — no key required for now)"
 
 # ─── Step 5: Download shoofly-setup wizard ────────────────────────────────────
-curl -fsSL "https://raw.githubusercontent.com/shoofly-dev/shoofly/2566266/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
+curl -fsSL "https://raw.githubusercontent.com/shoofly-dev/shoofly/57ca2b5/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
 chmod +x ~/.shoofly/bin/shoofly-setup
 
 # ─── Step 6: Run interactive setup wizard (writes ~/.shoofly/config.json) ─────

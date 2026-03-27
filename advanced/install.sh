@@ -121,7 +121,7 @@ command -v node >/dev/null 2>&1 || {
   exit 1
 }
 # Always download fresh so hint changes take effect immediately
-curl -fsSL "https://raw.githubusercontent.com/shoofly-dev/shoofly/2566266/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
+curl -fsSL "https://raw.githubusercontent.com/shoofly-dev/shoofly/57ca2b5/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
 chmod +x ~/.shoofly/bin/shoofly-setup
 node ~/.shoofly/bin/shoofly-setup --tier advanced
 
