@@ -408,10 +408,11 @@ cleanup() {
 
 trap cleanup SIGTERM SIGINT
 
-# Named pipe for tail output
-FIFO="$(mktemp -u /tmp/shoofly-daemon-XXXXXX)"
-mkfifo "$FIFO"
-trap 'rm -f "$FIFO"; cleanup' EXIT
+# Use a temp file instead of a FIFO — avoids EINTR/"Interrupted system call"
+# under launchd which signals the process and breaks read -t on named pipes.
+TAIL_TMP="$(mktemp /tmp/shoofly-daemon-XXXXXX)"
+TAIL_POS=0
+trap 'rm -f "$TAIL_TMP"; cleanup' EXIT
 
 start_tail() {
   local log_file="$1"
@@ -420,8 +421,11 @@ start_tail() {
     wait "$TAIL_PID" 2>/dev/null || true
   fi
   TAIL_PID=""
+  # Reset temp file and position for the new session log
+  > "$TAIL_TMP"
+  TAIL_POS=0
   if [[ -n "$log_file" && -f "$log_file" ]]; then
-    tail -F "$log_file" > "$FIFO" 2>/dev/null &
+    tail -F "$log_file" >> "$TAIL_TMP" 2>/dev/null &
     TAIL_PID=$!
     log_info "Tailing session log: $log_file (tail PID=$TAIL_PID)"
   fi
@@ -436,8 +440,16 @@ else
   log_info "No active session log found. Polling for new sessions every ${SESSION_CHECK_INTERVAL}s..."
 fi
 
-# Read from FIFO (non-blocking poll loop)
+# Poll loop — sleep-based, not read -t, so EINTR from launchd signals is harmless
 while true; do
+  # Drain any new lines written to the temp file since last read
+  while IFS= read -r line; do
+    evaluate_line "$line"
+  done < <(tail -n +"$((TAIL_POS + 1))" "$TAIL_TMP" 2>/dev/null)
+  # Advance position to end of file
+  NEW_POS=$(wc -l < "$TAIL_TMP" 2>/dev/null || echo "$TAIL_POS")
+  TAIL_POS=$NEW_POS
+
   # Periodically check for new/switched session
   NOW=$(date +%s)
   if (( NOW - LAST_SESSION_CHECK >= SESSION_CHECK_INTERVAL )); then
@@ -450,8 +462,5 @@ while true; do
     fi
   fi
 
-  # Read lines from FIFO with a short timeout
-  if read -t 1 -r line < "$FIFO" 2>/dev/null; then
-    evaluate_line "$line"
-  fi
+  sleep 1
 done
