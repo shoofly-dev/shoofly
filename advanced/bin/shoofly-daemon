@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
-# shoofly-daemon — Shoofly Advanced sidecar daemon
-# Extends the Basic daemon with:
-#   - Unix domain socket server at ~/.shoofly/daemon.sock
-#   - In-memory ring buffer of last 500 tool calls (never persisted to disk)
-#   - Serves shoofly-check queries over socket for RL (runaway loop) checks
-#
-# All Basic monitoring behavior is preserved:
-#   - Tails active OpenClaw session logs
-#   - Fires notifications via shoofly-notify
-#   - Appends to alerts.log
-#
+# shoofly-daemon — Shoofly Basic sidecar daemon v1.2.1
+# Tails active OpenClaw session logs and fires threat notifications.
 # Runs as the current user only. No root required or accepted.
 # License: MIT
 
@@ -18,17 +9,9 @@ set -euo pipefail
 # ─── Constants ────────────────────────────────────────────────────────────────
 SHOOFLY_DIR="$HOME/.shoofly"
 ALERTS_LOG="$SHOOFLY_DIR/logs/alerts.log"
-BLOCKED_LOG="$SHOOFLY_DIR/logs/blocked.log"
 ALERTS_LOG_MAX_BYTES=10485760  # 10MB
-SOCKET_PATH="$SHOOFLY_DIR/daemon.sock"
+RL_TRACKING_FILE="$SHOOFLY_DIR/logs/.rl_tracking"
 CONFIG_PATH="$SHOOFLY_DIR/config.json"
-
-# Ring buffer: last 500 tool calls (in-memory only, never written to disk)
-# Format of each entry: "<epoch>:<tool_name>:<args_hash>"
-declare -a CALL_RING=()
-RING_MAX=500
-RING_INDEX=0
-RING_COUNT=0
 
 # ─── Argument parsing ─────────────────────────────────────────────────────────
 VERIFY_MODE=false
@@ -57,17 +40,24 @@ if [[ "$VERIFY_MODE" == "true" ]]; then
     exit 1
   fi
 
+  # Verify config is valid JSON
   if ! jq empty "$CONFIG_PATH" 2>/dev/null; then
     echo "ERROR: Config is not valid JSON: $CONFIG_PATH" >&2
     exit 1
   fi
 
+  # Verify session log path is resolvable
   AGENT_ID=$(jq -r '.agent_id // ""' "$CONFIG_PATH")
-  SESSION_BASE="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
-  echo "Shoofly Advanced daemon verified"
-  echo "  Config:       $CONFIG_PATH"
+  # Avoid double-slash when AGENT_ID is empty — use agents/sessions directly
+  if [[ -n "$AGENT_ID" ]]; then
+    SESSION_BASE="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  else
+    SESSION_BASE="$HOME/.openclaw/agents/sessions"
+  fi
+  # Path resolvable means directory exists or we can describe it
+  echo "Shoofly daemon verified"
+  echo "  Config: $CONFIG_PATH"
   echo "  Session base: $SESSION_BASE"
-  echo "  Socket:       $SOCKET_PATH"
   exit 0
 fi
 
@@ -88,38 +78,21 @@ fi
 AGENT_ID=$(jq -r '.agent_id // ""' "$CONFIG_PATH")
 AGENT_NAME=$(jq -r '.agent_name // "agent"' "$CONFIG_PATH")
 POLICY_PATH=$(jq -r '.policy_path // ""' "$CONFIG_PATH")
-TIER=$(jq -r '.tier // "advanced"' "$CONFIG_PATH")
+TIER=$(jq -r '.tier // "basic"' "$CONFIG_PATH")
 
 if [[ -z "$POLICY_PATH" ]]; then
   POLICY_PATH="$SHOOFLY_DIR/policy/threats.yaml"
 fi
 
-# Source credentials if .env exists (for notification channels)
-ENV_FILE="$SHOOFLY_DIR/.env"
-[[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
+# Read credentials from config.json (never source .env as shell — F3)
+TELEGRAM_BOT_TOKEN=$(jq -r '.telegram_bot_token // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+TELEGRAM_CHAT_ID=$(jq -r '.telegram_chat_id // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
 
 # Ensure logs directory exists
 mkdir -p "$SHOOFLY_DIR/logs"
-touch "$ALERTS_LOG" "$BLOCKED_LOG" 2>/dev/null || true
-
-# ─── Logging helpers ──────────────────────────────────────────────────────────
 
 log_info() {
   echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [shoofly-daemon] $*"
-}
-
-rotate_log_if_needed() {
-  local log_file="$1"
-  if [[ -f "$log_file" ]]; then
-    local size
-    size=$(wc -c < "$log_file" 2>/dev/null || echo 0)
-    if [[ "$size" -gt "$ALERTS_LOG_MAX_BYTES" ]]; then
-      [[ -f "${log_file}.3" ]] && rm -f "${log_file}.3"
-      [[ -f "${log_file}.2" ]] && mv "${log_file}.2" "${log_file}.3"
-      [[ -f "${log_file}.1" ]] && mv "${log_file}.1" "${log_file}.2"
-      mv "$log_file" "${log_file}.1"
-    fi
-  fi
 }
 
 log_alert() {
@@ -127,27 +100,45 @@ log_alert() {
   local ts
   ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-  rotate_log_if_needed "$ALERTS_LOG"
+  # Rotate log if > 10MB
+  if [[ -f "$ALERTS_LOG" ]]; then
+    local size
+    size=$(wc -c < "$ALERTS_LOG" 2>/dev/null || echo 0)
+    if [[ "$size" -gt "$ALERTS_LOG_MAX_BYTES" ]]; then
+      # Keep max 3 rotated copies
+      [[ -f "${ALERTS_LOG}.3" ]] && rm -f "${ALERTS_LOG}.3"
+      [[ -f "${ALERTS_LOG}.2" ]] && mv "${ALERTS_LOG}.2" "${ALERTS_LOG}.3"
+      [[ -f "${ALERTS_LOG}.1" ]] && mv "${ALERTS_LOG}.1" "${ALERTS_LOG}.2"
+      mv "$ALERTS_LOG" "${ALERTS_LOG}.1"
+    fi
+  fi
 
-  printf '{"ts":"%s","tier":"%s","threat":"%s","confidence":"%s","agent":"%s","tool":"%s","summary":"%s","notified":%s}\n' \
-    "$ts" "$TIER" "$threat" "$confidence" "$AGENT_NAME" "$tool_name" "$summary" "$notified" \
+  jq -n -c --arg ts "$ts" --arg tier "$TIER" --arg threat "$threat" \
+    --arg confidence "$confidence" --arg agent "$AGENT_NAME" \
+    --arg tool "$tool_name" --arg summary "$summary" --argjson notified "$notified" \
+    '{ts:$ts,tier:$tier,threat:$threat,confidence:$confidence,agent:$agent,tool:$tool,summary:$summary,notified:$notified}' \
     >> "$ALERTS_LOG"
 }
-
-# ─── Notification dispatcher ──────────────────────────────────────────────────
 
 fire_notification() {
   local msg="$1"
   local notify_script="$SHOOFLY_DIR/bin/shoofly-notify"
 
+  # Pre-encode msg for safe interpolation (F2)
+  local json_msg
+  json_msg=$(printf '%s' "$msg" | jq -Rs .)
+  local safe_osa_msg
+  safe_osa_msg=$(printf '%s' "$msg" | sed 's/\\/\\\\/g; s/"/\\"/g')
+
+  # Read notification channels from config
   local channels
   channels=$(jq -r '.notification_channels[]? // empty' "$CONFIG_PATH" 2>/dev/null || echo "")
 
   if [[ -z "$channels" ]]; then
-    # Fallback: stderr + macOS if available
-    echo "$msg" >&2
+    # Fallback: stderr + alerts.log + macOS if available
+    printf '══════════════════════════════════════\n🛡️  SHOOFLY ALERT\n──────────────────────────────────────\n%s\n══════════════════════════════════════\n' "$msg" >&2
     if [[ "$(uname)" == "Darwin" ]]; then
-      osascript -e "display notification \"$msg\" with title \"Shoofly ⚡🪰⚡\" sound name \"Basso\"" 2>/dev/null || true
+      osascript -e "display notification \"$safe_osa_msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
     fi
     return
   fi
@@ -157,22 +148,23 @@ fire_notification() {
     if [[ -x "$notify_script" ]]; then
       "$notify_script" "$channel" "$msg" 2>/dev/null || true
     else
+      # Fallback inline delivery
       case "$channel" in
         terminal)  echo "$msg" >&2 ;;
         openclaw_gateway)
           curl -s -X POST http://127.0.0.1:18789/chat \
             -H "Content-Type: application/json" \
-            -d "{\"message\": \"$msg\"}" > /dev/null 2>&1 || true
+            -d "{\"message\": $json_msg}" > /dev/null 2>&1 || true
           ;;
         telegram)
           if [[ -n "${TELEGRAM_BOT_TOKEN:-}" && -n "${TELEGRAM_CHAT_ID:-}" ]]; then
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-              -d "chat_id=${TELEGRAM_CHAT_ID}" \
-              -d "text=${msg}" > /dev/null 2>&1 || true
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=${msg}" > /dev/null 2>&1 || true
           fi
           ;;
         macos)
-          osascript -e "display notification \"$msg\" with title \"Shoofly ⚡🪰⚡\" sound name \"Basso\"" 2>/dev/null || true
+          osascript -e "display notification \"$safe_osa_msg\" with title \"Shoofly 🪰\" sound name \"Basso\"" 2>/dev/null || true
           ;;
       esac
     fi
@@ -182,351 +174,170 @@ fire_notification() {
 threat_type_label() {
   local category="$1"
   case "$category" in
-    prompt_injection)        echo "prompt injection" ;;
+    prompt_injection)      echo "prompt injection" ;;
     tool_response_injection) echo "tool response injection" ;;
-    out_of_scope_write)      echo "out-of-scope write" ;;
-    runaway_loop)            echo "runaway loop" ;;
-    data_exfiltration)       echo "data exfiltration attempt" ;;
-    *)                       echo "$category" ;;
+    out_of_scope_write)    echo "out-of-scope write" ;;
+    runaway_loop)          echo "runaway loop" ;;
+    data_exfiltration)     echo "data exfiltration attempt" ;;
+    *)                     echo "$category" ;;
   esac
 }
-
-# ─── Ring buffer management ───────────────────────────────────────────────────
-# Ring buffer stored in CALL_RING array.
-# Each entry: "<epoch>:<tool_name>:<normalized_args_hash>"
-# Never written to disk. Cleared on daemon restart.
-
-ring_add() {
-  local epoch="$1"
-  local tool="$2"
-  local args_hash="$3"
-  local entry="${epoch}:${tool}:${args_hash}"
-
-  if [[ $RING_COUNT -lt $RING_MAX ]]; then
-    CALL_RING[$RING_COUNT]="$entry"
-    RING_COUNT=$((RING_COUNT + 1))
-  else
-    # Overwrite oldest slot (circular)
-    CALL_RING[$RING_INDEX]="$entry"
-    RING_INDEX=$(( (RING_INDEX + 1) % RING_MAX ))
-  fi
-}
-
-# Count calls matching tool+args_hash in window_seconds
-ring_count_tool_in_window() {
-  local tool="$1"
-  local args_hash="$2"
-  local window="$3"
-  local cutoff
-  cutoff=$(( $(date +%s) - window ))
-  local count=0
-  for entry in "${CALL_RING[@]+"${CALL_RING[@]}"}"; do
-    local entry_epoch entry_tool entry_hash
-    IFS=: read -r entry_epoch entry_tool entry_hash <<< "$entry"
-    if [[ "$entry_epoch" -ge "$cutoff" && "$entry_tool" == "$tool" && "$entry_hash" == "$args_hash" ]]; then
-      ((count++)) || true
-    fi
-  done
-  echo "$count"
-}
-
-# Count all calls in window_seconds
-ring_count_all_in_window() {
-  local window="$1"
-  local cutoff
-  cutoff=$(( $(date +%s) - window ))
-  local count=0
-  for entry in "${CALL_RING[@]+"${CALL_RING[@]}"}"; do
-    local entry_epoch
-    entry_epoch="${entry%%:*}"
-    if [[ "$entry_epoch" -ge "$cutoff" ]]; then
-      ((count++)) || true
-    fi
-  done
-  echo "$count"
-}
-
-# Count URL repetitions in window_seconds (for RL-004)
-# URL hash is stored in the args_hash field when tool is a fetch-type tool
-ring_count_url_in_window() {
-  local url_hash="$1"
-  local window="$2"
-  local cutoff
-  cutoff=$(( $(date +%s) - window ))
-  local count=0
-  for entry in "${CALL_RING[@]+"${CALL_RING[@]}"}"; do
-    local entry_epoch entry_tool entry_hash
-    IFS=: read -r entry_epoch entry_tool entry_hash <<< "$entry"
-    if [[ "$entry_epoch" -ge "$cutoff" && "$entry_hash" == "$url_hash" ]]; then
-      ((count++)) || true
-    fi
-  done
-  echo "$count"
-}
-
-# Evaluate RL checks for a given tool+args and return JSON result
-evaluate_rl_checks() {
-  local tool="$1"
-  local args="$2"
-  local epoch
-  epoch=$(date +%s)
-
-  # Simple hash: md5 of args (portable)
-  local args_hash
-  if command -v md5sum >/dev/null 2>&1; then
-    args_hash=$(echo "$args" | md5sum | cut -d' ' -f1)
-  elif command -v md5 >/dev/null 2>&1; then
-    args_hash=$(echo "$args" | md5)
-  else
-    # Fallback: use length+first 50 chars as pseudo-hash
-    args_hash="${#args}:${args:0:50}"
-  fi
-
-  # Add this call to ring buffer
-  ring_add "$epoch" "$tool" "$args_hash"
-
-  # RL-001: same tool + args 5+ times in 60s
-  local rl001=false
-  local count_tool
-  count_tool=$(ring_count_tool_in_window "$tool" "$args_hash" 60)
-  [[ "$count_tool" -ge 5 ]] && rl001=true
-
-  # RL-002: >20 calls in 30s
-  local rl002=false
-  local count_all
-  count_all=$(ring_count_all_in_window 30)
-  [[ "$count_all" -gt 20 ]] && rl002=true
-
-  # RL-003: file read-write cycle (simplified: detect same file targeted alternately)
-  # Full sequence detection requires more state; here we check recent alternating pattern
-  local rl003=false
-  # (Simplified: not easily computed from hash alone — daemon records need richer data)
-  # This is a best-effort approximation; false negatives are acceptable (fail-open for RL-003)
-
-  # RL-004: same URL 10+ times in 60s
-  local rl004=false
-  case "$tool" in
-    fetch|curl|http|request|get|post|web_fetch|browse)
-      local url_count
-      url_count=$(ring_count_url_in_window "$args_hash" 60)
-      [[ "$url_count" -ge 10 ]] && rl004=true
-      ;;
-  esac
-
-  printf '{"rl001":%s,"rl002":%s,"rl003":%s,"rl004":%s}\n' \
-    "$rl001" "$rl002" "$rl003" "$rl004"
-}
-
-# ─── Unix socket server ───────────────────────────────────────────────────────
-# Serve shoofly-check queries over ~/.shoofly/daemon.sock.
-# Protocol:
-#   Client sends: {"action":"check","tool":"<name>","ts":<epoch>}  (+ optional "args")
-#   Server sends: {"rl001":<bool>,"rl002":<bool>,"rl003":<bool>,"rl004":<bool>}
-#
-# Socket is chmod 600 — only accessible by the current user.
-
-SHOOFLY_SOCK_DIR="$HOME/.shoofly/run"
-mkdir -p "$SHOOFLY_SOCK_DIR"
-SOCKET_SERVER_FIFO=$(mktemp "$SHOOFLY_SOCK_DIR/fifo-XXXXXX")
-rm "$SOCKET_SERVER_FIFO"
-mkfifo "$SOCKET_SERVER_FIFO"
-
-start_socket_server() {
-  # Remove stale socket
-  rm -f "$SOCKET_PATH"
-
-  # Requires: socat or nc with Unix socket support
-  if command -v socat >/dev/null 2>&1; then
-    socat UNIX-LISTEN:"$SOCKET_PATH",fork,reuseaddr EXEC:"bash -c 'read line && echo \$line | ~/.shoofly/bin/shoofly-daemon-handler'" &
-    SOCKET_PID=$!
-  elif command -v nc >/dev/null 2>&1 && nc -h 2>&1 | grep -q '\-U'; then
-    # BSD nc (macOS): supports Unix sockets
-    _socket_server_loop &
-    SOCKET_PID=$!
-  else
-    log_info "WARN: socat/nc not available — socket server not started. RL checks will be skipped."
-    SOCKET_PID=""
-    return
-  fi
-
-  # Set socket permissions to 600 (user only)
-  # Wait briefly for socket file to appear
-  local waited=0
-  while [[ ! -S "$SOCKET_PATH" && $waited -lt 30 ]]; do
-    sleep 0.1
-    ((waited++)) || true
-  done
-  if [[ -S "$SOCKET_PATH" ]]; then
-    chmod 600 "$SOCKET_PATH" 2>/dev/null || true
-    log_info "Unix socket server started at $SOCKET_PATH (PID=$SOCKET_PID)"
-  else
-    log_info "WARN: Socket file did not appear at $SOCKET_PATH"
-  fi
-}
-
-# Pure-bash socket server loop (used when socat is not available)
-_socket_server_loop() {
-  rm -f "$SOCKET_PATH"
-  # This approach uses a named pipe + nc loop for portability
-  # Each connection: read JSON query, return RL check results
-  while true; do
-    if command -v nc >/dev/null 2>&1; then
-      local response
-      local query
-      query=$(nc -l -U "$SOCKET_PATH" 2>/dev/null || echo "")
-      if [[ -n "$query" ]]; then
-        local tool args ts
-        tool=$(echo "$query" | jq -r '.tool // ""' 2>/dev/null || echo "")
-        args=$(echo "$query" | jq -r '.args // ""' 2>/dev/null || echo "")
-        if [[ -n "$tool" ]]; then
-          response=$(evaluate_rl_checks "$tool" "$args")
-          echo "$response" | nc -U "$SOCKET_PATH" 2>/dev/null || true
-        fi
-      fi
-    fi
-    sleep 0.05
-  done
-}
-
-SOCKET_PID=""
-start_socket_server
-
-# ─── Session log evaluation (same as Basic) ───────────────────────────────────
 
 evaluate_line() {
   local line="$1"
 
+  # Parse the JSONL line — must be valid JSON
   if ! echo "$line" | jq empty 2>/dev/null; then
     return
   fi
 
   local role
   role=$(echo "$line" | jq -r '.message.role // .role // ""' 2>/dev/null || echo "")
-  [[ "$role" != "assistant" ]] && return
 
+  # Evaluate assistant messages (tool calls) and toolResult messages (TRI rules)
+  [[ "$role" != "assistant" && "$role" != "toolResult" ]] && return
+
+  # Extract text content only — excludes toolCall arguments to prevent
+  # false PI matches on tool args (Bug 3 fix: OSW logged as PI-001)
   local content
-  content=$(echo "$line" | jq -r '.message.content // .content // ""' 2>/dev/null || echo "")
-  [[ -z "$content" ]] && return
+  content=$(echo "$line" | jq -r '
+    (.message.content // .content // "") |
+    if type == "array" then [.[] | select(.type == "text") | .text] | join("\n")
+    elif type == "string" then .
+    else "" end
+  ' 2>/dev/null || echo "")
 
+  # Extract tool name from the content if available
   local tool_name
   tool_name=$(echo "$line" | jq -r '
-    (.message.content[]? | select(.type == "tool_use") | .name) //
+    (.message.content[]? | select(.type == "toolCall") | .name) //
     (.tool_name // "unknown")
   ' 2>/dev/null | head -1 || echo "unknown")
 
+  # Extract tool arguments early so OSW/DE checks always run
   local tool_args
   tool_args=$(echo "$line" | jq -r '
-    (.message.content[]? | select(.type == "tool_use") | .input | tostring) //
+    (.message.content[]? | select(.type == "toolCall") | .arguments | tostring) //
     (.tool_args // "")
   ' 2>/dev/null || echo "")
 
-  # Add this event to ring buffer for RL tracking
-  local epoch
-  epoch=$(date +%s)
-  local args_hash=""
-  if [[ -n "$tool_args" ]]; then
-    if command -v md5sum >/dev/null 2>&1; then
-      args_hash=$(echo "$tool_args" | md5sum | cut -d' ' -f1)
-    elif command -v md5 >/dev/null 2>&1; then
-      args_hash=$(echo "$tool_args" | md5)
-    else
-      args_hash="${#tool_args}"
-    fi
-  fi
-  ring_add "$epoch" "$tool_name" "$args_hash"
+  # Skip only if both content and tool_args are empty
+  [[ -z "$content" && -z "$tool_args" ]] && return
 
   local match_count=0
   local matched_category=""
   local matched_threat_id=""
 
-  # ── Pattern matching (same as Basic daemon) ────────────────────────────────
+  # ── RL-001: repeated tool call detection ──
+  if [[ "$role" == "assistant" && "$tool_name" != "unknown" && -n "${RL_TRACKING_FILE:-}" ]]; then
+    local now_epoch
+    now_epoch=$(date +%s)
+    echo "${now_epoch}:${tool_name}" >> "$RL_TRACKING_FILE"
+    if [[ -f "$RL_TRACKING_FILE" ]]; then
+      local cutoff=$((now_epoch - 60))
+      local rl_count=0
+      while IFS=: read -r ts tool; do
+        if [[ "$ts" -ge "$cutoff" && "$tool" == "$tool_name" ]]; then
+          rl_count=$((rl_count + 1))
+        fi
+      done < "$RL_TRACKING_FILE"
+      if [[ $rl_count -ge 5 ]]; then
+        match_count=3
+        matched_category="runaway_loop"
+        matched_threat_id="RL-001"
+      fi
+    fi
+  fi
 
-  # PI-001
+  # ── Pattern matching against threats.yaml ──
+  # Simple regex checks for the detectable pattern types
+
+  # PI-001: ignore instructions
   if echo "$content" | grep -qiE '(ignore[[:space:]]+(previous|all|prior)[[:space:]]+instructions?)'; then
-    ((match_count++)) || true
+    match_count=$((match_count + 1))
     matched_category="prompt_injection"
     matched_threat_id="PI-001"
   fi
 
-  # PI-002
+  # PI-002: disregard rules
   if echo "$content" | grep -qiE '(disregard[[:space:]]+your[[:space:]]+(rules?|instructions?|guidelines?))'; then
-    ((match_count++)) || true
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-002"
   fi
 
-  # PI-003
+  # PI-003: new system prompt
   if echo "$content" | grep -qiE '(new[[:space:]]+system[[:space:]]+(prompt|instructions?))'; then
-    ((match_count++)) || true
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-003"
   fi
 
-  # PI-004
+  # PI-004: identity override
   if echo "$content" | grep -qiE '(you[[:space:]]+are[[:space:]]+now[[:space:]]+[a-z[:space:]]+(AI|assistant|bot|model))'; then
-    ((match_count++)) || true
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-004"
   fi
 
-  # PI-005
+  # PI-005: no restrictions claim
   if echo "$content" | grep -qiE '(act[[:space:]]+as[[:space:]]+if[[:space:]]+you[[:space:]]+have[[:space:]]+no[[:space:]]+(restrictions?|limits?|rules?))'; then
-    ((match_count++)) || true
+    match_count=$((match_count + 1))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-005"
   fi
 
-  # PI-006 (MEDIUM — counts as 2)
+  # PI-006: jailbreak keywords (MEDIUM — counts as 2 for threshold)
   if echo "$content" | grep -qiE '(\bDAN\b|do[[:space:]]+anything[[:space:]]+now|jailbreak)'; then
-    ((match_count += 2)) || true
+    match_count=$((match_count + 2))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-006"
   fi
 
-  # PI-007 (MEDIUM — counts as 2)
+  # PI-007: markup injection
   if echo "$content" | grep -qE '(<system>|</system>|\[INST\]|\[/INST\])'; then
-    ((match_count += 2)) || true
+    match_count=$((match_count + 2))
     [[ -z "$matched_category" ]] && matched_category="prompt_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="PI-007"
   fi
 
-  # TRI-001 (MEDIUM — counts as 2)
+  # TRI-001: HTML comment injection
   if echo "$content" | grep -qiE '<!--[[:space:]]*(ignore|new[[:space:]]+instruction|system[[:space:]]*:)'; then
-    ((match_count += 2)) || true
+    match_count=$((match_count + 2))
     [[ -z "$matched_category" ]] && matched_category="tool_response_injection"
     [[ -z "$matched_threat_id" ]] && matched_threat_id="TRI-001"
   fi
 
+  # OSW-001: sensitive path write (HIGH — auto-notify)
   if [[ -n "$tool_args" ]]; then
-    # OSW-001 (HIGH — force match_count to 3+)
-    if echo "$tool_args" | grep -qE '(/etc/|/usr/bin/|/bin/|/sbin/|~/.ssh/|~/.aws/|~/.bashrc|~/.zshrc|~/.profile|~/.bash_profile|~/Library/LaunchAgents/|/Library/LaunchDaemons/|/var/spool/cron/)'; then
-      match_count=3
+    if echo "$tool_args" | grep -qE '(/etc/|/usr/bin/|/bin/|/sbin/|~/\.ssh/|~/\.aws/|~/\.bashrc|~/\.zshrc|~/\.profile|~/\.bash_profile|~/Library/LaunchAgents/|/Library/LaunchDaemons/|/var/spool/cron/)'; then
+      match_count=3  # Force HIGH
       matched_category="out_of_scope_write"
       matched_threat_id="OSW-001"
     fi
 
-    # OSW-002
-    if echo "$tool_args" | grep -qE '~/.openclaw/' && ! echo "$tool_args" | grep -qE '~/.openclaw/skills/'; then
+    # OSW-002: openclaw config write outside skills
+    if echo "$tool_args" | grep -qE '~/\.openclaw/' && ! echo "$tool_args" | grep -qE '~/\.openclaw/skills/'; then
       match_count=3
       matched_category="out_of_scope_write"
       matched_threat_id="OSW-002"
     fi
 
-    # OSW-003
+    # OSW-003: credential file write
     if echo "$tool_args" | grep -qiE '\.(key|pem|p12)$|/id_rsa|/credentials|/\.env'; then
       match_count=3
       matched_category="out_of_scope_write"
       matched_threat_id="OSW-003"
     fi
 
-    # DE-001
+    # DE-001: credential in POST body
     if echo "$tool_args" | grep -qE '(sk-[a-z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|AKIA[A-Z0-9]{16}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)'; then
       match_count=3
       matched_category="data_exfiltration"
       matched_threat_id="DE-001"
     fi
 
-    # DE-002
+    # DE-002: pipe exfiltration
     if echo "$tool_args" | grep -qiE 'cat[[:space:]]+[~/]*(\.ssh|\.aws|credentials|id_rsa|passwd).*\|[[:space:]]*(curl|nc|wget|ncat)'; then
       match_count=3
       matched_category="data_exfiltration"
@@ -534,64 +345,45 @@ evaluate_line() {
     fi
   fi
 
-  # RL checks (post-execution monitoring uses ring buffer directly)
-  local count_tool=0
-  local count_all=0
-  count_tool=$(ring_count_tool_in_window "$tool_name" "${args_hash:-}" 60)
-  count_all=$(ring_count_all_in_window 30)
-
-  if [[ "$count_tool" -ge 5 ]]; then
-    match_count=3
-    matched_category="runaway_loop"
-    matched_threat_id="RL-001"
-  fi
-
-  if [[ "$count_all" -gt 20 ]]; then
-    match_count=3
-    matched_category="runaway_loop"
-    matched_threat_id="RL-002"
-  fi
-
-  # Determine confidence
+  # Determine confidence level
   local confidence="LOW"
-  local notified="false"
 
   if [[ $match_count -ge 3 ]]; then
     confidence="HIGH"
-    notified="true"
   elif [[ $match_count -ge 2 ]]; then
     confidence="MEDIUM"
-    notified="true"
-  elif [[ $match_count -ge 1 ]]; then
-    confidence="LOW"
-    notified="false"
-  else
+  elif [[ $match_count -lt 1 ]]; then
     return  # No matches
   fi
 
   local threat_label
-  threat_label=$(threat_type_label "${matched_category:-unknown}")
-  local summary="${matched_threat_id:-UNKNOWN}: ${threat_label} detected"
+  threat_label=$(threat_type_label "$matched_category")
+  local summary="${matched_threat_id}: ${threat_label} detected"
 
-  log_alert "${matched_threat_id:-UNKNOWN}" "$confidence" "$tool_name" "$summary" "$notified"
+  # Fire notification for all detections (action_basic: notify in threats.yaml)
+  local alert_msg="SHOOFLY BASIC 🪰🧹 WARNING: ${threat_label} detected on ${AGENT_NAME}. Try ⚡🪰⚡ SHOOFLY ADVANCED to block attacks before they're inside your agent infra. shoofly.dev/advanced"
+  fire_notification "$alert_msg"
+  local notified="true"
 
-  if [[ "$notified" == "true" ]]; then
-    local alert_msg="⚡🪰⚡ SHOOFLY ADVANCED BLOCKED: ${threat_label} stopped on ${AGENT_NAME}. Your agent infra is protected."
-    fire_notification "$alert_msg"
-    log_info "ALERT fired: $summary (confidence: $confidence)"
-  else
-    log_info "LOG only: $summary (confidence: $confidence)"
-  fi
+  # Log the alert after notification so notified reflects reality
+  log_alert "$matched_threat_id" "$confidence" "$tool_name" "$summary" "$notified"
+  log_info "ALERT fired: $summary (confidence: $confidence)"
 }
 
 # ─── Session log discovery ─────────────────────────────────────────────────────
 
 find_active_session_log() {
-  local session_dir="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  local session_dir
+  if [[ -n "$AGENT_ID" ]]; then
+    session_dir="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  else
+    session_dir="$HOME/.openclaw/agents/sessions"
+  fi
   if [[ ! -d "$session_dir" ]]; then
     echo ""
     return
   fi
+  # Find most recently modified .jsonl file
   find "$session_dir" -name "*.jsonl" -type f -newer /dev/null 2>/dev/null \
     | xargs ls -t 2>/dev/null \
     | head -1
@@ -599,8 +391,7 @@ find_active_session_log() {
 
 # ─── Main loop ────────────────────────────────────────────────────────────────
 
-log_info "Starting Shoofly Advanced daemon (tier=$TIER, agent=$AGENT_NAME, agent_id=${AGENT_ID:-unset})"
-log_info "Socket: $SOCKET_PATH | Ring buffer: $RING_MAX entries (in-memory only)"
+log_info "Starting Shoofly Basic daemon (tier=$TIER, agent=$AGENT_NAME, agent_id=${AGENT_ID:-unset})"
 
 CURRENT_SESSION_LOG=""
 TAIL_PID=""
@@ -608,24 +399,19 @@ SESSION_CHECK_INTERVAL=30
 LAST_SESSION_CHECK=0
 
 cleanup() {
-  log_info "Shutting down shoofly-daemon (Advanced)"
+  log_info "Shutting down shoofly-daemon"
   if [[ -n "$TAIL_PID" ]] && kill -0 "$TAIL_PID" 2>/dev/null; then
     kill "$TAIL_PID" 2>/dev/null || true
   fi
-  if [[ -n "$SOCKET_PID" ]] && kill -0 "$SOCKET_PID" 2>/dev/null; then
-    kill "$SOCKET_PID" 2>/dev/null || true
-  fi
-  rm -f "$SOCKET_PATH" "$SOCKET_SERVER_FIFO" 2>/dev/null || true
   exit 0
 }
 
 trap cleanup SIGTERM SIGINT
 
 # Named pipe for tail output
-FIFO=$(mktemp "$SHOOFLY_SOCK_DIR/fifo-XXXXXX")
-rm "$FIFO"
+FIFO="$(mktemp -u /tmp/shoofly-daemon-XXXXXX)"
 mkfifo "$FIFO"
-trap 'rm -f "$FIFO" "$SOCKET_SERVER_FIFO"; cleanup' EXIT
+trap 'rm -f "$FIFO"; cleanup' EXIT
 
 start_tail() {
   local log_file="$1"
@@ -647,34 +433,12 @@ if [[ -n "$NEW_LOG" ]]; then
   CURRENT_SESSION_LOG="$NEW_LOG"
   start_tail "$CURRENT_SESSION_LOG"
 else
-  log_info "No active session log found. Polling every ${SESSION_CHECK_INTERVAL}s..."
+  log_info "No active session log found. Polling for new sessions every ${SESSION_CHECK_INTERVAL}s..."
 fi
 
-# ─── Handle shoofly-check socket queries ──────────────────────────────────────
-# The socket server (started above via socat/nc) forwards queries here.
-# For the pure-bash fallback, we handle queries inline in the main loop.
-
-handle_socket_query() {
-  local query="$1"
-  if ! command -v jq >/dev/null 2>&1; then
-    echo '{"rl001":false,"rl002":false,"rl003":false,"rl004":false}'
-    return
-  fi
-
-  local tool args
-  tool=$(echo "$query" | jq -r '.tool // ""' 2>/dev/null || echo "")
-  args=$(echo "$query" | jq -r '.args // ""' 2>/dev/null || echo "")
-
-  if [[ -n "$tool" ]]; then
-    evaluate_rl_checks "$tool" "$args"
-  else
-    echo '{"rl001":false,"rl002":false,"rl003":false,"rl004":false}'
-  fi
-}
-
-# ─── Event loop ───────────────────────────────────────────────────────────────
+# Read from FIFO (non-blocking poll loop)
 while true; do
-  # Periodically check for session switch
+  # Periodically check for new/switched session
   NOW=$(date +%s)
   if (( NOW - LAST_SESSION_CHECK >= SESSION_CHECK_INTERVAL )); then
     LAST_SESSION_CHECK=$NOW
@@ -686,7 +450,7 @@ while true; do
     fi
   fi
 
-  # Read lines from session log FIFO with a short timeout
+  # Read lines from FIFO with a short timeout
   if read -t 1 -r line < "$FIFO" 2>/dev/null; then
     evaluate_line "$line"
   fi

@@ -48,7 +48,12 @@ if [[ "$VERIFY_MODE" == "true" ]]; then
 
   # Verify session log path is resolvable
   AGENT_ID=$(jq -r '.agent_id // ""' "$CONFIG_PATH")
-  SESSION_BASE="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  # Avoid double-slash when AGENT_ID is empty — use agents/sessions directly
+  if [[ -n "$AGENT_ID" ]]; then
+    SESSION_BASE="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  else
+    SESSION_BASE="$HOME/.openclaw/agents/sessions"
+  fi
   # Path resolvable means directory exists or we can describe it
   echo "Shoofly daemon verified"
   echo "  Config: $CONFIG_PATH"
@@ -368,7 +373,12 @@ evaluate_line() {
 # ─── Session log discovery ─────────────────────────────────────────────────────
 
 find_active_session_log() {
-  local session_dir="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  local session_dir
+  if [[ -n "$AGENT_ID" ]]; then
+    session_dir="$HOME/.openclaw/agents/${AGENT_ID}/sessions"
+  else
+    session_dir="$HOME/.openclaw/agents/sessions"
+  fi
   if [[ ! -d "$session_dir" ]]; then
     echo ""
     return
