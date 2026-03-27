@@ -128,7 +128,7 @@ async function setupTelegram(existing) {
   console.log('');
 
   const tgToken = bail(await text({
-    message: 'Bot token',
+    message: "Bot token\nTip: Already have one? Find it in @BotFather → My Bots → your bot → API Token",
     initialValue: existing?.telegram_bot_token || '',
     placeholder: '1234567890:ABC-DEF...',
     validate: v => !v ? 'Bot token is required' : undefined,
