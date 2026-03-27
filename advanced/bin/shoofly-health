@@ -129,6 +129,70 @@ else
   fail "Logs: $LOGS_DIR not found or not writable"
 fi
 
+# ─── 7–9. Hook checks (Advanced tier only) ────────────────────────────────────
+TIER=""
+if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
+  TIER=$(jq -r '.tier // "basic"' "$CONFIG_PATH" 2>/dev/null || echo "basic")
+fi
+
+if [[ "$TIER" == "advanced" ]]; then
+  OPENCLAW_CFG="$HOME/.openclaw/openclaw.json"
+  HOOK_FILE="$HOME/.openclaw/extensions/shoofly-hook/index.ts"
+
+  # ── 7. Hook file exists ──────────────────────────────────────────────────────
+  if [[ -f "$HOOK_FILE" ]]; then
+    pass "Hook: extension file found ($HOOK_FILE)"
+  else
+    fail "Hook: extension file missing ($HOOK_FILE) — re-run install to restore"
+  fi
+
+  # ── 8. Hook registered in openclaw.json ─────────────────────────────────────
+  HOOK_IN_ALLOW=false
+  HOOK_ENABLED=false
+  if [[ -r "$OPENCLAW_CFG" ]] && command -v jq >/dev/null 2>&1; then
+    # Check plugins.allow[] contains "shoofly-hook"
+    if jq -e '.plugins.allow[]? | select(. == "shoofly-hook")' "$OPENCLAW_CFG" >/dev/null 2>&1; then
+      HOOK_IN_ALLOW=true
+    fi
+    # Check plugins.entries.shoofly-hook.enabled == true
+    HOOK_ENABLED_VAL=$(jq -r '.plugins.entries["shoofly-hook"].enabled // false' "$OPENCLAW_CFG" 2>/dev/null || echo "false")
+    [[ "$HOOK_ENABLED_VAL" == "true" ]] && HOOK_ENABLED=true
+  fi
+
+  if [[ "$HOOK_IN_ALLOW" == true && "$HOOK_ENABLED" == true ]]; then
+    pass "Hook: registered and enabled in openclaw.json"
+  elif [[ "$HOOK_IN_ALLOW" == true && "$HOOK_ENABLED" == false ]]; then
+    fail "Hook: in plugins.allow but disabled in plugins.entries — set enabled:true in openclaw.json"
+  elif [[ ! -r "$OPENCLAW_CFG" ]]; then
+    fail "Hook: openclaw.json not found at $OPENCLAW_CFG — cannot verify registration"
+  else
+    fail "Hook: not registered in openclaw.json — re-run install or add shoofly-hook to plugins.allow"
+  fi
+
+  # ── 9. Hook active in current OpenClaw session ───────────────────────────────
+  HOOK_ACTIVE=false
+  if command -v openclaw >/dev/null 2>&1; then
+    # openclaw status reports loaded plugins — check if shoofly-hook appears
+    OC_STATUS=$(openclaw status --json 2>/dev/null || echo "{}")
+    if echo "$OC_STATUS" | jq -e '.plugins[]? | select(. == "shoofly-hook")' >/dev/null 2>&1; then
+      HOOK_ACTIVE=true
+    fi
+    # Fallback: check via openclaw plugins list if status doesn't expose plugins
+    if [[ "$HOOK_ACTIVE" == false ]]; then
+      OC_PLUGINS=$(openclaw plugins list 2>/dev/null || echo "")
+      [[ "$OC_PLUGINS" == *"shoofly-hook"* ]] && HOOK_ACTIVE=true
+    fi
+  fi
+
+  if [[ "$HOOK_ACTIVE" == true ]]; then
+    pass "Hook: active in current OpenClaw session"
+  else
+    # Not a hard fail — OpenClaw may not be running or CLI may not expose this
+    # Registration (check 8) is the reliable signal; session check is best-effort
+    pass "Hook: session check inconclusive — verify with: openclaw status"
+  fi
+fi
+
 # ─── 10. custom_policy_path: if set and non-empty, file exists ────────────────
 if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
   CUSTOM_POLICY=$(jq -r '.custom_policy_path // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
