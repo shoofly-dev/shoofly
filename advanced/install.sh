@@ -120,11 +120,9 @@ command -v node >/dev/null 2>&1 || {
   echo "  macOS:   brew install node"
   exit 1
 }
-# Use local copy during dev, or download if missing
-if [[ ! -f ~/.shoofly/bin/shoofly-setup ]]; then
-  curl -fsSL "$BASE_URL/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
-  chmod +x ~/.shoofly/bin/shoofly-setup
-fi
+# Always download fresh so hint changes take effect immediately
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
+chmod +x ~/.shoofly/bin/shoofly-setup
 node ~/.shoofly/bin/shoofly-setup --tier advanced
 
 # ─── Step 8: Initialize log files ─────────────────────────────────────────────
