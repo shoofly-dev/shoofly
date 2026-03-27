@@ -553,7 +553,10 @@ a:hover {
 .footer-sub {
   font-size: 0.875rem;
   color: var(--text-muted);
-  font-family: var(--font-mono);
+}
+
+.footer-sub .footer-link {
+  font-family: inherit;
 }
 
 .footer-sub em {
