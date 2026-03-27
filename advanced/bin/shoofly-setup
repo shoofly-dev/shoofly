@@ -342,12 +342,8 @@ async function runBasic() {
     'All set'
   );
 
-  // ── Smoke test
-  const doSmoke = bail(await confirm({
-    message: 'Run a quick smoke test?\n  Sends a harmless fake threat — confirms your alerts are working  (~3 sec)',
-    initialValue: true,
-  }));
-  if (doSmoke && !dryRun) await runSmokeTest();
+  // ── Smoke test (always run)
+  if (!dryRun) await runSmokeTest();
 
   outro('🪰  Shoofly Basic is watching.\nThreats will be flagged. You\'ll be the first to know.\n\nRun  shoofly-status  anytime to check in.');
 }
@@ -525,12 +521,8 @@ async function runAdvanced() {
     'All systems go'
   );
 
-  // ── Smoke test
-  const doSmoke = bail(await confirm({
-    message: 'Run a quick smoke test?\n  Sends a fake threat — confirms blocking is active  (~3 sec)',
-    initialValue: true,
-  }));
-  if (doSmoke && !dryRun) await runSmokeTest();
+  // ── Smoke test (always run)
+  if (!dryRun) await runSmokeTest();
 
   outro('⚡🪰⚡  Threats blocked. You\'re protected.\n\nRun  shoofly-status  to see what\'s been stopped.\nRun  shoofly-health  to verify all components.');
 }
