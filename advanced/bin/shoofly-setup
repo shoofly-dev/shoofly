@@ -177,7 +177,7 @@ async function runSmokeTest() {
     if (existsSync(notifyPath)) {
       try {
         const smokeEnv = { ...process.env, PATH: `${os.homedir()}/.shoofly/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}` };
-      execSync(`"${notifyPath}" --all "Smoke test: Shoofly is working! This is a test alert."`, { stdio: 'pipe', timeout: 15000, env: smokeEnv });
+      execSync(`"${notifyPath}" auto "Smoke test: Shoofly is working! This is a test alert."`, { stdio: 'pipe', timeout: 15000, env: smokeEnv });
       } catch (notifyErr) {
         console.error('Smoke test notify error:', notifyErr.stderr?.toString() || notifyErr.message);
       }
