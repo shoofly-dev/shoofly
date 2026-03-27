@@ -40,7 +40,8 @@ case "$CHANNEL" in
     command -v wacli >/dev/null && wacli send --to "$(jq -r .whatsapp_number "$CONFIG")" --message "$MSG"
     ;;
   openclaw_gateway)
-    openclaw system event --text "$RAW_MSG" --mode now > /dev/null 2>&1
+    OPENCLAW_BIN=$(command -v openclaw 2>/dev/null || echo "/opt/homebrew/bin/openclaw")
+    "$OPENCLAW_BIN" system event --text "$RAW_MSG" --mode now > /dev/null 2>&1
     ;;
   terminal)
     echo "$MSG" >&2

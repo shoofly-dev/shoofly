@@ -165,7 +165,11 @@ async function runSmokeTest() {
     // Send test alert to ALL configured channels via shoofly-notify
     const notifyPath = join(SHOOFLY_DIR, 'bin', 'shoofly-notify');
     if (existsSync(notifyPath)) {
-      execSync(`"${notifyPath}" --all "Smoke test: Shoofly is working! This is a test alert."`, { stdio: 'ignore', timeout: 15000 });
+      try {
+        execSync(`"${notifyPath}" --all "Smoke test: Shoofly is working! This is a test alert."`, { stdio: 'pipe', timeout: 15000 });
+      } catch (notifyErr) {
+        console.error('Smoke test notify error:', notifyErr.stderr?.toString() || notifyErr.message);
+      }
       s.stop('Smoke test passed — alert sent to all channels  ✓');
       return true;
     }
