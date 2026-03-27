@@ -120,7 +120,7 @@ function channelLabel(v) {
 // ── Channel options ───────────────────────────────────────────────────────────
 function channelOptions() {
   return [
-    { value: 'openclaw_gateway', label: 'OpenClaw (requires Telegram configured)', hint: 'alerts appear as chat bubbles — Telegram bot required' },
+    { value: 'openclaw_gateway', label: 'OpenClaw (agent events)', hint: 'fires a background system event — agent logs it on next heartbeat, no chat message' },
     { value: 'telegram',         label: 'Telegram', hint: 'direct message to a Telegram chat' },
     { value: 'desktop',          label: desktopLabel() },
     { value: 'terminal',         label: 'Terminal', hint: 'printed where Shoofly runs — good for logging' },
