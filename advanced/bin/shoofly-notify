@@ -8,8 +8,21 @@ MSG="${2:-}"
 CONFIG="$HOME/.shoofly/config.json"
 ENV_FILE="$HOME/.shoofly/.env"
 
-[[ -z "$CHANNEL" ]] && { echo "Usage: shoofly-notify <channel> <message>" >&2; exit 1; }
-[[ -z "$MSG" ]] && { echo "Usage: shoofly-notify <channel> <message>" >&2; exit 1; }
+[[ -z "$CHANNEL" ]] && { echo "Usage: shoofly-notify <channel|--all> <message>" >&2; exit 1; }
+[[ -z "$MSG" ]] && { echo "Usage: shoofly-notify <channel|--all> <message>" >&2; exit 1; }
+
+# --all mode: read notification_channels from config and send to each
+if [[ "$CHANNEL" == "--all" ]]; then
+  if [[ ! -f "$CONFIG" ]]; then
+    echo "Error: config not found at $CONFIG" >&2; exit 1
+  fi
+  CHANNELS=$(jq -r '.notification_channels[]' "$CONFIG" 2>/dev/null)
+  [[ -z "$CHANNELS" ]] && { echo "Error: no notification_channels in config" >&2; exit 1; }
+  for ch in $CHANNELS; do
+    "$0" "$ch" "$MSG"
+  done
+  exit 0
+fi
 
 # Source credentials if available (Telegram tokens, etc.)
 [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"

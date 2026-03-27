@@ -2,8 +2,25 @@
 # Usage: shoofly-notify <channel> "<message>"
 CHANNEL="$1"
 RAW_MSG="$2"
-MSG="$(printf '══════════════════════════════════════\n🛡️  SHOOFLY ALERT\n──────────────────────────────────────\n%s\n══════════════════════════════════════' "$RAW_MSG")"
 CONFIG="$HOME/.shoofly/config.json"
+
+[[ -z "$CHANNEL" ]] && { echo "Usage: shoofly-notify <channel|--all> <message>" >&2; exit 1; }
+[[ -z "$RAW_MSG" ]] && { echo "Usage: shoofly-notify <channel|--all> <message>" >&2; exit 1; }
+
+# --all mode: read notification_channels from config and send to each
+if [[ "$CHANNEL" == "--all" ]]; then
+  if [[ ! -f "$CONFIG" ]]; then
+    echo "Error: config not found at $CONFIG" >&2; exit 1
+  fi
+  CHANNELS=$(jq -r '.notification_channels[]' "$CONFIG" 2>/dev/null)
+  [[ -z "$CHANNELS" ]] && { echo "Error: no notification_channels in config" >&2; exit 1; }
+  for ch in $CHANNELS; do
+    "$0" "$ch" "$RAW_MSG"
+  done
+  exit 0
+fi
+
+MSG="$(printf '══════════════════════════════════════\n🛡️  SHOOFLY ALERT\n──────────────────────────────────────\n%s\n══════════════════════════════════════' "$RAW_MSG")"
 
 # Read credentials from config.json (never source .env as shell — F4)
 TELEGRAM_BOT_TOKEN=$(jq -r '.telegram_bot_token // ""' "$CONFIG" 2>/dev/null || echo "")
