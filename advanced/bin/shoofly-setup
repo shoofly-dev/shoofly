@@ -221,7 +221,7 @@ async function runBasic() {
   const existing = readExistingConfig();
   if (existing) {
     note(
-      `Already configured as ${existing.tier}  (agent: ${existing.agent_name || 'unknown'}).\nWe\'ll update your settings — nothing breaks.`,
+      `Already configured as ${existing.tier}  (agent: ${existing.agent_name || getAgentInfo().name}).\nWe\'ll update your settings — nothing breaks.`,
       'Existing Install'
     );
   }
@@ -347,14 +347,14 @@ async function runAdvanced() {
   const existing = readExistingConfig();
   if (existing?.tier === 'basic') {
     note(
-      `Shoofly Basic detected  (agent: ${existing.agent_name || 'unknown'}).\n` +
+      `Shoofly Basic detected  (agent: ${existing.agent_name || getAgentInfo().name}).\n` +
       `Advanced adds the hook layer — intercepts every tool call before it runs.\n` +
       `Your Basic settings carry over.`,
       'Upgrading from Basic'
     );
   } else if (existing?.tier === 'advanced') {
     note(
-      `Already configured as Advanced  (agent: ${existing.agent_name || 'unknown'}).\nYour settings will be updated.`,
+      `Already configured as Advanced  (agent: ${existing.agent_name || getAgentInfo().name}).\nYour settings will be updated.`,
       'Existing Install'
     );
   }

@@ -40,9 +40,7 @@ case "$CHANNEL" in
     command -v wacli >/dev/null && wacli send --to "$(jq -r .whatsapp_number "$CONFIG")" --message "$MSG"
     ;;
   openclaw_gateway)
-    curl -s -X POST http://127.0.0.1:18789/chat \
-      -H "Content-Type: application/json" \
-      -d "{\"message\": $JSON_MSG}" > /dev/null
+    openclaw system event --text "$RAW_MSG" --mode now > /dev/null 2>&1
     ;;
   terminal)
     echo "$MSG" >&2
