@@ -92,6 +92,7 @@ chmod +x ~/.shoofly/bin/shoofly-log
 echo "  ✓ shoofly-log downloaded: ~/.shoofly/bin/shoofly-log"
 
 # ─── Step 4: Download shoofly-setup wizard ────────────────────────────────────
+# Shared wizard lives in advanced/bin — supports both tiers via --tier flag
 curl -fsSL "$BASE_URL/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
 chmod +x ~/.shoofly/bin/shoofly-setup
 echo "  ✓ Setup wizard downloaded"

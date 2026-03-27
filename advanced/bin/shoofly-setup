@@ -304,6 +304,12 @@ async function runBasic() {
     policy_path: join(HOME, '.shoofly', 'policy', 'threats.yaml'),
   };
 
+  // Store Telegram credentials in config so shoofly-notify can read them (F256c)
+  if (telegramCreds) {
+    config.telegram_bot_token = telegramCreds.telegram_bot_token;
+    config.telegram_chat_id = telegramCreds.telegram_chat_id;
+  }
+
   if (dryRun) {
     note(JSON.stringify(config, null, 2), 'Dry run — not saved');
   } else {
