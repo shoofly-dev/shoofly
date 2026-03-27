@@ -189,10 +189,23 @@ case "$CHANNEL" in
     # 3. Desktop notification (cross-platform)
     _desktop_notify
 
-    # 4. Log to alerts.log
+    # 4. Iterate notification_channels from config — fires telegram, whatsapp, etc.
+    if [[ -f "$CONFIG" ]]; then
+      while IFS= read -r _ch; do
+        [[ -z "$_ch" ]] && continue
+        case "$_ch" in
+          terminal|auto|openclaw_gateway) ;; # already handled above — skip
+          telegram)  _legacy_telegram 2>/dev/null || true ;;
+          whatsapp)  _legacy_whatsapp 2>/dev/null || true ;;
+          macos|desktop) ;; # already handled by _desktop_notify above — skip
+        esac
+      done < <(jq -r '.notification_channels[]? // empty' "$CONFIG" 2>/dev/null)
+    fi
+
+    # 5. Log to alerts.log
     _log "auto"
 
-    # 5. Auto-discover and fire OpenClaw channels
+    # 6. Auto-discover and fire OpenClaw channels (whatsapp, discord via openclaw.json)
     _openclaw_channels
     ;;
 
