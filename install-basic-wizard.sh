@@ -11,7 +11,8 @@ mkdir -p ~/.shoofly/{bin,policy,logs}
 mkdir -p ~/.openclaw/skills/shoofly-basic/policy
 
 # 3. Download files
-BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
+# Pinned to release tag — update on each publish
+BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/v1.2.6"
 curl -fsSL "$BASE_URL/basic/skills/shoofly-basic/SKILL.md" -o ~/.openclaw/skills/shoofly-basic/SKILL.md
 curl -fsSL "$BASE_URL/basic/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
 ln -sf ~/.shoofly/policy/threats.yaml ~/.openclaw/skills/shoofly-basic/policy/threats.yaml
