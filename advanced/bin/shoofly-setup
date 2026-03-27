@@ -384,8 +384,9 @@ async function runAdvanced() {
     options: channelOptions(),
     initialValues: existing?.notification_channels?.length
       ? existing.notification_channels.filter(ch =>
-          ch !== 'telegram' || (existing.telegram_bot_token && existing.telegram_chat_id))
-      : ['openclaw_gateway'],
+          (ch === 'openclaw_gateway' || ch === 'telegram') &&
+          (ch !== 'telegram' || (existing.telegram_bot_token && existing.telegram_chat_id)))
+      : ['openclaw_gateway', 'telegram'],
     required: true,
   }));
 
