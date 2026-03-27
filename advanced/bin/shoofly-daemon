@@ -393,6 +393,10 @@ find_active_session_log() {
 
 log_info "Starting Shoofly Basic daemon (tier=$TIER, agent=$AGENT_NAME, agent_id=${AGENT_ID:-unset})"
 
+# Write PID file so shoofly-health can verify we're running
+PID_FILE="$SHOOFLY_DIR/daemon.pid"
+echo "$$" > "$PID_FILE"
+
 CURRENT_SESSION_LOG=""
 TAIL_PID=""
 SESSION_CHECK_INTERVAL=30
@@ -400,6 +404,7 @@ LAST_SESSION_CHECK=0
 
 cleanup() {
   log_info "Shutting down shoofly-daemon"
+  rm -f "$PID_FILE"
   if [[ -n "$TAIL_PID" ]] && kill -0 "$TAIL_PID" 2>/dev/null; then
     kill "$TAIL_PID" 2>/dev/null || true
   fi

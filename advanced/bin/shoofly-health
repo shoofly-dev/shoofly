@@ -57,12 +57,37 @@ else
   fail "Config: $CONFIG_PATH not found or not readable"
 fi
 
-# ─── 2. Daemon running (PID file + process alive) ─────────────────────────────
+# ─── 2. Daemon running (PID file → launchctl → pgrep fallback chain) ───────────
 DAEMON_PID=""
+DAEMON_RUNNING=false
+
+# 1. PID file (written by daemon on start, removed on clean exit)
 if [[ -f "$PID_FILE" ]]; then
   DAEMON_PID=$(cat "$PID_FILE" 2>/dev/null | tr -d '[:space:]' || echo "")
+  if [[ -n "$DAEMON_PID" ]] && kill -0 "$DAEMON_PID" 2>/dev/null; then
+    DAEMON_RUNNING=true
+  fi
 fi
-if [[ -n "$DAEMON_PID" ]] && kill -0 "$DAEMON_PID" 2>/dev/null; then
+
+# 2. launchctl (macOS — covers launchd-managed restarts where PID file may lag)
+if [[ "$DAEMON_RUNNING" == false ]] && command -v launchctl >/dev/null 2>&1; then
+  LC_PID=$(launchctl list 2>/dev/null | awk '/dev\.shoofly\.daemon/{print $1}' | grep -v '^-$' || true)
+  if [[ -n "$LC_PID" ]] && [[ "$LC_PID" =~ ^[0-9]+$ ]] && kill -0 "$LC_PID" 2>/dev/null; then
+    DAEMON_PID="$LC_PID"
+    DAEMON_RUNNING=true
+  fi
+fi
+
+# 3. pgrep fallback (Linux / non-launchd)
+if [[ "$DAEMON_RUNNING" == false ]]; then
+  PG_PID=$(pgrep -f "shoofly-daemon" 2>/dev/null | head -1 || true)
+  if [[ -n "$PG_PID" ]] && kill -0 "$PG_PID" 2>/dev/null; then
+    DAEMON_PID="$PG_PID"
+    DAEMON_RUNNING=true
+  fi
+fi
+
+if [[ "$DAEMON_RUNNING" == true ]]; then
   pass "Daemon: running (PID $DAEMON_PID)"
 else
   fail "Daemon: not running (start with: shoofly-daemon --config $CONFIG_PATH &)"
