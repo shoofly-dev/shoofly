@@ -502,6 +502,7 @@ a:hover {
 .footer {
   padding: 1.5rem 0;
   background-color: var(--bg);
+  border-top: 1px solid var(--border);
 }
 
 .footer-inner {
@@ -518,14 +519,14 @@ a:hover {
 }
 
 .footer-link {
-  color: var(--text-muted);
+  color: var(--accent);
   font-size: 0.875rem;
   font-family: var(--font-mono);
   transition: color 0.15s;
 }
 
 .footer-link:hover {
-  color: var(--accent);
+  color: #fff;
   text-decoration: none;
 }
 
