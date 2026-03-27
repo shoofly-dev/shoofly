@@ -166,7 +166,7 @@ echo "  ✓ shoofly-hook extension ready"
 echo "  (License check: deferred — no key required for now)"
 
 # ─── Step 5: Download shoofly-setup wizard ────────────────────────────────────
-curl -fsSL "https://raw.githubusercontent.com/shoofly-dev/shoofly/57ca2b5/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
+curl -fsSL "$BASE_URL/advanced/bin/shoofly-setup" -o ~/.shoofly/bin/shoofly-setup
 chmod +x ~/.shoofly/bin/shoofly-setup
 
 # ─── Step 6: Run interactive setup wizard (writes ~/.shoofly/config.json) ─────
@@ -268,6 +268,26 @@ echo "Verifying Shoofly Advanced daemon..."
 ~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify \
   && echo "  ✓ Daemon verified"
 
+# ─── PATH setup ───────────────────────────────────────────────────────────────
+SHOOFLY_BIN="$HOME/.shoofly/bin"
+SHELL_RC=""
+if [[ "$SHELL" == */zsh ]]; then
+  SHELL_RC="$HOME/.zshrc"
+elif [[ "$SHELL" == */bash ]]; then
+  SHELL_RC="$HOME/.bashrc"
+fi
+
+if [[ -n "$SHELL_RC" ]]; then
+  if ! grep -q 'shoofly/bin' "$SHELL_RC" 2>/dev/null; then
+    echo "" >> "$SHELL_RC"
+    echo "# Shoofly CLI tools" >> "$SHELL_RC"
+    echo "export PATH=\"\$HOME/.shoofly/bin:\$PATH\"" >> "$SHELL_RC"
+    echo "  ✓ Added ~/.shoofly/bin to PATH in $SHELL_RC"
+    echo "  ⚠️  Run 'source $SHELL_RC' or open a new terminal for shoofly-* commands to work"
+  fi
+fi
+export PATH="$SHOOFLY_BIN:$PATH"
+
 # ─── Done ─────────────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -276,8 +296,13 @@ echo ""
 echo "   Shoofly Advanced is active and protecting your agents."
 echo ""
 echo "   What's next:"
-echo "     shoofly-status    see what Shoofly is doing right now"
-echo "     shoofly-health    verify all components are healthy"
-echo "     shoofly-log       browse recent alerts and blocks"
+echo "     $SHOOFLY_BIN/shoofly-status    see what Shoofly is doing right now"
+echo "     $SHOOFLY_BIN/shoofly-health    verify all components are healthy"
+echo "     $SHOOFLY_BIN/shoofly-log       browse recent alerts and blocks"
+echo ""
+if [[ -n "$SHELL_RC" ]]; then
+echo "   💡 To use shoofly-* without the full path, run:"
+echo "        source $SHELL_RC"
+fi
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
