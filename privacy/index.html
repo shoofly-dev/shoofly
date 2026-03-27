@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shoofly Privacy Policy — what we collect, how we use it, and your rights." />
+  <meta name="color-scheme" content="dark" />
+  <title>Privacy Policy — Shoofly</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700; color: var(--accent);
+      text-decoration: none; letter-spacing: -0.01em; white-space: nowrap;
+    }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-label {
+      font-size: 15px; font-weight: 500; color: var(--text-muted);
+    }
+
+    .container { width: 100%; max-width: 860px; margin: 0 auto; padding: 0 1.5rem; }
+
+    .hero {
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-title {
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text); margin-bottom: 0.5rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-muted);
+    }
+
+    .doc-section {
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-section:last-of-type { border-bottom: none; }
+
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--text);
+      margin-bottom: 1rem; letter-spacing: -0.01em;
+    }
+
+    .section-text {
+      font-size: 0.95rem; color: var(--text-muted); line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+
+    .section-text strong { color: var(--text); font-weight: 600; }
+
+    ul.policy-list {
+      list-style: none; padding: 0; margin-bottom: 1rem;
+    }
+    ul.policy-list li {
+      font-size: 0.95rem; color: var(--text-muted);
+      padding: 0.4rem 0 0.4rem 1.5rem; position: relative; line-height: 1.65;
+    }
+    ul.policy-list li::before {
+      content: ">";
+      position: absolute; left: 0;
+      color: var(--accent); font-family: var(--font-mono); font-weight: 700;
+    }
+
+    .footer {
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link {
+      color: var(--text-muted); font-size: 0.875rem;
+      font-family: var(--font-mono); transition: color 0.15s;
+    }
+    .footer-link:hover { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 640px) {
+      .hero { padding: 2.5rem 0 2rem; }
+      .doc-section { padding: 2rem 0; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="/" class="nav-logo">🪰 Shoofly</a>
+    <span class="nav-label">Privacy Policy</span>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-title">Privacy Policy</h1>
+      <p class="hero-sub">Last updated: March 26, 2026</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">What do we collect?</h2>
+      <p class="section-text">We collect only what is necessary to deliver the product:</p>
+      <ul class="policy-list">
+        <li><strong>Email address</strong> — collected at checkout via Stripe</li>
+        <li><strong>Stripe session ID</strong> — to link your purchase to your install token</li>
+      </ul>
+      <p class="section-text">That's it. We do not collect telemetry, usage data, agent activity, prompts, or any other behavioral data. We do not require you to create an account.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">How is it collected?</h2>
+      <p class="section-text">Your email and payment information are collected by <strong>Stripe</strong> during checkout. Stripe processes and stores your payment card data — we never see or store card numbers, CVVs, or billing details. We receive only your email address and a session identifier from Stripe.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Why do we collect it?</h2>
+      <ul class="policy-list">
+        <li>To deliver your install token after purchase</li>
+        <li>To provide customer support related to your subscription</li>
+        <li>To manage your subscription (renewal, cancellation)</li>
+      </ul>
+      <p class="section-text">We do not use your email for marketing. The only emails you will receive are transactional: your install token and any subscription-related notices.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Who else handles your data?</h2>
+      <p class="section-text">We use the following service providers to operate Shoofly:</p>
+      <ul class="policy-list">
+        <li><strong>Stripe</strong> — payment processing (<a href="https://stripe.com/privacy">stripe.com/privacy</a>)</li>
+        <li><strong>Resend</strong> — transactional email delivery (<a href="https://resend.com/legal/privacy-policy">resend.com/legal/privacy-policy</a>)</li>
+        <li><strong>Railway</strong> — application hosting (<a href="https://railway.com/legal/privacy">railway.com/legal/privacy</a>)</li>
+      </ul>
+      <p class="section-text">These providers process data only as necessary to provide their services to us. We do not sell, rent, or share your data with anyone else.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">How long do we keep it?</h2>
+      <p class="section-text">Your email and Stripe session ID are retained while your subscription is active. If you cancel, we will delete your data within 30 days of cancellation upon request. Contact <a href="mailto:support@shoofly.dev">support@shoofly.dev</a> to request deletion.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Cookies and tracking</h2>
+      <p class="section-text">We do not use cookies, analytics, tracking pixels, or any other tracking technology on shoofly.dev.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Your rights</h2>
+      <p class="section-text">You can request access to, correction of, or deletion of your personal data at any time by emailing <a href="mailto:support@shoofly.dev">support@shoofly.dev</a>. We will respond within 30 days.</p>
+      <p class="section-text">If you are located in the European Economic Area, the lawful basis for processing your data is performance of a contract (delivering the product you purchased). For site operation, our lawful basis is legitimate interest.</p>
+      <p class="section-text">Regardless of where you are located, we honor all deletion requests.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Children</h2>
+      <p class="section-text">Shoofly is not directed at children under 13. We do not knowingly collect personal data from anyone under 13. If you believe we have collected data from a child, contact us and we will delete it promptly.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Changes to this policy</h2>
+      <p class="section-text">If we make material changes, we will update this page and revise the "last updated" date above. For active subscribers, we will notify you via the email address on file.</p>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="container">
+      <h2 class="section-title">Contact</h2>
+      <p class="section-text">Questions about this policy? Email <a href="mailto:support@shoofly.dev">support@shoofly.dev</a>.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">Shoofly</span>
+      <a href="/" class="footer-link">shoofly.dev</a>
+      <a href="/terms" class="footer-link">Terms</a>
+      <a href="/security" class="footer-link">Security</a>
+      <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+    </div>
+  </footer>
+
+</body>
+</html>
