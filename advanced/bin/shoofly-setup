@@ -134,10 +134,9 @@ async function setupTelegram(existing) {
     validate: v => !v ? 'Bot token is required' : undefined,
   }));
   const tgChatId = bail(await text({
-    message: 'Chat ID — where should alerts land?',
+    message: "Chat ID — where should alerts land?\nTip: Don't know yours? Message @[YourBotsName] on Telegram — it replies with your ID instantly.",
     initialValue: existing?.telegram_chat_id || '',
     placeholder: '123456789',
-    hint: "Tip: Don't know yours? Message @[YourBotsName] on Telegram — it replies with your ID instantly.",
     validate: v => !v ? 'Chat ID is required' : undefined,
   }));
 
@@ -157,12 +156,20 @@ async function runSmokeTest() {
   const s = spinner();
   s.start('Running smoke test...');
   try {
+    // Verify daemon config is valid
     const daemonPath = join(SHOOFLY_DIR, 'bin', 'shoofly-daemon');
     if (existsSync(daemonPath)) {
       execSync(`"${daemonPath}" --config "${CONFIG_PATH}" --verify`, { stdio: 'ignore', timeout: 10000 });
-      s.stop('Smoke test passed  ✓');
+    }
+
+    // Send test alert to ALL configured channels via shoofly-notify
+    const notifyPath = join(SHOOFLY_DIR, 'bin', 'shoofly-notify');
+    if (existsSync(notifyPath)) {
+      execSync(`"${notifyPath}" --all "Smoke test: Shoofly is working! This is a test alert."`, { stdio: 'ignore', timeout: 15000 });
+      s.stop('Smoke test passed — alert sent to all channels  ✓');
       return true;
     }
+
     s.stop('Smoke test skipped — run shoofly-health once install finishes');
     return null;
   } catch {
