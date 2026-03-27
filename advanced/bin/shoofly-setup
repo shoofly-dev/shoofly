@@ -110,7 +110,8 @@ function desktopLabel() {
 function channelLabel(v) {
   const map = {
     openclaw_gateway: 'OpenClaw',
-    desktop: PLATFORM === 'darwin' ? 'macOS notifications' : 'Desktop notifications',
+    macos:    'macOS notifications',
+    desktop:  PLATFORM === 'darwin' ? 'macOS notifications' : 'Desktop notifications',
     terminal: 'Terminal',
     telegram: 'Telegram',
   };
@@ -119,10 +120,12 @@ function channelLabel(v) {
 
 // ── Channel options ───────────────────────────────────────────────────────────
 function channelOptions() {
+  // Use 'macos' on Darwin, 'desktop' on Linux/Windows — matches shoofly-notify case statements
+  const desktopValue = PLATFORM === 'darwin' ? 'macos' : 'desktop';
   return [
     { value: 'openclaw_gateway', label: 'OpenClaw (agent events)', hint: 'fires a background system event — agent logs it on next heartbeat, no chat message' },
     { value: 'telegram',         label: 'Telegram', hint: 'direct message to a Telegram chat' },
-    { value: 'desktop',          label: desktopLabel() },
+    { value: desktopValue,       label: desktopLabel() },
     { value: 'terminal',         label: 'Terminal', hint: 'printed where Shoofly runs — good for logging' },
   ];
 }

@@ -202,6 +202,7 @@ if [[ -n "$SHELL_RC" ]]; then
     echo "# Shoofly CLI tools" >> "$SHELL_RC"
     echo "export PATH=\"\$HOME/.shoofly/bin:\$PATH\"" >> "$SHELL_RC"
     echo "  ✓ Added ~/.shoofly/bin to PATH in $SHELL_RC"
+    echo "  ⚠️  Run 'source $SHELL_RC' or open a new terminal for shoofly-* commands to work"
   fi
 fi
 # Make tools available in this session right now
@@ -218,8 +219,5 @@ echo "   What's next:"
 echo "     shoofly-status    see what Shoofly is doing right now"
 echo "     shoofly-health    verify all components are healthy"
 echo "     shoofly-log       browse recent alerts"
-echo ""
-echo "   💡 Open a new terminal tab for shoofly-* commands to work,"
-echo "      or run:  source ~/.zshrc"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
