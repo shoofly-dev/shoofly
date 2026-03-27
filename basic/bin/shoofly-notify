@@ -134,11 +134,18 @@ _openclaw_channels() {
 
 # ---------- legacy channel handlers ----------
 _legacy_telegram() {
-  local bot_token chat_id
-  # Permanently support both flat keys (telegram_bot_token / telegram_chat_id written by shoofly-setup)
-  # and nested keys (.telegram.bot_token / .telegram.chat_id) for forward compat
+  local bot_token chat_id env_file
+  # 1. config.json — flat keys (Basic + Advanced post-fix) or nested keys
   bot_token=$(jq -r '(.telegram.bot_token // .telegram_bot_token) // empty' "$CONFIG" 2>/dev/null) || true
   chat_id=$(jq -r '(.telegram.chat_id // .telegram_chat_id) // empty' "$CONFIG" 2>/dev/null) || true
+  # 2. .env fallback — Advanced installer wrote credentials here before config fix
+  env_file="$(dirname "$CONFIG")/.env"
+  if [[ -z "$bot_token" && -f "$env_file" ]]; then
+    bot_token=$(grep '^TELEGRAM_BOT_TOKEN=' "$env_file" 2>/dev/null | cut -d= -f2- | tr -d '[:space:]') || true
+  fi
+  if [[ -z "$chat_id" && -f "$env_file" ]]; then
+    chat_id=$(grep '^TELEGRAM_CHAT_ID=' "$env_file" 2>/dev/null | cut -d= -f2- | tr -d '[:space:]') || true
+  fi
   if [[ -z "$bot_token" ]] || [[ -z "$chat_id" ]]; then
     echo "shoofly-notify: telegram_bot_token and telegram_chat_id required in $CONFIG" >&2; exit 1
   fi

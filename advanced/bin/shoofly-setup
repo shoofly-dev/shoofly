@@ -502,6 +502,11 @@ async function runAdvanced() {
     policy_path: join(HOME, '.shoofly', 'policy', 'threats.yaml'),
     custom_policy_path: '',
     auto_start: autoStart,
+    // Write telegram credentials to config (same as Basic) so shoofly-notify can read them
+    ...(telegramCreds ? {
+      telegram_bot_token: telegramCreds.telegram_bot_token,
+      telegram_chat_id:   telegramCreds.telegram_chat_id,
+    } : {}),
   };
 
   if (dryRun) {
