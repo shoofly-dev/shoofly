@@ -28,7 +28,7 @@ function buildHtml(installCmd, token) {
 
         <!-- Logo -->
         <tr><td style="padding-bottom:32px;font-size:20px;font-weight:700;color:#6ee7b7;">
-          &#x1FAA0;&#x26A1; Shoofly Advanced
+          &#x26A1;&#x1FAB0;&#x26A1; Shoofly Advanced
         </td></tr>
 
         <!-- Headline -->
