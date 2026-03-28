@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shoofly-status — Shoofly Basic operational dashboard
+# shoofly-status — Shoofly Basic (OpenClaw + Claude Code) operational dashboard
 # Usage: shoofly-status [--config <path>]
 # License: MIT
 

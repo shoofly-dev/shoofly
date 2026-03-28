@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shoofly Basic — one-command installer
+# Shoofly Basic (OpenClaw + Claude Code) — one-command installer
 # Usage: curl -fsSL https://shoofly.dev/install.sh | bash
 
 set -euo pipefail
@@ -18,7 +18,7 @@ fi
 BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 
 echo ""
-echo "🪰 Shoofly Basic Installer"
+echo "🪰 Shoofly Basic — OpenClaw + Claude Code"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -59,7 +59,7 @@ mkdir -p ~/.openclaw/skills/shoofly-basic/policy
 echo "  ✓ Directories ready"
 
 # ─── Step 3: Download core files ──────────────────────────────────────────────
-echo "Downloading Shoofly Basic files..."
+echo "Downloading Shoofly Basic (OpenClaw + Claude Code) files..."
 
 curl -fsSL "$BASE_URL/basic/skills/shoofly-basic/SKILL.md" -o ~/.openclaw/skills/shoofly-basic/SKILL.md
 echo "  ✓ SKILL.md installed"
@@ -183,7 +183,7 @@ fi
 
 # ─── Step 8: Verify daemon ────────────────────────────────────────────────────
 echo ""
-echo "Verifying Shoofly Basic daemon..."
+echo "Verifying Shoofly Basic (OpenClaw + Claude Code) daemon..."
 ~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify \
   && echo "  ✓ Daemon verified"
 
@@ -213,7 +213,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅  You're all set."
 echo ""
-echo "   Shoofly Basic is watching your agents."
+echo "   Shoofly Basic (OpenClaw + Claude Code) is watching your agents."
 echo ""
 echo "   What's next:"
 echo "     $SHOOFLY_BIN/shoofly-status    see what Shoofly is doing right now"

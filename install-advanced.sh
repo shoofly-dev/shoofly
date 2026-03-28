@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Shoofly Advanced — one-command installer
+# Shoofly Advanced (OpenClaw + Claude Code) — one-command installer
 # Usage: curl -fsSL https://shoofly.dev/install-advanced.sh | bash
 #
-# This script installs Shoofly Advanced on top of (or independently of) Shoofly Basic.
+# This script installs Shoofly Advanced (OpenClaw + Claude Code) on top of (or independently of) Shoofly Basic (OpenClaw + Claude Code).
 # Advanced adds: shoofly-check (pre-execution intercept), blocked.log, Unix socket daemon.
 #
 # License: MIT
@@ -38,7 +38,7 @@ echo "  ✓ Token validated"
 BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 
 echo ""
-echo "⚡🪰⚡ Shoofly Advanced Installer"
+echo "⚡🪰⚡ Shoofly Advanced — OpenClaw + Claude Code"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -72,7 +72,7 @@ mkdir -p ~/.openclaw/skills/shoofly-advanced/policy
 echo "  ✓ Directories ready"
 
 # ─── Step 3: Download core files ──────────────────────────────────────────────
-echo "Downloading Shoofly Advanced files..."
+echo "Downloading Shoofly Advanced (OpenClaw + Claude Code) files..."
 
 # Threat policy
 curl -fsSL "$BASE_URL/advanced/policy/threats.yaml" -o ~/.shoofly/policy/threats.yaml
@@ -264,7 +264,7 @@ fi
 
 # ─── Step 10: Verify daemon ───────────────────────────────────────────────────
 echo ""
-echo "Verifying Shoofly Advanced daemon..."
+echo "Verifying Shoofly Advanced (OpenClaw + Claude Code) daemon..."
 ~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify \
   && echo "  ✓ Daemon verified"
 
@@ -293,7 +293,7 @@ echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅  You're all set."
 echo ""
-echo "   Shoofly Advanced is active and protecting your agents."
+echo "   Shoofly Advanced (OpenClaw + Claude Code) is active and protecting your agents."
 echo ""
 echo "   What's next:"
 echo "     $SHOOFLY_BIN/shoofly-status    see what Shoofly is doing right now"

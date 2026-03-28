@@ -205,6 +205,34 @@ if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
   fi
 fi
 
+# ─── 11. Claude Code hook check (if runtime is claude-code) ──────────────────
+if [[ -r "$CONFIG_PATH" ]] && command -v jq >/dev/null 2>&1; then
+  RUNTIME=$(jq -r '.runtime // ""' "$CONFIG_PATH" 2>/dev/null || echo "")
+  if [[ "$RUNTIME" == "claude-code" ]]; then
+    TIER=$(jq -r '.tier // "basic"' "$CONFIG_PATH" 2>/dev/null || echo "basic")
+    CC_SETTINGS="$HOME/.claude/settings.json"
+    if [[ ! -r "$CC_SETTINGS" ]]; then
+      fail "Claude Code hook: ~/.claude/settings.json not found — run installer to inject hook"
+    else
+      if [[ "$TIER" == "advanced" ]]; then
+        HOOK_URL=$(jq -r '(.hooks.PreToolUse // []) | map(select(.url and (.url | contains("shoofly")))) | first | .url // ""' "$CC_SETTINGS" 2>/dev/null || echo "")
+        if [[ -n "$HOOK_URL" ]]; then
+          pass "Claude Code hook: PreToolUse registered → $HOOK_URL"
+        else
+          fail "Claude Code hook: PreToolUse not found in ~/.claude/settings.json — run installer to inject"
+        fi
+      else
+        HOOK_URL=$(jq -r '(.hooks.PostToolUse // []) | map(select(.url and (.url | contains("shoofly")))) | first | .url // ""' "$CC_SETTINGS" 2>/dev/null || echo "")
+        if [[ -n "$HOOK_URL" ]]; then
+          pass "Claude Code hook: PostToolUse registered → $HOOK_URL"
+        else
+          fail "Claude Code hook: PostToolUse not found in ~/.claude/settings.json — run installer to inject"
+        fi
+      fi
+    fi
+  fi
+fi
+
 # ─── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 printf "%d checks passed, %d failed.\n" "$PASS_COUNT" "$FAIL_COUNT"
