@@ -30,3 +30,8 @@ coverage/
 
 # Temp
 tmp/
+
+# Shoofly user config — lives in ~/.shoofly/ (outside repo), never committed
+# Explicit note: ~/.shoofly/config.json contains credentials (Telegram tokens etc.)
+# and is outside this repo. This entry is a no-op safety reminder.
+.shoofly/
