@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Anthropic says no browser agent is immune to prompt injection. Here is what their built-in protections cover and what Shoofly adds for Claude Code and Dispatch users." />
+  <meta name="color-scheme" content="light" />
+  <title>Claude Code Security: What You Need to Know Beyond Built-In Protections | Shoofly</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css?v=202603281455" />
+  <style>
+    .cc-hero { padding: 4rem 0 3rem; background-color: var(--bg); border-bottom: 1px solid var(--border); }
+    .cc-hero-headline { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; color: var(--text); margin-bottom: 1rem; }
+    .cc-hero-sub { font-size: clamp(1rem, 2.5vw, 1.15rem); color: var(--text-muted); max-width: 640px; margin-bottom: 1.5rem; }
+    .cc-section { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+    .cc-section--alt { background-color: var(--bg-alt); }
+    .cc-section-title { font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; color: var(--text); margin-bottom: 2rem; text-align: center; }
+    .cc-content { max-width: 720px; margin: 0 auto; }
+    .cc-content p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1rem; }
+    .cc-content strong { color: var(--text); font-weight: 600; }
+    .cc-content h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    .cc-content blockquote { background: var(--bg-alt); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1rem 1.5rem; margin: 1rem 0; font-style: italic; font-size: 0.95rem; color: var(--text); line-height: 1.65; }
+    .cc-faq-q { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    .cc-faq-a { font-size: 0.95rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1rem; }
+    .cc-cta-wrapper { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="cc-hero">
+    <div class="container">
+      <p class="hero-brand">🪰 Shoofly</p>
+      <h1 class="cc-hero-headline">Claude Code Security: What You Need to Know Beyond Anthropic Built-In Protections</h1>
+      <p class="cc-hero-sub">Anthropic is honest about what their safeguards cover. Here is what you still need.</p>
+    </div>
+  </section>
+
+  <!-- ===== WHAT ANTHROPIC SAYS ===== -->
+  <section class="cc-section">
+    <div class="container">
+      <h2 class="cc-section-title">What Anthropic Says</h2>
+      <div class="cc-content">
+        <blockquote>Prompt injection is a technique where an attacker attempts to override or manipulate an AI assistant instructions by inserting malicious text.</blockquote>
+        <blockquote>No browser agent is immune to prompt injection.</blockquote>
+        <p>That is Anthropic, being accurate. Claude Code is powerful -- it can read your codebase, edit files, run commands, and with Dispatch or Cowork do all of that on a schedule from anywhere. That capability is what makes security matter.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== THE PROBLEM WITH JUST REVIEW ===== -->
+  <section class="cc-section cc-section--alt">
+    <div class="container">
+      <h2 class="cc-section-title">The Problem with Just Review Before Approving</h2>
+      <div class="cc-content">
+        <p>Claude Code default model is permission-based. For interactive sessions that works. But two scenarios break it.</p>
+        <h3>Running Dispatch or scheduled tasks unattended</h3>
+        <p>Claude Code Dispatch runs tasks on a schedule on Anthropic infrastructure. You are not there when it runs. No approval prompt. If the task gets hijacked mid-execution, you find out later.</p>
+        <h3>The injection happens before the approval</h3>
+        <p>Indirect prompt injection hides instructions in places Claude reads: a README, a code comment, a webpage, a document. By the time you see the approval request, the framing has already been shaped by injected content.</p>
+        <p>Lasso Security documented exactly this: The attacker never interacts with the AI directly. Instead they hide malicious instructions in places the AI will read.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SANDBOXING AND HOOKS ===== -->
+  <section class="cc-section">
+    <div class="container">
+      <h2 class="cc-section-title">What About Sandboxing and Hooks</h2>
+      <div class="cc-content">
+        <h3>Sandboxing</h3>
+        <p>Enabled with /sandbox, it isolates bash commands. If an injection succeeds, it limits blast radius. But it is not on by default and does not stop the injection from happening.</p>
+        <h3>Hooks</h3>
+        <p>Hooks let you intercept tool calls with custom scripts. They catch what they are configured to catch. A sophisticated injection finds the gap.</p>
+        <p>Anthropic Cowork docs: Only connect these agents if you are comfortable with what they could do, not just what you intend them to do. That is good advice. Shoofly is how you act on it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHAT SHOOFLY ADDS ===== -->
+  <section class="cc-section cc-section--alt">
+    <div class="container">
+      <h2 class="cc-section-title">What Shoofly Adds</h2>
+      <div class="cc-content">
+        <p>Shoofly is a pre-execution security layer for Claude Code. It works alongside Anthropic built-in protections and does behavioral analysis in real time.</p>
+        <p>Every tool call goes through Shoofly before it executes. Not logged after. Checked before.</p>
+        <h3>For Dispatch and scheduled tasks specifically</h3>
+        <p>Shoofly gives you a running audit trail of everything your unattended agent did, flagged by severity.</p>
+        <h3>One important note</h3>
+        <p>Dispatch tasks running on Anthropic cloud infrastructure do not execute local hooks. Shoofly covers local Claude Code CLI sessions fully.</p>
+        <div class="cc-cta-wrapper">
+          <a href="/#pricing" class="btn btn-primary">Get started free</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="cc-section">
+    <div class="container">
+      <h2 class="cc-section-title">Frequently Asked Questions</h2>
+      <div class="cc-content">
+        <h3 class="cc-faq-q">Is Claude Code safe for automated tasks?</h3>
+        <p class="cc-faq-a">Anthropic takes security seriously but safe depends on your threat model. Shoofly adds behavioral monitoring and pre-execution blocking that Anthropic tools are not designed to provide.</p>
+
+        <h3 class="cc-faq-q">What is prompt injection in the context of Claude Code?</h3>
+        <p class="cc-faq-a">Malicious instructions hidden in content Claude reads -- a file, a webpage, an API response -- that override its intended behavior. Anthropic documents this as the primary risk.</p>
+
+        <h3 class="cc-faq-q">Does Dispatch run securely on Anthropic infrastructure?</h3>
+        <p class="cc-faq-a">Infrastructure security is solid. The risk is Claude behavior being redirected by injected content in the tasks it processes. That is a model behavior issue, not an infrastructure issue.</p>
+
+        <h3 class="cc-faq-q">What is the risk with Claude Code Cowork?</h3>
+        <p class="cc-faq-a">PromptArmor documented that Claude Cowork is vulnerable to file exfiltration via indirect prompt injection. An attacker embeds a malicious prompt in a file, Cowork reads it, then uploads your files to the attacker server. Confirmed against Claude Haiku and Opus 4.5.</p>
+
+        <h3 class="cc-faq-q">How does Shoofly work with Claude Code?</h3>
+        <p class="cc-faq-a">Installs a local daemon and registers a hook in ~/.claude/settings.json. Before any tool call executes, the hook checks it against Shoofly threat policy. Pass means run. Fail means block and alert.</p>
+
+        <h3 class="cc-faq-q">Does Shoofly replace Anthropic safeguards?</h3>
+        <p class="cc-faq-a">No. Works alongside them. Shoofly adds behavioral analysis at the tool-call level.</p>
+
+        <h3 class="cc-faq-q">What is the difference between Basic and Advanced for Claude Code?</h3>
+        <p class="cc-faq-a">Basic watches and alerts. Advanced blocks before execution. Basic detects. Advanced stops. Advanced is 5 dollars per month.</p>
+
+        <h3 class="cc-faq-q">Will Shoofly break my Claude Code workflows?</h3>
+        <p class="cc-faq-a">It should not. Legitimate calls pass through. False positives can be allowlisted.</p>
+
+        <h3 class="cc-faq-q">Does Shoofly work with Claude Code Dispatch?</h3>
+        <p class="cc-faq-a">Local Claude Code CLI sessions are fully covered. Tasks dispatched from Anthropic's cloud infrastructure don't execute local hooks — that's a known limitation we're transparent about.</p>
+
+        <h3 class="cc-faq-q">What does pre-execution blocking mean?</h3>
+        <p class="cc-faq-a">Shoofly intercepts the tool call before Claude executes it. Before the file is written, before the command runs, before the network request fires. Stopped before, not detected after.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-row footer-row--main">
+        <span class="footer-copy">&copy; 2026 Shoofly<sup style="font-size:0.6em;vertical-align:super;">TM</sup></span>
+        <div class="footer-links">
+          <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+          <a href="https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic" target="_blank" rel="noopener noreferrer" class="footer-link">OpenClaw</a>
+          <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+          <a href="/docs/advanced" class="footer-link">Advanced Docs</a>
+          <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+        </div>
+      </div>
+      <div class="footer-row footer-row--bottom">
+        <span class="footer-sub">Built by <a href="/leeroy" class="footer-link">🦾 Leeroy&nbsp;Jenkins</a> and <a href="https://www.linkedin.com/in/evanvuckovic" target="_blank" rel="noopener noreferrer" class="footer-link">Evan</a> &middot; <em style="color:#555;">Not affiliated with the Leeroy Jenkins from WoW. We're fans though!</em></span>
+        <div class="footer-links" style="gap:1rem;">
+          <a href="/privacy" class="footer-link">Privacy</a>
+          <a href="/terms" class="footer-link">Terms</a>
+          <a href="/security" class="footer-link">Security</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../script.js?v=202603281455"></script>
+</body>
+</html>

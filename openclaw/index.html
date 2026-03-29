@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Snyk found 36 percent of ClawHub skills contain security flaws. Here is how to protect your OpenClaw agent." />
+  <meta name="color-scheme" content="light" />
+  <title>OpenClaw Security: Keep Your AI Agent From Being Turned Against You | Shoofly</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css?v=202603281455" />
+  <style>
+    .cc-hero { padding: 4rem 0 3rem; background-color: var(--bg); border-bottom: 1px solid var(--border); }
+    .cc-hero-headline { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; color: var(--text); margin-bottom: 1rem; }
+    .cc-hero-sub { font-size: clamp(1rem, 2.5vw, 1.15rem); color: var(--text-muted); max-width: 640px; margin-bottom: 1.5rem; }
+    .cc-section { padding: 4rem 0; border-bottom: 1px solid var(--border); }
+    .cc-section--alt { background-color: var(--bg-alt); }
+    .cc-section-title { font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 700; color: var(--text); margin-bottom: 2rem; text-align: center; }
+    .cc-content { max-width: 720px; margin: 0 auto; }
+    .cc-content p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1rem; }
+    .cc-content strong { color: var(--text); font-weight: 600; }
+    .cc-content h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    .cc-content ul { list-style: none; padding: 0; margin-bottom: 1rem; }
+    .cc-content ul li { font-size: 0.95rem; color: var(--text-muted); padding: 0.4rem 0 0.4rem 1.5rem; position: relative; line-height: 1.65; }
+    .cc-content ul li::before { content: ">"; position: absolute; left: 0; color: var(--accent); font-family: var(--font-mono); font-weight: 700; }
+    .cc-benefits { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .cc-benefit { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; }
+    .cc-benefit strong { display: block; color: var(--text); font-weight: 700; margin-bottom: 0.25rem; }
+    .cc-benefit span { font-size: 0.95rem; color: var(--text-muted); line-height: 1.65; }
+    .cc-faq-q { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    .cc-faq-a { font-size: 0.95rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1rem; }
+    .cc-cta-wrapper { text-align: center; margin-top: 2rem; }
+    @media (max-width: 640px) {
+      .cc-benefits { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAV ===== -->
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="cc-hero">
+    <div class="container">
+      <p class="hero-brand">🪰 Shoofly</p>
+      <h1 class="cc-hero-headline">OpenClaw Security: Keep Your AI Agent From Being Turned Against You</h1>
+      <p class="cc-hero-sub">OpenClaw gives your agent real tools. Here is what happens when something goes wrong.</p>
+    </div>
+  </section>
+
+  <!-- ===== THE CLAWHUB PROBLEM ===== -->
+  <section class="cc-section">
+    <div class="container">
+      <h2 class="cc-section-title">The ClawHub Problem Nobody Talks About Enough</h2>
+      <div class="cc-content">
+        <p>Skills from ClawHub are the fastest way to extend your agent. They are also one of the biggest unsolved security problems in the AI agent ecosystem.</p>
+        <ul>
+          <li>Snyk ToxicSkills audit found 36 percent of scanned ClawHub skills contain at least one security flaw, including prompt injection, hardcoded credentials, and malware payloads.</li>
+          <li>Thousands of ClawHub skills have been flagged for containing malicious patterns across multiple audits.</li>
+          <li>Trend Micro documented ClawHub skills distributing macOS malware via fake prerequisites in SKILL.md files.</li>
+
+        </ul>
+        <p>ClawHub is like npm or PyPI. A malicious ClawHub skill runs inside your agent context with your agent permissions alongside your memory and credentials.</p>
+        <h3>One bad skill can:</h3>
+        <ul>
+          <li>Read SSH keys and API tokens and exfiltrate them</li>
+          <li>Send messages from your connected accounts</li>
+          <li>Execute shell commands you never approved</li>
+          <li>Modify your agent instructions to persist across sessions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHAT SHOOFLY DOES ===== -->
+  <section class="cc-section cc-section--alt">
+    <div class="container">
+      <h2 class="cc-section-title">What Shoofly Does</h2>
+      <div class="cc-content">
+        <p>Shoofly watches every tool call your agent makes in real time before it executes. Not after. Before.</p>
+        <p>When your agent is about to write a file or send a message or run a command, Shoofly checks it. If something looks off, Shoofly flags it or blocks it and tells you what happened.</p>
+        <p><strong>Shoofly is built specifically for OpenClaw. It knows what normal looks like.</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHY THIS MATTERS ===== -->
+  <section class="cc-section">
+    <div class="container">
+      <h2 class="cc-section-title">Why This Matters More Than You Think</h2>
+      <div class="cc-content">
+        <h3>Your agent has more access than you realize</h3>
+        <p>If you have connected your agent to email, Telegram, GitHub, or your file system, a compromised agent has real reach.</p>
+        <h3>Skills run with your privileges</h3>
+        <p>No sandbox by default. A skill from ClawHub runs in the same context as your agent with the same permissions.</p>
+        <h3>The attacks are not hypothetical</h3>
+        <p>Oasis Security demonstrated a vulnerability chain where any website your agent visits could silently take full control -- a flaw OpenClaw patched within 24 hours of disclosure. Thousands of real malicious skills have been actively distributed and flagged across the ClawHub registry.</p>
+        <h3>Visibility is the first defense</h3>
+        <p>Most OpenClaw users have no idea what their agent is doing between prompts. Shoofly gives you that visibility.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WHAT YOU GET ===== -->
+  <section class="cc-section cc-section--alt">
+    <div class="container">
+      <h2 class="cc-section-title">What You Get with Shoofly</h2>
+      <div class="cc-benefits">
+        <div class="cc-benefit">
+          <strong>Pre-execution blocking</strong>
+          <span>Threats stopped before they run</span>
+        </div>
+        <div class="cc-benefit">
+          <strong>Real-time alerts</strong>
+          <span>Notified the moment something suspicious happens</span>
+        </div>
+        <div class="cc-benefit">
+          <strong>ClawHub skill monitoring</strong>
+          <span>See exactly what each skill is doing</span>
+        </div>
+        <div class="cc-benefit">
+          <strong>Full audit trail</strong>
+          <span>Log of every tool call</span>
+        </div>
+        <div class="cc-benefit">
+          <strong>Works with your existing setup</strong>
+          <span>Installs as an OpenClaw skill</span>
+        </div>
+      </div>
+      <div class="cc-cta-wrapper">
+        <a href="/#pricing" class="btn btn-primary">Get started free</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="cc-section">
+    <div class="container">
+      <h2 class="cc-section-title">Frequently Asked Questions</h2>
+      <div class="cc-content">
+        <h3 class="cc-faq-q">Is ClawHub actually dangerous?</h3>
+        <p class="cc-faq-a">Most skills are fine. But a meaningful percentage have had malicious content, and moderation is improving but not complete. Shoofly watches what those skills actually do.</p>
+
+        <h3 class="cc-faq-q">What can a malicious ClawHub skill do?</h3>
+        <p class="cc-faq-a">Anything your agent can do. Skills execute in your agent context with your agent permissions.</p>
+
+        <h3 class="cc-faq-q">How does Shoofly stop threats without breaking my agent?</h3>
+        <p class="cc-faq-a">Behavioral analysis on tool calls. Expected behavior passes through. Anomalous calls get flagged or blocked. You set the sensitivity.</p>
+
+        <h3 class="cc-faq-q">Does Shoofly slow down my agent?</h3>
+        <p class="cc-faq-a">Not meaningfully. Designed to add less than 50ms to tool call latency.</p>
+
+        <h3 class="cc-faq-q">Will Shoofly break my existing skills?</h3>
+        <p class="cc-faq-a">It should not. Legitimate skill behavior passes through. False positives can be allowlisted.</p>
+
+        <h3 class="cc-faq-q">I only use skills I wrote myself. Do I still need this?</h3>
+        <p class="cc-faq-a">Possibly. Prompt injection can come from content your agent reads, not just skills.</p>
+
+        <h3 class="cc-faq-q">OpenClaw already has a trust page. Is that not enough?</h3>
+        <p class="cc-faq-a">It covers what they are building toward. Shoofly provides runtime monitoring for your specific agent and skills.</p>
+
+        <h3 class="cc-faq-q">What happens when Shoofly detects something?</h3>
+        <p class="cc-faq-a">Blocks the call, alerts you, logs the event. Configurable -- hard block or alert only.</p>
+
+        <h3 class="cc-faq-q">Does Shoofly require changes to how I use OpenClaw?</h3>
+        <p class="cc-faq-a">No. Install the skill, configure alerts, keep using OpenClaw the same way.</p>
+
+        <h3 class="cc-faq-q">Is this just for paranoid people?</h3>
+        <p class="cc-faq-a">Supply chain attacks are designed to be invisible. Add monitoring before something goes wrong, not after.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-row footer-row--main">
+        <span class="footer-copy">&copy; 2026 Shoofly<sup style="font-size:0.6em;vertical-align:super;">TM</sup></span>
+        <div class="footer-links">
+          <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+          <a href="https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic" target="_blank" rel="noopener noreferrer" class="footer-link">OpenClaw</a>
+          <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+          <a href="/docs/advanced" class="footer-link">Advanced Docs</a>
+          <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+        </div>
+      </div>
+      <div class="footer-row footer-row--bottom">
+        <span class="footer-sub">Shoofly is built for OpenClaw and Claude Code. Developed by people who run agents and take their security seriously.</span>
+        <div class="footer-links" style="gap:1rem;">
+          <a href="/privacy" class="footer-link">Privacy</a>
+          <a href="/terms" class="footer-link">Terms</a>
+          <a href="/security" class="footer-link">Security</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../script.js?v=202603281455"></script>
+</body>
+</html>

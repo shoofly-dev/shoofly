@@ -369,13 +369,14 @@ a:hover {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+  align-items: stretch;
 }
 
 .pricing-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 2.5rem 2rem;
+  padding: 2.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -426,12 +427,12 @@ a:hover {
 }
 
 .pricing-card .terminal-block {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .pricing-features {
   list-style: none;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .pricing-features li {
@@ -451,8 +452,36 @@ a:hover {
 }
 
 .pricing-card .btn {
-  margin-top: auto;
   text-align: center;
+}
+
+/* CTA wrapper — pins both cards' CTAs to the bottom of the grid row */
+.pricing-cta-wrapper {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  width: 100%;
+}
+
+/* Full-width Get Advanced button, pixel-matched to curl box */
+.pricing-cta-wrapper .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.95rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Curl box in Basic CTA — height matches Get Advanced button */
+.terminal-block--full {
+  width: 100%;
+  box-sizing: border-box;
+  /* height is determined by padding: 0.85rem top+bottom + 0.95rem font + 1.5 line-height
+     = same as .pricing-cta-wrapper .btn */
 }
 
 /* =========================================
@@ -741,3 +770,51 @@ a:hover {
     gap: 0.6rem;
   }
 }
+
+/* ── Runtime badges (hero) ── */
+.hero-runtimes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+.runtime-badge {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  background: rgba(110,231,183,0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(110,231,183,0.25);
+  transition: background 0.2s, border-color 0.2s;
+}
+.runtime-badge:hover {
+  background: rgba(110,231,183,0.2);
+  border-color: rgba(110,231,183,0.45);
+}
+.runtime-badge--plain {
+  pointer-events: none;
+  cursor: default;
+}
+
+/* ── Pricing compat line ── */
+.pricing-compat {
+  font-size: 0.72rem;
+  color: #6ee7b7;
+  opacity: 0.75;
+  margin: 0.25rem 0 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+/* ── Pricing Basic install label + full-width terminal ── */
+.pricing-install-label {
+  font-size: 0.82rem;
+  color: #444444;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+/* terminal-block--full consolidated above */

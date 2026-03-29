@@ -1,6 +1,6 @@
 # Shoofly
 
-Drop-in runtime security for OpenClaw AI agents.
+Drop-in runtime security for OpenClaw and Claude Code agents.
 
 ```
 curl -fsSL https://shoofly.dev/install.sh | bash
@@ -21,6 +21,6 @@ Shoofly intercepts your agent's tool calls and blocks dangerous ones before they
 
 ## Open source
 
-The rules that protect your OpenClaw agents are open. Read them, fork them, run them yourself.
+The rules that protect your agents are open. Read them, fork them, run them yourself.
 
 → [shoofly.dev](https://shoofly.dev)

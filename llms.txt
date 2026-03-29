@@ -1,8 +1,8 @@
 # Shoofly
 
-> Drop-in runtime security for OpenClaw AI agents. Threats intercepted before they execute -- blocked, not detected.
+> Drop-in runtime security for OpenClaw and Claude Code agents. Threats intercepted before they execute -- blocked, not detected.
 
-Shoofly is a security layer for OpenClaw AI agents that intercepts tool calls before they execute and blocks dangerous ones. It detects and blocks prompt injection, credential exfiltration, out-of-scope writes, runaway loops, and data exfiltration attempts.
+Shoofly is a security layer for OpenClaw and Claude Code agents that intercepts tool calls before they execute and blocks dangerous ones. It detects and blocks prompt injection, credential exfiltration, out-of-scope writes, runaway loops, and data exfiltration attempts.
 
 ## What It Does
 
