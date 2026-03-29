@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pre-execution agentic AI security stops threats before tool calls fire — not after damage is done. How Shoofly's decision-gate approach differs from input guardrails, post-hoc detection, and why timing is everything." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="Pre-Execution Agentic AI Security: Why Blocking at the Decision Gate Matters — Shoofly" />
+  <meta property="og:description" content="Pre-execution agentic AI security stops threats before tool calls fire — not after damage is done. How Shoofly's decision-gate approach differs from input guardrails and post-hoc detection." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/agentic-ai-security/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pre-Execution Agentic AI Security: Why Blocking at the Decision Gate Matters — Shoofly" />
+  <meta name="twitter:description" content="Pre-execution agentic AI security stops threats before tool calls fire — not after damage is done." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Pre-Execution Agentic AI Security: Why Blocking at the Decision Gate Matters — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/agentic-ai-security/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg); color: var(--text);
+      font-family: var(--font-body); font-size: 1rem; line-height: 1.7;
+      -webkit-font-smoothing: antialiased; padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt); border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 1.5rem; }
+    /* Page header */
+    .page-header { padding: 3.5rem 0 2.5rem; border-bottom: 1px solid var(--border); }
+    .page-header h1 { font-size: clamp(1.75rem, 4vw, 2.4rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
+    .page-header .page-desc { font-size: 1.05rem; color: var(--text-muted); max-width: 600px; }
+    /* Prose body */
+    .prose { padding: 2.5rem 0 4rem; }
+    .prose p { margin-bottom: 1.4rem; font-size: 1.05rem; }
+    .prose h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .prose h2:first-child { margin-top: 0; }
+    .prose a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .prose a:hover { text-decoration: underline; }
+    .prose strong { color: var(--text); font-weight: 600; }
+    .prose em { color: var(--text-muted); }
+    .prose ul { margin: 0 0 1.4rem 1.5rem; }
+    .prose ul li { margin-bottom: 0.5rem; font-size: 1.05rem; }
+    .prose code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .prose pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .prose pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .prose hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+    /* Comparison table */
+    .prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0 2rem; font-size: 0.95rem; }
+    .prose th { text-align: left; padding: 0.6rem 1rem; background: var(--bg-alt); border: 1px solid var(--border); color: var(--text); font-weight: 600; }
+    .prose td { padding: 0.6rem 1rem; border: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
+    .prose tr:last-child td:last-child { color: var(--accent); font-weight: 500; }
+    /* CTA block */
+    .cta-block { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .cta-block h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+    .cta-block p { color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; }
+    .cta-block pre { margin: 0; }
+    .btn { display: inline-block; padding: 0.6rem 1.25rem; border-radius: 6px; font-weight: 600; font-size: 0.95rem; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: 0.9; text-decoration: none; }
+    /* Related links */
+    .related { padding: 1.5rem 0; border-top: 1px solid var(--border); margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); }
+    .related a { color: var(--accent); font-weight: 500; }
+    /* Footer */
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>Pre-Execution Agentic AI Security: Why Blocking at the Decision Gate Matters</h1>
+      <p class="page-desc">Most AI security tools operate at the wrong layer. Here's why pre-execution blocking — not detection — is the correct architectural response for agents with real system access.</p>
+    </div>
+
+    <main class="prose">
+
+      <p>
+        Most AI security tools operate at the wrong layer. They scan inputs before the model sees them,
+        or they log and alert after a tool call completes. Neither approach stops an attack that's already
+        in motion. <strong>Pre-execution agentic AI security</strong> is different: it intercepts threats
+        at the exact moment an agent has decided to call a tool — before that call executes.
+      </p>
+
+      <p>
+        This distinction matters more than it might look. Agents don't just process text. They write files,
+        run shell commands, fetch URLs, read credentials, and interact with live systems. A prompt injection
+        that reaches your agent's planning step can produce a <em>valid tool call</em> — one your runtime
+        will happily execute unless something stops it first.
+      </p>
+
+      <h2>Why is agentic AI security different from traditional application security?</h2>
+
+      <p>
+        Traditional application security protects deterministic code paths. An agent's execution path is
+        non-deterministic — its next action depends on model output, which depends on all context in the
+        conversation window, including untrusted content the agent just fetched. A user injecting malicious
+        instructions into a web page that your agent reads can redirect what your agent does next.
+      </p>
+
+      <p>
+        According to <a href="https://www.bvp.com/atlas/securing-ai-agents-the-defining-cybersecurity-challenge-of-2026" rel="noopener noreferrer">Bessemer Venture Partners</a> (March 2026),
+        "securing AI agents has become the defining cybersecurity challenge of 2026." The numbers back that up:
+      </p>
+
+      <ul>
+        <li><strong>HiddenLayer 2026 AI Threat Landscape:</strong> One in eight AI breaches is linked to agentic systems.</li>
+        <li><strong>Gartner:</strong> 40% of enterprise apps will embed task-specific AI agents by 2026, up from under 5% in 2025.</li>
+        <li><strong>IBM 2025 Cost of Data Breach:</strong> Shadow AI breaches cost $4.63M on average — $670K more than standard breaches.</li>
+        <li><strong>Dark Reading:</strong> 48% of cybersecurity professionals identify agentic AI as the most dangerous current attack vector.</li>
+      </ul>
+
+      <p>
+        NIST has issued a <a href="https://www.federalregister.gov/documents/2026/01/08/2026-00206/request-for-information-regarding-security-considerations-for-artificial-intelligence-agents" rel="noopener noreferrer">formal Request for Information on AI agent security considerations</a>,
+        signaling that the gap between agent capability and runtime security controls is being recognized at the policy level.
+      </p>
+
+      <h2>What's wrong with input guardrails for agentic systems?</h2>
+
+      <p>
+        Input guardrails — tools like NVIDIA NeMo Guardrails or Meta's LlamaFirewall — operate at the
+        model boundary. They scan content before it enters the LLM context, looking for prompt injection
+        patterns, policy violations, or sensitive data. For chatbots, this is reasonable.
+        For agents, it's structurally insufficient.
+      </p>
+
+      <p>
+        The problem is timing. Agents aren't just ingesting single user prompts — they're consuming
+        continuous streams of tool output, web content, file contents, and API responses during execution.
+        An injection that arrives in the output of a web search, inside a README file in a cloned repo,
+        or embedded in a CSV your agent was asked to process — none of these pass through the initial
+        input filter. They enter the agent's context <em>post-ingestion</em>, after the guardrail has
+        already passed the session.
+      </p>
+
+      <p>
+        Even the best prompt injection detection at the input layer cannot stop a threat that arrives
+        as tool output two steps into an agentic workflow. The model processes it as context.
+        The agent acts on it. The damage happens.
+      </p>
+
+      <h2>Why is post-execution detection too late?</h2>
+
+      <p>
+        Post-execution detection approaches — logging tool calls after they complete, running anomaly
+        detection on agent behavior histories, sending alerts when suspicious patterns emerge — share a
+        fundamental flaw: they're forensics, not prevention.
+      </p>
+
+      <p>
+        If an agent runs <code>rm -rf ~/.ssh</code>, a post-execution log tells you what happened.
+        It doesn't give you your SSH keys back. If an agent exfiltrates <code>~/.aws/credentials</code>
+        to an external server, an alert fires after the data is already gone. Detection latency measured
+        in seconds is too slow when the damage from a single tool call is permanent.
+      </p>
+
+      <p>
+        Agents also tend to chain tool calls quickly. By the time a post-execution system fires an alert,
+        three or four subsequent actions may have already completed. You're not stopping an attack —
+        you're doing incident response.
+      </p>
+
+      <h2>How do the three approaches compare?</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Approach</th>
+            <th>When it acts</th>
+            <th>What it stops</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Input guardrails (NeMo, LlamaFirewall)</td>
+            <td>When content enters the model</td>
+            <td>Prompt injection reaching the LLM</td>
+          </tr>
+          <tr>
+            <td>Post-execution detection</td>
+            <td>After tool call completes</td>
+            <td>Alerts on damage already done</td>
+          </tr>
+          <tr>
+            <td><strong>Pre-execution blocking (Shoofly)</strong></td>
+            <td>When agent requests a tool call</td>
+            <td>Stops the action before it fires</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        The three approaches are not mutually exclusive — but pre-execution blocking is the only one
+        that can prevent a destructive action from completing. The others are useful complements;
+        they're not substitutes.
+      </p>
+
+      <h2>What is pre-execution blocking and why does the decision gate matter?</h2>
+
+      <p>
+        Pre-execution blocking intercepts a tool call <em>after the agent decides to make it but before
+        it executes</em>. This is the decision gate: the agent has formed intent, the tool call parameters
+        are fully specified, but nothing has happened yet. That's the only moment where you can evaluate
+        the action and block it without side effects.
+      </p>
+
+      <p>At this gate, you can inspect:</p>
+      <ul>
+        <li>The tool being called (is this <code>exec</code>? <code>write</code>? <code>web_fetch</code>?)</li>
+        <li>The exact parameters (what path? what command? what URL?)</li>
+        <li>Whether the call matches a known threat pattern</li>
+        <li>Whether the call is consistent with the original task context</li>
+      </ul>
+
+      <p>
+        If the tool call violates policy, it's blocked. The agent gets an error. No file was deleted.
+        No credential was sent. The session can continue with the problematic action suppressed.
+      </p>
+
+      <h2>How does Shoofly implement pre-execution blocking?</h2>
+
+      <p>
+        Shoofly installs as a plugin layer in <a href="/openclaw-security/">OpenClaw</a> and as a hook
+        in <a href="/claude-code-security/">Claude Code</a>. Every tool call passes through Shoofly's
+        evaluation engine before it executes. The evaluation is synchronous — if Shoofly blocks,
+        the tool call never fires.
+      </p>
+
+      <p>Rules are open: you can read them, edit them, and write your own. The default ruleset covers:</p>
+      <ul>
+        <li><strong>Credential path access:</strong> blocks reads of <code>~/.ssh</code>, <code>~/.aws</code>, <code>~/.gnupg</code>, and credential directories unless explicitly permitted</li>
+        <li><strong>Dangerous shell patterns:</strong> blocks commands matching known destructive patterns</li>
+        <li><strong>Unexpected outbound transfers:</strong> flags <code>curl</code>/<code>wget</code> calls to unapproved domains with file pipe patterns</li>
+        <li><strong>Exec with untrusted input:</strong> catches shell execution where agent-controlled content flows into a command string</li>
+        <li><strong>MCP tool call anomalies:</strong> detects tool calls inconsistent with the tool's declared purpose</li>
+      </ul>
+
+      <p>
+        Shoofly Basic is free and open source. Shoofly Advanced adds VirusTotal scanning of downloaded
+        content before execution, real-time alerts via Telegram and desktop notifications, webhook
+        integration, and policy linting.
+      </p>
+
+      <h2>Who is pre-execution blocking for?</h2>
+
+      <p>Any developer running agents with real system access — specifically:</p>
+      <ul>
+        <li><a href="/claude-code-dispatch">Claude Code</a> users who clone untrusted repos, process third-party content, or run Cowork/Dispatch sessions</li>
+        <li><a href="/openclaw">OpenClaw</a> users running agents with exec, file, browser, and web tools</li>
+        <li>Teams running unattended agents (heartbeat agents, cron agents, multi-agent pipelines)</li>
+        <li>Anyone who wants to audit what their agent is actually doing before it does it</li>
+      </ul>
+
+      <hr>
+
+      <div class="cta-block">
+        <h3>Add pre-execution blocking to your agent stack</h3>
+        <p>Shoofly Basic is free. No API key, no account required.</p>
+        <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+        <a href="/#pricing" class="btn btn-primary" style="margin-top:1rem; display:inline-block;">See plans &amp; pricing →</a>
+      </div>
+
+      <div class="related">
+        <strong>Related:</strong>
+        <a href="/blog/why-we-block-instead-of-detect/">Why we block instead of detect</a> ·
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> ·
+        <a href="/claude-code-security/">Claude Code Security Guide</a> ·
+        <a href="/openclaw-security/">OpenClaw Security Guide</a>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
