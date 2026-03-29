@@ -279,8 +279,8 @@
       <h2>How does Shoofly implement pre-execution blocking?</h2>
 
       <p>
-        Shoofly installs as a plugin layer in <a href="/openclaw-security/">OpenClaw</a> and as a hook
-        in <a href="/claude-code-security/">Claude Code</a>. Every tool call passes through Shoofly's
+        Shoofly installs as a plugin layer in <a href="/openclaw">OpenClaw</a> and as a hook
+        in <a href="/claude-code-dispatch">Claude Code</a>. Every tool call passes through Shoofly's
         evaluation engine before it executes. The evaluation is synchronous — if Shoofly blocks,
         the tool call never fires.
       </p>
@@ -295,9 +295,8 @@
       </ul>
 
       <p>
-        Shoofly Basic is free and open source. Shoofly Advanced adds VirusTotal scanning of downloaded
-        content before execution, real-time alerts via Telegram and desktop notifications, webhook
-        integration, and policy linting.
+        Shoofly Basic is free. The threat policy is open and auditable. Shoofly Advanced adds
+        pre-execution blocking, real-time alerts via Telegram and desktop notifications, and policy linting.
       </p>
 
       <h2>Who is pre-execution blocking for?</h2>
@@ -323,8 +322,9 @@
         <strong>Related:</strong>
         <a href="/blog/why-we-block-instead-of-detect/">Why we block instead of detect</a> ·
         <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> ·
-        <a href="/claude-code-security/">Claude Code Security Guide</a> ·
-        <a href="/openclaw-security/">OpenClaw Security Guide</a>
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> ·
+        <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/">CVE-2025-59536: Claude Code security</a>
+        <!-- PENDING: add /claude-code-security/ and /openclaw-security/ when live -->
       </div>
 
     </main>
