@@ -79,7 +79,7 @@ LOW confidence = log only. Shoofly only bothers you when it's confident.
 
 | Feature | Basic (this repo) | Advanced |
 |---------|------------------|----------|
-| Price | **Free** | $19/mo |
+| Price | **Free** | $5/mo |
 | Monitors threats | Yes | Yes |
 | Blocks threats | No | **Yes** |
 | Hook timing | Post-execution | **Pre-execution** |

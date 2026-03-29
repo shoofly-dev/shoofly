@@ -17,7 +17,7 @@ Shoofly intercepts your agent's tool calls and blocks dangerous ones before they
 ## Tiers
 
 - 🪰🧹 **Shoofly Basic** — Free forever. Detect threats, send notifications. Never blocks. Install: `curl -fsSL https://shoofly.dev/install.sh | bash`
-- ⚡🪰⚡ **Shoofly Advanced** — $19/mo. Tool call interceptor. Prompt injection, data exfiltration, and dangerous writes blocked before execution. Upgrade: https://shoofly.dev/advanced
+- ⚡🪰⚡ **Shoofly Advanced** — $5/mo. Tool call interceptor. Prompt injection, data exfiltration, and dangerous writes blocked before execution. Upgrade: https://shoofly.dev/advanced
 
 ## Open source
 

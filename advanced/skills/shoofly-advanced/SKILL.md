@@ -1,6 +1,6 @@
 ---
 name: shoofly-advanced
-description: "Shoofly Advanced — AI agent security layer with pre-execution blocking. Intercepts and stops threats BEFORE agent sees them. $19/mo."
+description: "Shoofly Advanced — AI agent security layer with pre-execution blocking. Intercepts and stops threats BEFORE agent sees them. $5/mo."
 metadata:
   {
     "openclaw": {

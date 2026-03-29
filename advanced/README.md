@@ -161,7 +161,7 @@ Both logs are capped at 10MB and rotate (max 3 copies). Treat as sensitive — t
 | blocked.log | Not present | Present |
 | Daemon socket | Not present | Present (RL checks) |
 | Fail behavior | N/A | Fail-open (never breaks agent) |
-| Price | Free | $19/mo (Stripe — deferred) |
+| Price | Free | $5/mo (Stripe — deferred) |
 
 ---
 

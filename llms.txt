@@ -29,7 +29,7 @@ Install:
 curl -fsSL https://shoofly.dev/install.sh | bash
 ```
 
-### Shoofly Advanced ($19/mo)
+### Shoofly Advanced ($5/mo)
 Two-layer prevention: daemon (monitors + alerts) and hook (intercepts tool calls before they fire). Dangerous calls are blocked -- not detected.
 
 - Daemon: background sidecar that monitors session logs, evaluates threats, fires alerts

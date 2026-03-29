@@ -32,23 +32,23 @@ Last updated: 2026-03-29
 
 ### llms.txt
 - Line 24 — `### Shoofly Basic (Free)`
-- Line 32 — `### Shoofly Advanced ($19/mo)` ⚠️ **STALE — says $19, current price is $5**
+- Line 32 — `### Shoofly Advanced ($19/mo)` ✅ Updated 2026-03-29
 
 ### README.md
 - Line 19 — `Shoofly Basic — Free forever.`
-- Line 20 — `Shoofly Advanced — $19/mo.` ⚠️ **STALE — says $19, current price is $5**
+- Line 20 — `Shoofly Advanced — $19/mo.` ✅ Updated 2026-03-29
 
 ### advanced/README.md
-- Line 164 — comparison table: `| Price | Free | $19/mo (Stripe — deferred) |` ⚠️ **STALE — says $19, current price is $5**
+- Line 164 — comparison table: `| Price | Free | $19/mo (Stripe — deferred) |` ✅ Updated 2026-03-29
 
 ### advanced/skills/shoofly-advanced/SKILL.md
-- Line 3 — skill description: `"...$19/mo."` ⚠️ **STALE — says $19, current price is $5**
+- Line 3 — skill description: `"...$19/mo."` ✅ Updated 2026-03-29
 
 ### basic/README.md
-- Line 82 — comparison table: `| Price | **Free** | $19/mo |` ⚠️ **STALE — says $19, current price is $5**
+- Line 82 — comparison table: `| Price | **Free** | $19/mo |` ✅ Updated 2026-03-29
 
 ### terms/index.html
-- Line 175 — pricing section: `"Shoofly Advanced costs $19/month, billed monthly via Stripe."` ⚠️ **STALE — says $19, current price is $5**
+- Line 175 — pricing section: `"Shoofly Advanced costs $19/month, billed monthly via Stripe."` ✅ Updated 2026-03-29
 
 ### openclaw/index.html
 - Line 155 — CTA button: `"Get started free"`
