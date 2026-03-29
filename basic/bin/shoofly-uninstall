@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Shoofly Advanced — Uninstall
+# Shoofly Basic — Uninstall
 set -euo pipefail
 
 echo ""
-echo "⚡🪰⚡ Shoofly Advanced — Uninstall"
+echo "🪰 Shoofly Basic — Uninstall"
 echo "────────────────────────────────────────"
 echo ""
 
@@ -22,39 +22,20 @@ pkill -f shoofly-daemon 2>/dev/null || true
 echo "Removing binaries…"
 rm -f ~/.shoofly/bin/shoofly-daemon \
       ~/.shoofly/bin/shoofly-notify \
-      ~/.shoofly/bin/shoofly-setup \
-      ~/.shoofly/bin/shoofly-check \
-      ~/.shoofly/bin/shoofly-health \
-      ~/.shoofly/bin/shoofly-log \
-      ~/.shoofly/bin/shoofly-block-log \
-      ~/.shoofly/bin/shoofly-status \
-      ~/.shoofly/bin/shoofly-policy-lint \
-      ~/.shoofly/bin/shoofly-scan
+      ~/.shoofly/bin/shoofly-setup
 
 # ─── Remove OpenClaw skill ──────────────────────────────────────────────────
 echo "Removing OpenClaw skill…"
-rm -rf ~/.openclaw/skills/shoofly-advanced
+rm -rf ~/.openclaw/skills/shoofly-basic
 
-# ─── Remove hook extension ──────────────────────────────────────────────────
-echo "Removing hook extension…"
-rm -rf ~/.openclaw/extensions/shoofly-hook/
-
-# ─── Optional: remove config, logs, and blocked.log ─────────────────────────
+# ─── Optional: remove config and logs ────────────────────────────────────────
 echo ""
 read -r -p "Remove ~/.shoofly/ config and logs? [y/N]: " answer < /dev/tty
 if [[ "$answer" =~ ^[Yy]$ ]]; then
   rm -rf ~/.shoofly/
   echo ""
-  echo "Shoofly Advanced fully removed."
+  echo "Shoofly Basic fully removed."
 else
-  # Offer to remove blocked.log separately
-  if [ -f ~/.shoofly/logs/blocked.log ]; then
-    read -r -p "Remove blocked.log separately? [y/N]: " blocked < /dev/tty
-    if [[ "$blocked" =~ ^[Yy]$ ]]; then
-      rm -f ~/.shoofly/logs/blocked.log
-      echo "blocked.log removed."
-    fi
-  fi
   echo ""
-  echo "Shoofly Advanced removed. Config and logs kept at ~/.shoofly/"
+  echo "Shoofly Basic removed. Config and logs kept at ~/.shoofly/"
 fi
