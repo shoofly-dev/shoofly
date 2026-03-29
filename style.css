@@ -748,11 +748,15 @@ a:hover {
   }
 
   .quick-start {
-    padding: 2rem 0 1.5rem;
+    padding: 1.5rem 0 1.5rem;
   }
 
   .quick-start-header {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-start-subtext {
+    margin-top: 0.6rem;
   }
 
   .footer-inner {
