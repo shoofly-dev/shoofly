@@ -43,6 +43,12 @@
     @media (max-width: 640px) {
       .cc-benefits { grid-template-columns: 1fr; }
     }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) { .nav-hamburger { display: flex; } .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; } .nav-links.open { display: flex; } }
   </style>
 </head>
 <body>
@@ -220,5 +226,10 @@
   </footer>
 
   <script src="../script.js?v=202603281455"></script>
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
 </body>
 </html>
