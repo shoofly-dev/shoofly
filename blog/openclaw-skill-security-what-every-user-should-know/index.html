@@ -1,0 +1,324 @@
+<!-- KEYWORD MAP
+  Primary:   OpenClaw security
+  Secondary: ClawHub security, malicious ClawHub skills, AI agent security
+  Tertiary:  AI agent malware protection, agentic AI security, pre-execution blocking
+-->
+
+<!-- LINKING SECTION
+  (a) Existing links — live pages this post links to:
+      - /blog                          (blog index)
+      - /#pricing                      (Shoofly Basic CTA)
+      - /openclaw                      (OpenClaw FAQs)
+      - /claude-code-dispatch          (Claude Code FAQs)
+      - /blog/why-we-block-instead-of-detect/  (pre-execution blocking explainer)
+      - /docs/advanced                 (Advanced docs, rules reference)
+
+  (b) Future links (pending) — planned pages that should link to/from this post:
+      - /blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/  → cross-link (tool-level supply chain angle)
+      - /blog/cve-2025-59536-claude-code-config-file-exploit/    → cross-link (config file supply chain angle)
+      - A future "ClawHub trust model" or "skill verification" page should link here
+      - /security  → if/when this becomes an SEO page, should reference this post
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="OpenClaw skills run with your agent's full permissions. ClawHub has automated scanning — but no code signing and no human review. Here's what that means for OpenClaw security and how to protect yourself." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="OpenClaw Skill Security: What Every User Should Know — Shoofly" />
+  <meta property="og:description" content="OpenClaw skills run with your agent's full permissions. ClawHub has automated scanning — but no code signing and no human review. Here's what that means for OpenClaw security and how to protect yourself." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/openclaw-skill-security-what-every-user-should-know/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="OpenClaw Skill Security: What Every User Should Know — Shoofly" />
+  <meta name="twitter:description" content="OpenClaw skills run with your agent's full permissions. ClawHub has automated scanning — but no code signing and no human review. Here's what that means for OpenClaw security and how to protect yourself." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>OpenClaw Skill Security: What Every User Should Know — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/openclaw-skill-security-what-every-user-should-know/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body ul { margin: 0 0 1.4rem 1.5rem; }
+    .post-body ul li { margin-bottom: 0.5rem; font-size: 1.05rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-29">March 29, 2026</time>
+        <span class="post-tag">OpenClaw Security</span>
+      </div>
+      <h1>OpenClaw Skill Security: What Every User Should Know Before Installing from ClawHub</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+      <p>
+        The OpenClaw skill ecosystem is genuinely useful. One command installs a skill from ClawHub,
+        and your agent gains new capabilities immediately. That convenience has a real <strong>OpenClaw security</strong>
+        cost most users haven't thought through: a skill runs with your agent's full permissions.
+        There's no sandbox. There's no mandatory audit.
+        Here's what that means in practice.
+      </p>
+
+      <h2>What OpenClaw Skills Can Do: The Full Permission Surface</h2>
+
+      <p>
+        OpenClaw skills are zip packages — a <code>SKILL.md</code> instruction file and optional
+        supporting scripts. When installed, a skill becomes part of the agent's context and can direct
+        the agent to use any tool the agent has access to. In a standard OpenClaw session, that includes:
+      </p>
+
+      <ul>
+        <li><strong>exec</strong> — arbitrary shell command execution</li>
+        <li><strong>file read/write</strong> — any path the agent's user account can access</li>
+        <li><strong>browser</strong> — full browser automation, including form fills and navigation</li>
+        <li><strong>web</strong> — outbound HTTP requests to any URL</li>
+      </ul>
+
+      <p>
+        A malicious skill doesn't need to exploit a vulnerability. It just needs to instruct the agent
+        to use the tools it already has. Read <code>~/.ssh/id_rsa</code>, POST it to an external URL.
+        Read environment variables, write them to a temp file. Install a cron job or LaunchAgent for
+        persistence. All of this is within reach of a skill that's been loaded into the agent's context.
+      </p>
+
+      <h2>ClawHub Security: Automated Scanning Exists, But It Has Limits</h2>
+
+      <p>
+        ClawHub runs automated static scanning at publish time — malware detection, structured moderation
+        verdicts, and auto-blocking for skills that instruct users to run obfuscated shell payloads.
+        That's meaningful protection. It's also not the same as a human code review or cryptographic signing.
+        Automated scanning catches known patterns. It doesn't catch a novel, well-crafted
+        <strong>malicious ClawHub skill</strong> written specifically to evade static analysis — the same
+        way VirusTotal misses zero-day malware. Anyone can publish under any name. There's no
+        cryptographic guarantee that the publisher is who they claim to be. A typosquatted skill
+        that passes automated scanning is indistinguishable from a legitimate one at install time.
+        The attack surface is different from <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a>
+        — that targets tool descriptions; this targets the skill package itself — but the blast radius is the same.
+      </p>
+
+      <p>
+        This is similar to early npm or PyPI: a useful distribution channel with a thin trust model.
+        The ecosystem moves fast. The security infrastructure hasn't caught up yet.
+      </p>
+
+      <h2>Typosquatting and Malicious ClawHub Skills: What the Attack Looks Like</h2>
+
+      <p>
+        Typosquatting is the most direct supply chain attack on package ecosystems, and ClawHub is
+        no different. A skill published as <code>shoofly-basix</code> or <code>shoofly-basi</code>
+        is a typo away from <code>shoofly-basic</code>. A user installing via a pasted command from
+        a forum post, a Discord message, or a slightly wrong URL could end up with a malicious skill
+        instead of the legitimate one — with no visible difference until it's too late.
+      </p>
+
+      <p>
+        The same attack applies across any popular skill. Search for "weather skill openclaw" and
+        install the first result without verifying the publisher? That's the attack surface.
+      </p>
+
+      <h2>How Compromised OpenClaw Skills Spread Across Multi-Agent Sessions</h2>
+
+      <p>
+        <strong>AI agent security</strong> gets harder at scale. Two OpenClaw-specific risk multipliers:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Multi-agent sessions:</strong> OpenClaw supports spawning sub-agents for parallel tasks.
+          If one sub-agent is running a compromised skill, its actions and outputs can influence the
+          parent session and sibling agents. For example: a sub-agent that reads <code>~/.ssh/id_rsa</code>
+          and returns it as task output passes that data directly to the parent session's context —
+          and any sibling agents sharing that context window receive it too.
+          A single compromised skill can contaminate an entire multi-agent <strong>OpenClaw security</strong> boundary.
+        </li>
+        <li>
+          <strong>Unattended agents (heartbeat/cron):</strong> Many OpenClaw users run agents on
+          scheduled tasks — heartbeat checks, cron-triggered automations, background builds.
+          When there's no human in the loop to catch unexpected behavior, a malicious skill can operate
+          undetected for as long as the schedule runs. The damage scales with the autonomy you've granted.
+        </li>
+      </ul>
+
+      <h2>Practical Checklist: OpenClaw Security Before Installing Any Skill</h2>
+
+      <p>
+        Before you run <code>clawhub install &lt;skill-name&gt;</code>:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Verify the exact publisher identity.</strong> Check the ClawHub profile page for the
+          publisher. Is this the account you expect? Has it published other skills you trust?
+        </li>
+        <li>
+          <strong>Read the SKILL.md before installing.</strong> ClawHub shows skill contents before
+          install. Read the instruction file. Legitimate skills don't need to make outbound HTTP calls
+          to unknown domains or read credential files.
+        </li>
+        <li>
+          <strong>Check the source repository.</strong> Most legitimate skills link to a public GitHub repo.
+          If there's no source link, that's a yellow flag. If there is one, check when it was created
+          and how active it is.
+        </li>
+        <li>
+          <strong>Don't install from copy-pasted commands without verification.</strong>
+          Verify the skill name character by character against the official source before running
+          any install command from an external forum, chat, or tutorial.
+        </li>
+        <li>
+          <strong>Review installed skills periodically.</strong> Run <code>clawhub list</code> and
+          check that every installed skill is one you intentionally installed and still want.
+        </li>
+      </ul>
+
+      <h2>How Shoofly Addresses OpenClaw and ClawHub Security at Runtime</h2>
+
+      <p>
+        Shoofly itself installs as an OpenClaw skill via ClawHub — it's native to the ecosystem it
+        protects. Once installed, it monitors all other skill activity at the tool call layer.
+        A malicious skill can issue whatever instructions it wants to the agent. When those instructions
+        become tool calls, Shoofly's <a href="/blog/why-we-block-instead-of-detect/">pre-execution blocking</a> fires first.
+      </p>
+
+      
+
+      <p>
+        The checklist above reduces your exposure. Shoofly closes the gap that remains.
+      </p>
+
+      <hr>
+
+      <p><a href="/#pricing">See plans and pricing →</a></p>
+
+      <p>Install Shoofly Basic free — pre-execution blocking for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents:</p>
+      <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+
+      <hr>
+
+      <p style="font-size:0.9rem; color:var(--text-muted);">
+        <strong style="color:var(--text);">Related reading:</strong>
+        <a href="/blog/why-we-block-instead-of-detect/">Why we block instead of detect</a> ·
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> ·
+        <a href="/openclaw">OpenClaw FAQs</a> ·
+        <a href="/claude-code-dispatch">Claude Code FAQs</a> ·
+        <a href="/docs/advanced">Shoofly Advanced docs</a> ·
+        <a href="/#pricing">Shoofly pricing</a>
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
