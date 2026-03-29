@@ -130,12 +130,12 @@
       <p>
         With a web app, you can detect a SQL injection attempt and block the query before it hits the database.
         The detection layer and the execution layer are different systems — there's space to intervene.
-        With an <a href="/ai-agent-security/">AI agent</a>, that gap doesn't exist the same way.
+        With an AI agent, that gap doesn't exist the same way.
         The agent decides to act, and then it acts. If you're running detection on the output side,
         you're not doing security. You're doing forensics.
       </p>
 
-      <h2>The wrong layer</h2>
+      <h2>Why Post-Execution Detection Fails for AI Agents</h2>
 
       <p>
         Here's what that looks like concretely. A prompt injection slips into a document your agent is summarizing.
@@ -152,12 +152,12 @@
 
       <p>
         This isn't a criticism of logging or observability — those have real value for post-mortems and compliance.
-        But in <a href="/ai-agent-security/">agentic AI security</a>, the only moment that actually matters
+        But in agentic AI security, the only moment that actually matters
         is the one where the agent has formed its intent and hasn't executed yet.
         That window is small. It's also the only window that counts.
       </p>
 
-      <h2>The decision gate</h2>
+      <h2>What Is Pre-Execution Blocking for AI Agents</h2>
 
       <p>
         We call it the decision gate. It sits between intent and execution — after the model decides what tool
@@ -183,7 +183,7 @@
         whether that's file access, network egress, or anything else your policy doesn't allow.
       </p>
 
-      <h2>We block. They detect.</h2>
+      <h2>Pre-Execution Blocking vs. Detection: The Key Difference</h2>
 
       <p>
         Detection isn't wrong. It's just the wrong layer for agents. Use it for forensics, compliance,
@@ -204,9 +204,9 @@
 
       <hr>
 
-      <p><a href="/security/">Read the full explainer →</a></p>
+      <p><a href="/#pricing">See plans and pricing →</a></p>
 
-      <p>Install in one line:</p>
+      <p>Install Shoofly Basic free — pre-execution blocking for Claude Code and OpenClaw agents:</p>
       <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
     </main>
   </div>
