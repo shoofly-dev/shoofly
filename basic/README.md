@@ -127,6 +127,14 @@ Pull requests are welcome. For threat policy changes (new threat IDs, pattern up
 
 ---
 
+## Uninstall
+
+```bash
+curl -fsSL https://shoofly.dev/uninstall.sh | bash
+```
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE)

@@ -221,6 +221,14 @@ The threat policy is open source regardless of tier. [github.com/shoofly-dev/pol
 
 ---
 
+## Uninstall
+
+```bash
+curl -fsSL https://shoofly.dev/uninstall.sh | bash
+```
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
