@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# shoofly-block-log — Show recent blocked tool calls
+# Reads from hook-alerts.log (hook tier) and blocked.log (advanced tier).
+# Usage: shoofly-block-log [--limit N] [--json]
+# License: MIT
+
+set -euo pipefail
+
+SHOOFLY_DIR="$HOME/.shoofly"
+HOOK_LOG="$SHOOFLY_DIR/logs/hook-alerts.log"
+BLOCKED_LOG="$SHOOFLY_DIR/logs/blocked.log"
+
+LIMIT=50
+OUTPUT_JSON=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --limit)  LIMIT="${2:?--limit requires a value}"; shift 2 ;;
+    --json)   OUTPUT_JSON=true; shift ;;
+    -h|--help)
+      echo "shoofly-block-log [--limit N] [--json]"
+      exit 0
+      ;;
+    *) echo "Unknown option: $1" >&2; exit 1 ;;
+  esac
+done
+
+# Collect all blocked entries from both log files into a temp file
+TMP="$(mktemp /tmp/shoofly-block-log-XXXXXX)"
+trap 'rm -f "$TMP"' EXIT
+
+# hook-alerts.log: entries with "blocked":true
+if [[ -f "$HOOK_LOG" ]]; then
+  while IFS= read -r line; do
+    if echo "$line" | jq -e '.blocked == true' >/dev/null 2>&1; then
+      echo "$line" >> "$TMP"
+    fi
+  done < "$HOOK_LOG"
+fi
+
+# blocked.log: all entries are blocked
+if [[ -f "$BLOCKED_LOG" ]]; then
+  cat "$BLOCKED_LOG" >> "$TMP"
+fi
+
+# Check if we have any entries
+if [[ ! -s "$TMP" ]]; then
+  echo "No blocks yet."
+  exit 0
+fi
+
+# Sort by timestamp descending and limit
+SORTED="$(jq -s 'sort_by(.ts) | reverse' "$TMP" 2>/dev/null || echo "[]")"
+ENTRIES="$(echo "$SORTED" | jq ".[:${LIMIT}]")"
+COUNT="$(echo "$ENTRIES" | jq 'length')"
+
+if [[ "$COUNT" -eq 0 ]]; then
+  echo "No blocks yet."
+  exit 0
+fi
+
+if [[ "$OUTPUT_JSON" == "true" ]]; then
+  echo "$ENTRIES" | jq -c '.[]'
+  exit 0
+fi
+
+# Table output
+printf "%-22s %-10s %-14s %s\n" "TIME" "THREAT_ID" "TOOL" "REASON"
+printf "%-22s %-10s %-14s %s\n" "──────────────────────" "──────────" "──────────────" "───────────────────────────────"
+
+for (( i = 0; i < COUNT; i++ )); do
+  ts="$(echo "$ENTRIES" | jq -r ".[$i].ts // \"\"")"
+  threat="$(echo "$ENTRIES" | jq -r ".[$i].threat // .[$i].threat_id // \"\"")"
+  tool="$(echo "$ENTRIES" | jq -r ".[$i].tool // \"\"")"
+  summary="$(echo "$ENTRIES" | jq -r ".[$i].summary // .[$i].reason // \"\"")"
+  printf "%-22s %-10s %-14s %s\n" "$ts" "$threat" "$tool" "$summary"
+done
+
+echo ""
+echo "$COUNT block(s)"
