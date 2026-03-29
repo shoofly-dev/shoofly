@@ -211,7 +211,7 @@ evaluate_line() {
   local tool_name
   tool_name=$(echo "$line" | jq -r '
     (.message.content[]? | select(.type == "toolCall") | .name) //
-    (.tool_name // "unknown")
+    (.toolName // .tool_name // "unknown")
   ' 2>/dev/null | head -1 || echo "unknown")
 
   # Extract tool arguments early so OSW/DE checks always run
