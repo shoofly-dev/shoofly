@@ -141,7 +141,7 @@
       <h2>Why Post-Execution Detection Fails for AI Agents</h2>
 
       <p>
-        Here's what that looks like concretely. A prompt injection slips into a document your agent is summarizing.
+        Here's what that looks like concretely. A <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">prompt injection</a> slips into a document your agent is summarizing.
         It instructs the agent to forward your <code>.env</code> file to an external URL.
         Your detection system flags the outbound request — after the tool call fires, after the credentials
         leave the machine. You get an alert. Your secrets are already gone.
@@ -201,7 +201,7 @@
       </p>
 
       <p>
-        Shoofly runs on OpenClaw and Claude Code (Cowork/Dispatch). Basic tier is free.
+        Shoofly runs on <a href="/blog/openclaw-skill-security-what-every-user-should-know/">OpenClaw</a> and Claude Code (Cowork/Dispatch). Basic tier is free.
         Advanced is $5/month. Rules are open and auditable — no black-box decisions at your gate.
       </p>
 
