@@ -1,0 +1,299 @@
+<!-- KEYWORD MAP
+  Primary:   AI coding agent security
+    - URL: /ai-agent-security/ (note: "coding" absent from slug — acceptable for URL brevity)
+    - Title: "AI Coding Agent Security for Developers: The Complete Guide" ✅
+    - Meta: "AI coding agent security for developers..." ✅
+    - H1: ✅
+    - Body: 3+ occurrences ✅
+  Secondary:
+    - AI agent malware protection: ✅
+    - tool call interception: ✅
+    - AI computer use security: ✅
+    - LLM agent security tools: ✅
+    - LLM threat detection: ✅ (added to body)
+    - agentic computer use protection: ✅
+
+  LINKING:
+  (a) Existing live links:
+    - /agentic-ai-security/ → pre-execution blocking concept
+    - /claude-code-security/ → Claude Code specific guide
+    - /mcp-security/ → supply chain / MCP angle
+    - /openclaw-security/ → OpenClaw specific guide
+    - /openclaw → OpenClaw product page
+    - /claude-code-dispatch → Claude Code FAQs
+    - /blog/why-we-block-instead-of-detect/ → blocking philosophy
+    - /blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/ → LLM03 supply chain
+    - /docs/advanced → Advanced docs
+  (b) Pending (add when live):
+    - /shoofly-vs-clawmoat/ → ClawMoat comparison section
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI coding agent security for developers: tool call interception, AI computer use security, AI agent malware protection, LLM threat detection, and an honest look at the security tools that actually work." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="AI Coding Agent Security for Developers: The Complete Guide — Shoofly" />
+  <meta property="og:description" content="AI coding agent security: threat taxonomy, computer use attack vectors, tool call interception, and an honest assessment of the LLM agent security tools landscape." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/ai-agent-security/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Coding Agent Security for Developers: The Complete Guide — Shoofly" />
+  <meta name="twitter:description" content="Threat taxonomy, computer use attack vectors, tool call interception, and honest LLM agent security tool comparisons." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>AI Coding Agent Security for Developers: The Complete Guide — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/ai-agent-security/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#0d1117;--bg-alt:#161b22;--bg-card:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono','Fira Code','Courier New',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}.nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:760px;margin:0 auto;padding:0 1.5rem;}
+    .page-header{padding:3.5rem 0 2.5rem;border-bottom:1px solid var(--border);}
+    .page-header h1{font-size:clamp(1.75rem,4vw,2.4rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;margin-bottom:0.75rem;}
+    .page-header .page-desc{font-size:1.05rem;color:var(--text-muted);max-width:600px;}
+    .prose{padding:2.5rem 0 4rem;}
+    .prose p{margin-bottom:1.4rem;font-size:1.05rem;}
+    .prose h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .prose h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .prose a{color:var(--accent);font-weight:600;text-decoration:none;}.prose a:hover{text-decoration:underline;}
+    .prose strong{color:var(--text);font-weight:600;}
+    .prose ul,.prose ol{margin:0 0 1.4rem 1.5rem;}
+    .prose ul li,.prose ol li{margin-bottom:0.5rem;font-size:1.05rem;}
+    .prose code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .prose pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .prose pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .prose hr{border:none;border-top:1px solid var(--border);margin:2.5rem 0;}
+    .prose table{width:100%;border-collapse:collapse;margin:1.5rem 0 2rem;font-size:0.95rem;}
+    .prose th{text-align:left;padding:0.6rem 1rem;background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font-weight:600;}
+    .prose td{padding:0.6rem 1rem;border:1px solid var(--border);color:var(--text-muted);vertical-align:top;}
+    .prose tr:last-child td:last-child{font-weight:500;}
+    .cta-block{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2.5rem 0;}
+    .cta-block h3{font-size:1.1rem;font-weight:700;margin-bottom:0.5rem;color:var(--text);}
+    .cta-block p{color:var(--text-muted);margin-bottom:1rem;font-size:0.95rem;}
+    .cta-block pre{margin:0 0 1rem;}
+    .btn{display:inline-block;padding:0.6rem 1.25rem;border-radius:6px;font-weight:600;font-size:0.95rem;text-decoration:none;}
+    .btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{opacity:0.9;text-decoration:none;}
+    .related{padding:1.5rem 0;border-top:1px solid var(--border);margin-top:1rem;font-size:0.9rem;color:var(--text-muted);}
+    .related a{color:var(--accent);font-weight:500;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>AI Coding Agent Security for Developers: The Complete Guide</h1>
+      <p class="page-desc">AI coding agents have real system access. Here's the full threat taxonomy, attack vectors developers actually encounter, and an honest look at the tools that address them.</p>
+    </div>
+
+    <main class="prose">
+
+      <p>
+        AI coding agents aren't chatbots that suggest code. They're processes running on your machine with your
+        user's permissions, reading files, executing shell commands, browsing the web, and calling external APIs.
+        <strong>AI coding agent security</strong> requires a fundamentally different mental model — you're dealing
+        with a process that has filesystem access and takes instructions from external content.
+      </p>
+
+      <h2>What is the threat model for AI coding agents?</h2>
+
+      <p>
+        The fundamental threat: an agent that can be made to take actions the user didn't intend, using the
+        agent's legitimate, delegated permissions. The agent itself isn't malicious — it's manipulated.
+      </p>
+      <p>The OWASP LLM Top 10 covers the relevant vulnerability classes for <strong>LLM threat detection</strong>:</p>
+      <ul>
+        <li><strong>LLM01 — Prompt Injection:</strong> Malicious instructions embedded in web pages, documents, tool output, or repository files that override the user's instructions.</li>
+        <li><strong>LLM02 — Sensitive Information Disclosure:</strong> Agent directed to read and transmit credentials, SSH keys, or API tokens. <strong>AI agent malware protection</strong> must cover this vector specifically.</li>
+        <li><strong>LLM03 — Supply Chain:</strong> Malicious MCP servers, agent skill packages, or compromised dependencies introducing malicious behavior through trusted channels. See <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> for how this works in practice.</li>
+        <li><strong>LLM06 — Excessive Agency:</strong> Agents granted more permissions than needed — amplifying the impact of any compromise.</li>
+        <li><strong>LLM08 — Vector/Embedding Weaknesses:</strong> Injected content reaching the model through RAG pipelines, bypassing input filters because malicious content enters at retrieval time.</li>
+      </ul>
+
+      <h2>What is the AI computer use security threat?</h2>
+
+      <p>
+        <strong>AI computer use security</strong> is one of the least-understood areas for developers running
+        agents with browser access. Computer use agents have an expanded attack surface: injected instructions
+        in web content can direct the agent to take unintended UI actions.
+      </p>
+      <p>Concrete techniques:</p>
+      <ul>
+        <li><strong>Invisible text:</strong> White text on white background or zero-opacity CSS containing instructions visible to the agent's processing but not to the user</li>
+        <li><strong>Hidden CSS instructions:</strong> Content hidden from human view via <code>visibility: hidden</code> but still in the DOM for agents processing HTML structure</li>
+        <li><strong>Unintended click targets:</strong> Instructions directing the agent to click an authorization dialog for a permission the user didn't intend to grant</li>
+        <li><strong>Form fill injection:</strong> Agent directed to fill fields with attacker-controlled data — address changes, payment updates, account setting modifications</li>
+        <li><strong>Screen exfiltration:</strong> Instructions to screenshot specific display regions and transmit to an attacker-controlled endpoint</li>
+      </ul>
+      <p>
+        <strong>Agentic computer use protection</strong> requires treating web content as untrusted input that
+        can influence tool calls. Apply <a href="/agentic-ai-security/">pre-execution blocking</a> to catch
+        tool calls matching computer use attack patterns before they fire.
+      </p>
+
+      <h2>How does tool call interception work?</h2>
+
+      <p>
+        <strong>Tool call interception</strong> evaluates a tool call against a security policy <em>before</em>
+        it executes — synchronously, not async. Three categories of evaluation:
+      </p>
+      <h3>Pattern-based rules</h3>
+      <ul>
+        <li>Credential path reads: <code>~/.ssh/</code>, <code>~/.aws/</code>, <code>~/.gnupg/</code></li>
+        <li>Dangerous shell patterns: <code>rm -rf /</code>, mass permission changes, <code>sudo</code> with agent-controlled arguments</li>
+        <li>Outbound transfers: <code>curl</code> or <code>wget</code> piping file contents to remote hosts</li>
+      </ul>
+      <h3>Behavioral rules</h3>
+      <ul>
+        <li>Unexpected writes outside the declared working directory</li>
+        <li>Outbound requests to domains unrelated to the stated task</li>
+        <li>Tool call sequences inconsistent with the user's goal</li>
+      </ul>
+      <h3>Categorical rules</h3>
+      <ul>
+        <li>Block <code>exec</code> entirely unless the session is explicitly exec-authorized</li>
+        <li>Block outbound messaging (Telegram, Discord, email) unless the specific channel is whitelisted</li>
+        <li>Block browser automation to financial or credential-management domains</li>
+      </ul>
+
+      <h2>How do the AI coding agent security approaches compare?</h2>
+
+      <table>
+        <thead><tr><th>Approach</th><th>When it acts</th><th>What it stops</th></tr></thead>
+        <tbody>
+          <tr><td>Input guardrails (NeMo, LlamaFirewall)</td><td>When content enters the model</td><td>Prompt injection reaching the LLM</td></tr>
+          <tr><td>Post-execution detection</td><td>After tool call completes</td><td>Alerts on damage already done</td></tr>
+          <tr><td><strong>Pre-execution blocking (Shoofly)</strong></td><td>When agent requests a tool call</td><td><a href="/agentic-ai-security/">Stops the action before it fires</a></td></tr>
+        </tbody>
+      </table>
+
+      <p>See <a href="/blog/why-we-block-instead-of-detect/">why we block instead of detect</a> for the full argument on why detection-after-the-fact is insufficient for agentic workflows.</p>
+
+      <h2>What are the honest trade-offs of each LLM agent security tool?</h2>
+
+      <h3>NVIDIA NeMo Guardrails</h3>
+      <p>Open source, good for input/output filtering in chatbot contexts. Operates at the model boundary — does not intercept tool calls. Not designed for agentic deployments. Useful complement; not a substitute for agent-level security.</p>
+
+      <h3>Meta LlamaFirewall</h3>
+      <p>Open source, research-stage. Interesting work on prompt injection detection, but still early for production deployment. No pre-execution blocking for tool calls out of the box.</p>
+
+      <h3>Lakera Guard</h3>
+      <p>Enterprise-grade, API-based prompt injection and content filtering. Strong at the LLM input/output layer. Not agent-native — operates at the content layer, not the tool call layer. Post-ingestion, not pre-execution. Appropriate for teams with compliance requirements at the model boundary.</p>
+
+      <h3>ClawMoat</h3>
+      <p>
+        Pre-execution blocking with a scan pipeline and credential directory monitoring. Works with
+        <a href="/openclaw">OpenClaw</a> and Claude Code. Proprietary rules — you can't audit what's being
+        enforced. No free tier. If you don't need rule transparency or a free tier, it's a viable option.
+        <!-- PENDING: link /shoofly-vs-clawmoat/ when live -->
+      </p>
+
+      <h3>Shoofly</h3>
+      <p>
+        <a href="/agentic-ai-security/">Pre-execution blocking</a> for <a href="/openclaw">OpenClaw</a>
+        and <a href="/claude-code-dispatch">Claude Code</a> (including Cowork and Dispatch). Open rules —
+        you can read, edit, and audit exactly what's being enforced. Covers the full threat taxonomy above.
+        See the <a href="/openclaw-security/">OpenClaw security guide</a> and
+        <a href="/claude-code-security/">Claude Code security guide</a> for platform-specific details.
+        Not enterprise-certified; designed for developers who want runtime protection without operational overhead.
+      </p>
+
+      <h2>What does Shoofly Advanced add for AI coding agent security?</h2>
+
+      <p>
+        <a href="/#pricing">Shoofly Basic</a> is free — detects threats and alerts you. The threat policy is
+        open and auditable. <a href="/#pricing-advanced">Shoofly Advanced</a> upgrades to full pre-execution
+        blocking, adds real-time alerts via Telegram and desktop notifications, and policy linting.
+        See the <a href="/docs/advanced">Advanced docs</a> for full configuration reference.
+      </p>
+
+      <h2>What's the minimum viable security posture for a developer?</h2>
+
+      <ol>
+        <li>Keep your agent runtime updated — CVEs happen and get fixed</li>
+        <li>Audit config files in repos you clone before opening them (<a href="/claude-code-security/">especially for Claude Code</a>)</li>
+        <li>Apply least privilege — don't grant tool permissions the agent doesn't need</li>
+        <li>Install runtime security — Shoofly Basic is free and takes five minutes</li>
+        <li>For unattended agents, add alerting — you need to know when something is blocked</li>
+      </ol>
+
+      <hr>
+
+      <div class="cta-block">
+        <h3>Add runtime security to your agent stack</h3>
+        <p>Shoofly Basic is free. No API key, no account required.</p>
+        <p>Install Shoofly Basic free — runtime security for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents:</p>
+        <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+        <a href="/#pricing" class="btn btn-primary" style="color:#fff;">See plans &amp; pricing →</a>
+      </div>
+
+      <div class="related">
+        <strong>Related:</strong>
+        <a href="/agentic-ai-security/">Pre-Execution Agentic AI Security</a> ·
+        <a href="/claude-code-security/">Claude Code Security Guide</a> ·
+        <a href="/openclaw-security/">OpenClaw Security Guide</a> ·
+        <a href="/mcp-security/">MCP Tool Poisoning Prevention</a> ·
+        <a href="/blog/why-we-block-instead-of-detect/">Why we block instead of detect</a>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
