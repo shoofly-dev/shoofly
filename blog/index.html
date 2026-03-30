@@ -3,291 +3,128 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="The Shoofly Blog — guides, research, and security deep-dives for developers building with AI agents." />
+  <meta name="description" content="Shoofly Blog — AI agent security research, threat analysis, and practical guides for developers running Claude Code and OpenClaw." />
   <meta name="color-scheme" content="dark" />
-  <!-- Social card -->
+  <meta property="og:title" content="Shoofly Blog — AI Agent Security" />
+  <meta property="og:description" content="AI agent security research, threat analysis, and practical guides for developers running Claude Code and OpenClaw." />
   <meta property="og:image" content="https://shoofly.dev/social-card.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
   <title>Blog — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="shortcut icon" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --bg: #0d1117;
-      --bg-alt: #161b22;
-      --bg-card: #161b22;
-      --border: #30363d;
-      --text: #e6edf3;
-      --text-muted: #8b949e;
-      --accent: #16a34a;
-      --accent-dim: #16a34a33;
-      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 1rem;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      padding-top: 56px;
-    }
-
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    .site-nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background-color: var(--bg-alt);
-      border-bottom: 1px solid var(--border);
-      height: 56px; padding: 0 1.5rem;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .nav-logo {
-      font-size: 1.1rem; font-weight: 700; color: var(--accent);
-      text-decoration: none; letter-spacing: -0.01em; white-space: nowrap;
-    }
-    .nav-logo:hover { text-decoration: none; }
-
-    .nav-hamburger {
-      display: none; flex-direction: column; justify-content: space-between;
-      width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0;
-    }
-    .nav-hamburger span {
-      display: block; height: 2px; background: var(--text); border-radius: 2px;
-    }
-
-    .nav-links {
-      display: flex; list-style: none; gap: 1.5rem; align-items: center;
-    }
-    .nav-links a {
-      font-size: 0.9rem; font-weight: 500; color: var(--text-muted);
-      text-decoration: none; transition: color 0.15s;
-    }
-    .nav-links a:hover { color: var(--text); }
-    .nav-links a[aria-current="page"] { color: var(--accent); }
-
-    @media (max-width: 768px) {
-      .nav-hamburger { display: flex; }
-      .nav-links {
-        display: none; position: absolute; top: 56px; left: 0; right: 0;
-        background: var(--bg-alt); border-bottom: 1px solid var(--border);
-        flex-direction: column; padding: 1rem 1.5rem; gap: 1rem;
-      }
-      .nav-links.open { display: flex; }
-    }
-
-    .container { width: 100%; max-width: 860px; margin: 0 auto; padding: 0 1.5rem; }
-
-    .hero {
-      padding: 4rem 0 3rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .hero-title {
-      font-size: clamp(1.75rem, 5vw, 2.5rem);
-      font-weight: 700; letter-spacing: -0.02em;
-      color: var(--text); margin-bottom: 0.5rem;
-    }
-    .hero-sub {
-      font-size: 1.05rem; color: var(--text-muted);
-    }
-
-    .blog-grid {
-      padding: 3rem 0;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    .blog-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.5rem 2rem;
-      transition: border-color 0.15s;
-    }
-    .blog-card:hover { border-color: var(--accent); }
-    .blog-card a { color: var(--text); text-decoration: none; }
-    .blog-card a:hover h2 { color: var(--accent); }
-
-    .blog-card-meta {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-    .blog-card-tag {
-      background: var(--accent-dim);
-      color: var(--accent);
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-
-    .blog-card h2 {
-      font-size: 1.2rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      margin-bottom: 0.5rem;
-      transition: color 0.15s;
-    }
-
-    .blog-card p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    .blog-empty {
-      padding: 4rem 0;
-      text-align: center;
-      color: var(--text-muted);
-    }
-    .blog-empty p { margin-bottom: 1rem; font-size: 1.05rem; }
-
-    .footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 0;
-      margin-top: 4rem;
-    }
-    .footer-inner {
-      display: flex; flex-wrap: wrap; align-items: center;
-      justify-content: space-between; gap: 1rem;
-    }
-    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
-    .footer-link {
-      font-size: 0.875rem; color: var(--text-muted); text-decoration: none;
-    }
-    .footer-link:hover { color: var(--accent); text-decoration: none; }
-    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
-
-    @media (max-width: 600px) {
-      .footer-inner { flex-direction: column; align-items: flex-start; }
-    }
+    :root{--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--font-body:'Inter',system-ui,sans-serif;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;}.nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:900px;margin:0 auto;padding:0 1.5rem;}
+    .page-header{padding:3rem 0 2rem;border-bottom:1px solid var(--border);}
+    .page-header h1{font-size:clamp(1.75rem,4vw,2.2rem);font-weight:700;letter-spacing:-0.02em;margin-bottom:0.5rem;}
+    .page-header p{color:var(--text-muted);font-size:1.05rem;}
+    .blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem;padding:2.5rem 0 4rem;}
+    .blog-card{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;transition:border-color 0.15s;}
+    .blog-card:hover{border-color:var(--accent);}
+    .blog-card a{display:block;padding:1.5rem;text-decoration:none;color:inherit;height:100%;}
+    .blog-card-meta{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap;}
+    .blog-card-tag{font-size:0.75rem;font-weight:600;color:var(--accent);background:var(--accent-dim,#16a34a22);padding:0.2em 0.6em;border-radius:4px;text-transform:uppercase;letter-spacing:0.04em;}
+    .blog-card-meta span:last-child{font-size:0.8rem;color:var(--text-muted);}
+    .blog-card h2{font-size:1rem;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:0.6rem;}
+    .blog-card p{font-size:0.875rem;color:var(--text-muted);line-height:1.6;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
   </style>
 </head>
 <body>
-
   <nav class='site-nav'>
     <a href='/' class='nav-logo'>🪰 Shoofly</a>
-    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
-      <span></span><span></span><span></span>
-    </button>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
     <ul class='nav-links' id='navLinks'>
       <li><a href='/#pricing'>Shoofly Basic</a></li>
       <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
       <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
       <li><a href='/openclaw'>OpenClaw FAQs</a></li>
-      <li><a href='/blog' aria-current="page">Blog</a></li>
-      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener'>ClawHub</a></li>
-      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener'>GitHub</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
     </ul>
   </nav>
 
-  <section class="hero">
-    <div class="container">
-      <h1 class="hero-title">Blog</h1>
-      <p class="hero-sub">Security guides, research, and deep-dives for developers building with AI agents.</p>
+  <div class="container">
+    <div class="page-header">
+      <h1>Blog</h1>
+      <p>AI agent security research, threat analysis, and practical guides.</p>
     </div>
-  </section>
-
-  <main>
-    <div class="container">
+    <main>
       <div class="blog-grid" id="blogGrid">
         <!-- INSERT NEW POSTS AT THE TOP -->
-        <div class="blog-card">
-          <a href="/blog/ai-coding-agent-security-full-stack/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Security</span>
-              <span>March 29, 2026</span>
-            </div>
-            <h2>AI Coding Agent Security for Developers: The Full Stack</h2>
-            <p>Four-layer threat model for AI coding agents: prompt injection, supply chain, runtime tool calls, and config files — with an honest comparison of NeMo, LlamaFirewall, Lakera, ClawMoat, and Shoofly.</p>
-          </a>
-        </div>
-
-
-        <div class="blog-card">
-          <a href="/blog/clawhub-skill-supply-chain-attacks/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Supply Chain Security</span>
-              <span>March 29, 2026</span>
-            </div>
-            <h2>Malicious ClawHub Skills: How Supply Chain Attacks Work in Practice</h2>
-            <p>Snyk found 76 intentionally malicious skills on ClawHub. Here's the anatomy of a malicious skill, how it bypasses static review, what it does once installed, and how to defend against it.</p>
-          </a>
-        </div>
-
-
-        <div class="blog-card">
-          <a href="/blog/ai-computer-use-security-attack-vectors/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Agent Security</span>
-              <span>March 29, 2026</span>
-            </div>
-            <h2>AI Computer Use Security: Attack Vectors and How to Stop Them</h2>
-            <p>Five concrete attack vectors for browser and computer-use agents — invisible text, hidden CSS, click injection, form fill hijacking, screen exfiltration — with mechanisms and mitigations for each.</p>
-          </a>
-        </div>
-
 
         <div class="blog-card">
           <a href="/blog/securing-claude-code-best-practices/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Claude Code Security</span>
-              <span>March 29, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">Claude Code Security</span><span>March 29, 2026</span></div>
             <h2>Securing Claude Code: Best Practices for Developers</h2>
-            <p>CVE-2025-59536 proved that securing Claude Code is a real engineering concern. Here's a practical checklist covering config hardening, runtime monitoring, and pre-execution blocking.</p>
+            <p>CVE-2025-59536 proved that securing Claude Code is a real engineering concern. A practical checklist covering config hardening, runtime monitoring, and pre-execution blocking.</p>
           </a>
         </div>
 
+        <div class="blog-card">
+          <a href="/blog/clawhub-skill-supply-chain-attacks/">
+            <div class="blog-card-meta"><span class="blog-card-tag">Supply Chain Security</span><span>March 27, 2026</span></div>
+            <h2>Malicious ClawHub Skills: How Supply Chain Attacks Work in Practice</h2>
+            <p>Snyk found 76 intentionally malicious skills on ClawHub. Here's the anatomy of a malicious skill, how it bypasses static review, and how to defend against it.</p>
+          </a>
+        </div>
+
+        <div class="blog-card">
+          <a href="/blog/ai-computer-use-security-attack-vectors/">
+            <div class="blog-card-meta"><span class="blog-card-tag">Agent Security</span><span>March 24, 2026</span></div>
+            <h2>AI Computer Use Security: Attack Vectors and How to Stop Them</h2>
+            <p>Five concrete attack vectors for browser and computer-use agents — invisible text, hidden CSS, click injection, form fill hijacking, screen exfiltration — with mechanisms and mitigations.</p>
+          </a>
+        </div>
+
+        <div class="blog-card">
+          <a href="/blog/ai-coding-agent-security-full-stack/">
+            <div class="blog-card-meta"><span class="blog-card-tag">Security</span><span>March 21, 2026</span></div>
+            <h2>AI Coding Agent Security for Developers: The Full Stack</h2>
+            <p>Four-layer threat model for AI coding agents — with an honest comparison of NeMo, LlamaFirewall, Lakera, ClawMoat, and Shoofly.</p>
+          </a>
+        </div>
 
         <div class="blog-card">
           <a href="/blog/prompt-injection-blocking-pre-execution-security/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Agent Security</span>
-              <span>March 29, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">Agent Security</span><span>March 18, 2026</span></div>
             <h2>Prompt Injection Blocking: How Pre-Execution Security Stops the Attack</h2>
             <p>In agentic systems, prompt injection doesn't produce bad text — it produces malicious tool calls. Here's the full attack chain and why blocking at the tool call layer is the only reliable backstop.</p>
           </a>
         </div>
 
-
         <div class="blog-card">
           <a href="/blog/runtime-threat-detection-ai-agents/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Agent Security</span>
-              <span>March 29, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">Agent Security</span><span>March 15, 2026</span></div>
             <h2>Runtime Threat Detection for AI Agents</h2>
-            <p>Every tool call is a runtime event with no static equivalent. Here's what runtime threat detection means for agentic systems, and why pre-execution blocking is the only layer that actually prevents damage.</p>
+            <p>Every tool call is a runtime event with no static equivalent. What runtime threat detection means for agentic systems, and why pre-execution blocking is the only layer that actually prevents damage.</p>
           </a>
         </div>
 
-
         <div class="blog-card">
           <a href="/blog/openclaw-skill-security-what-every-user-should-know/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">OpenClaw Security</span>
-              <span>March 5, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">OpenClaw Security</span><span>March 12, 2026</span></div>
             <h2>OpenClaw Skill Security: What Every User Should Know Before Installing from ClawHub</h2>
             <p>OpenClaw skills run with your agent's full permissions. ClawHub has automated scanning but no code signing or human review. Here's what that means and how to protect yourself.</p>
           </a>
@@ -295,10 +132,7 @@
 
         <div class="blog-card">
           <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Claude Code Security</span>
-              <span>March 4, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">Claude Code Security</span><span>March 8, 2026</span></div>
             <h2>CVE-2025-59536: The Claude Code Config File Exploit and What It Means for Claude Code Security</h2>
             <p>A malicious .claude/settings.json in a cloned repo can bypass Claude Code's trust dialog, auto-approve tool calls, and exfiltrate your API keys before you've approved a single action.</p>
           </a>
@@ -306,10 +140,7 @@
 
         <div class="blog-card">
           <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">MCP Security</span>
-              <span>March 3, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">MCP Security</span><span>March 5, 2026</span></div>
             <h2>MCP Tool Poisoning: What It Is and How to Stop It</h2>
             <p>MCP tool poisoning embeds malicious instructions in tool descriptions — invisible to users, processed silently by the LLM. Here's how it works and how to stop it.</p>
           </a>
@@ -317,17 +148,15 @@
 
         <div class="blog-card">
           <a href="/blog/why-we-block-instead-of-detect/">
-            <div class="blog-card-meta">
-              <span class="blog-card-tag">Security</span>
-              <span>March 2, 2026</span>
-            </div>
+            <div class="blog-card-meta"><span class="blog-card-tag">Security</span><span>March 2, 2026</span></div>
             <h2>AI Agent Security: Pre-Execution Blocking vs. Post-Execution Detection</h2>
             <p>Detection tells you what happened after your agent was exploited — pre-execution blocking stops it before the tool call fires.</p>
           </a>
         </div>
+
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 
   <footer class="footer">
     <div class="container footer-inner">
@@ -343,14 +172,9 @@
       </div>
     </div>
   </footer>
-
   <script>
-    const hamburger = document.getElementById('navHamburger');
-    const navLinks = document.getElementById('navLinks');
-    if (hamburger) {
-      hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
-    }
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
   </script>
-
 </body>
 </html>
