@@ -255,8 +255,8 @@
 
       <h3>Add pre-execution blocking</h3>
       <p>
-        <strong>Claude Code Cowork connector security</strong> is covered — all tool calls in Cowork and Dispatch
-        sessions pass through Shoofly's evaluation engine. The default ruleset blocks credential path access
+        Shoofly covers Claude Code CLI, Cowork, and Dispatch sessions — all tool calls pass through the
+        evaluation engine. The default ruleset blocks credential path access
         (<code>~/.ssh</code>, <code>~/.aws</code>), dangerous shell patterns, and unexpected outbound data transfers.
         The threat policy is open and auditable — you can read and customize every rule.
       </p>
@@ -264,7 +264,7 @@
       <hr>
 
       <div class="cta-block">
-        <h3>Add pre-execution blocking to Claude Code</h3>
+        <h3>Add runtime security to Claude Code</h3>
         <p>Shoofly Basic is free. Shoofly Advanced upgrades detection to full pre-execution blocking, adds real-time alerts via Telegram and desktop notifications, and policy linting.</p>
         <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
         <a href="/#pricing" class="btn btn-primary" style="color:#fff;">See Shoofly Basic vs Advanced →</a>
