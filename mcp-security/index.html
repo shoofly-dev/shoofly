@@ -179,7 +179,7 @@
         untrusted MCP server connections. When <code>mcp-remote</code> connects to a malicious MCP server,
         the server can respond with a crafted <code>authorization_endpoint</code> URL that achieves full
         remote code execution. Documented by
-        <a href="https://github.com/advisories/GHSA-6xpm-ggf7-wc3p" rel="noopener noreferrer">GitHub Security Advisory GHSA-6xpm-ggf7-wc3p</a>
+        <a href="https://github.com/advisories/GHSA-6xpm-ggf7-wc3p" target="_blank" rel="noopener noreferrer">GitHub Security Advisory GHSA-6xpm-ggf7-wc3p</a>
         and confirmed by Docker as "the first documented case of full remote code execution against an MCP
         client in a real-world scenario." CVSS 9.6 puts this in the same tier as critical infrastructure vulnerabilities.
       </p>
@@ -187,18 +187,18 @@
       <p>
         <strong>Anthropic's official SQLite MCP server</strong> was discovered to contain a SQL injection
         vulnerability — and the repo had been forked over 5,000 times before the issue was found. As
-        <a href="https://www.pomerium.com/blog/june-2025-mcp-content-round-up" rel="noopener noreferrer">Pomerium's June 2025 MCP roundup</a>
+        <a href="https://www.pomerium.com/blog/june-2025-mcp-content-round-up" target="_blank" rel="noopener noreferrer">Pomerium's June 2025 MCP roundup</a>
         noted, a compromised MCP server "can seed stored prompts, exfiltrate data, and hand attackers keys
         to entire agent workflows." This is a supply chain risk, not just a configuration issue.
       </p>
 
       <p>
-        The <a href="https://owasp.org/www-project-mcp-top-10/" rel="noopener noreferrer">OWASP MCP Top 10</a>
+        The <a href="https://owasp.org/www-project-mcp-top-10/" target="_blank" rel="noopener noreferrer">OWASP MCP Top 10</a>
         now formally categorizes tool poisoning alongside misbinding, context spoofing, and other
         MCP-specific attack classes. The
-        <a href="https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html" rel="noopener noreferrer">OWASP MCP Security Cheat Sheet</a>
+        <a href="https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">OWASP MCP Security Cheat Sheet</a>
         and
-        <a href="https://unit42.paloaltonetworks.com/model-context-protocol-attack-vectors/" rel="noopener noreferrer">Unit 42's MCP attack vector analysis</a>
+        <a href="https://unit42.paloaltonetworks.com/model-context-protocol-attack-vectors/" target="_blank" rel="noopener noreferrer">Unit 42's MCP attack vector analysis</a>
         both document that MCP servers inherit the agent's full permission set — a single compromised server
         can cascade across every connected agent.
       </p>
@@ -225,7 +225,7 @@
       <p>
         Hash tool descriptions at install time and compare on each load. A changed description — especially
         one not announced in a changelog — is a rug-pull indicator. Per the
-        <a href="https://genai.owasp.org/resource/a-practical-guide-for-secure-mcp-server-development/" rel="noopener noreferrer">OWASP Practical Guide for Secure MCP Server Development</a>,
+        <a href="https://genai.owasp.org/resource/a-practical-guide-for-secure-mcp-server-development/" target="_blank" rel="noopener noreferrer">OWASP Practical Guide for Secure MCP Server Development</a>,
         this is one of the most underimplemented controls in MCP deployments.
       </p>
 
@@ -234,7 +234,7 @@
         Verify package names character by character against official sources.
         <code>mcp-server-filesystem</code> vs <code>mcp-server-filesytem</code> — one letter off, full
         agent permissions. The
-        <a href="https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html" rel="noopener noreferrer">OWASP MCP Security Cheat Sheet</a>
+        <a href="https://cheatsheetseries.owasp.org/cheatsheets/MCP_Security_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">OWASP MCP Security Cheat Sheet</a>
         explicitly flags typosquatting as a first-class MCP supply chain risk.
       </p>
 
@@ -263,7 +263,7 @@
       <p>
         Shoofly Basic is free. The threat policy is open and auditable. Shoofly Advanced upgrades detection
         to full pre-execution blocking, adds real-time alerts via Telegram and desktop notifications,
-        and policy linting. See the <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning deep dive</a>
+        and policy linting. See our <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning blog post</a>
         for more on how the attack works in practice.
       </p>
 
@@ -272,7 +272,7 @@
       <div class="cta-block">
         <h3>Add runtime security to your MCP-connected agents</h3>
         <p>Shoofly Basic is free. No API key, no account required.</p>
-        <p>Install Shoofly Basic free — pre-execution blocking for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents:</p>
+        <p>Install Shoofly Basic free — runtime security for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents:</p>
         <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
         <a href="/#pricing" class="btn btn-primary" style="color:#fff;">See plans &amp; pricing →</a>
       </div>
@@ -281,7 +281,7 @@
         <strong>Related:</strong>
         <a href="/agentic-ai-security/">Pre-Execution Agentic AI Security</a> ·
         <a href="/claude-code-security/">Claude Code Security Guide</a> ·
-        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning deep dive</a> ·
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning blog post</a> ·
         <a href="/blog/why-we-block-instead-of-detect/">Why we block instead of detect</a> ·
         <a href="/claude-code-dispatch">Claude Code FAQs</a>
         <!-- PENDING: add /openclaw-security/ and /ai-agent-security/ when live -->
