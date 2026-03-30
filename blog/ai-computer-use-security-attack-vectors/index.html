@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<!-- Keyword map:
+  Primary:   AI computer use security
+  Secondary: computer use attack vectors | browser agent security | agentic computer use protection | AI agent browser hijack
+  URL: /blog/ai-computer-use-security-attack-vectors/
+  Published: 2026-03-29
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CVE-2025-47241, invisible text injection, click hijacking, screen exfiltration — the full attack surface for browser and computer-use agents, and how to defend it." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="AI Computer Use Security: Attack Vectors and How to Stop Them — Shoofly" />
+  <meta property="og:description" content="CVE-2025-47241, invisible text injection, click hijacking, screen exfiltration — the full attack surface for browser and computer-use agents, and how to defend it." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/ai-computer-use-security-attack-vectors/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI Computer Use Security: Attack Vectors and How to Stop Them — Shoofly" />
+  <meta name="twitter:description" content="CVE-2025-47241, invisible text injection, click hijacking, screen exfiltration — the full attack surface for browser and computer-use agents, and how to defend it." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>AI Computer Use Security: Attack Vectors and How to Stop Them — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/ai-computer-use-security-attack-vectors/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body strong a, .post-body a strong { color: var(--accent); }
+    .post-body ul { margin: 0 0 1.4rem 1.5rem; }
+    .post-body li { margin-bottom: 0.5rem; font-size: 1.05rem; }
+    .callout {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+    .callout strong { color: var(--text); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-29">March 29, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>AI Computer Use Security: Attack Vectors and How to Stop Them</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+      <p>
+        Browser and computer-use agents are different from everything that came before them. They don't just
+        process data — they act on it. Navigate URLs. Fill forms. Click buttons. Download files. That capability
+        is what makes them powerful, and it's exactly what makes <strong>AI computer use security</strong> a
+        distinct and urgent problem.
+      </p>
+
+      <p>
+        The threat model for a computer-use agent isn't a misconfigured endpoint or a stolen API key.
+        It's the web page the agent is already browsing. Every site it visits is a potential attack surface —
+        a place where crafted content can instruct the agent to do something its operator never intended.
+        Understanding <strong>computer use attack vectors</strong> — and the architectural choices that
+        mitigate them — is no longer optional for teams building production-grade agentic systems.
+      </p>
+
+      <p>
+        This post maps the attack surface, breaks down five concrete vectors with mechanisms and mitigations,
+        and explains where Shoofly fits — and where it doesn't.
+      </p>
+
+      <h2>CVE-2025-47241: Domain Whitelist Bypass in browser-use</h2>
+
+      <p>
+        In May 2025, researchers at ARIMLABS.AI published
+        <a href="https://www.cve.org/CVERecord?id=CVE-2025-47241" target="_blank" rel="noopener noreferrer">CVE-2025-47241</a>
+        (GHSA-x39x-9qw5-ghrf) — a domain whitelist bypass in the
+        <a href="https://github.com/browser-use/browser-use" target="_blank" rel="noopener noreferrer">browser-use</a>
+        library affecting versions before 0.1.45. The vulnerability allowed agents to be directed to
+        attacker-controlled domains via URL userinfo manipulation — meaning an attacker could craft a URL
+        like <code>https://trusted.example.com@evil.example.com/</code> and slip past a domain whitelist
+        that only checked the hostname without accounting for the userinfo segment.
+      </p>
+
+      <p>
+        This is a precise, well-scoped vulnerability: it bypasses a specific access control (the domain
+        allowlist), enabling navigation to unintended domains. It's not full agent hijacking via arbitrary
+        web content. That distinction matters because conflating the two leads to the wrong mitigations.
+        CVE-2025-47241 is fixed with strict URL parsing; the broader agent hijacking problem requires
+        a different approach.
+      </p>
+
+      <p>
+        Anthropic's own research on
+        <a href="https://www.anthropic.com/research/prompt-injection-defenses" target="_blank" rel="noopener noreferrer">prompt injection defenses for browser agents</a>
+        puts it clearly: the attack surface is vast, and browser agents can take a wide range of actions
+        that attackers can exploit. Their work on Claude Opus 4.5 showed significant improvement in
+        injection robustness — but also concluded that prompt injection in browser use is far from a
+        solved problem. Model-level defenses matter. So do architectural ones.
+      </p>
+
+      <h2>The Attack Surface Map for Computer-Use Agents</h2>
+
+      <p>
+        Before getting to specific vectors, it helps to think about where the attack surface lives.
+        For <strong>browser agent security</strong>, that surface spans three layers:
+      </p>
+
+      <ul>
+        <li><strong>Content ingestion</strong> — anything the agent reads: DOM text, accessibility trees, screenshots,
+        documents, emails. Malicious instructions can be embedded anywhere here.</li>
+        <li><strong>Tool execution</strong> — the actions the agent takes: navigate, click, type, screenshot,
+        run code, call APIs. Each action is a potential damage vector if triggered by injected instructions.</li>
+        <li><strong>Data paths</strong> — what flows where: form fields, clipboard, file writes, network requests.
+        Data exfiltration and credential theft happen here.</li>
+      </ul>
+
+      <p>
+        Most attacks move through all three layers in sequence: inject at the content layer, trigger a tool
+        call, exfiltrate via a data path. Effective <strong>agentic computer use protection</strong> needs
+        defenses at each layer — because a single layer held by one control isn't enough.
+        For broader context on securing agentic systems, see our <a href="/agentic-ai-security/">agentic AI security overview</a>.
+      </p>
+
+      <h2>Attack Vector Breakdown</h2>
+
+      <h3>1. Invisible Text Injection</h3>
+
+      <p>
+        <strong>Mechanism:</strong> Attacker-controlled content includes text that's invisible to human
+        visitors but processed by the agent. Common CSS techniques: positioning elements far off-screen
+        (<code>position: absolute; left: -9999px</code>), setting font size to zero, or using
+        <code>color: transparent</code> with no background. The agent reads the full DOM or accessibility
+        tree — including these nodes — and follows any instructions embedded there.
+      </p>
+
+      <p>
+        <a href="https://www.anthropic.com/research/prompt-injection-defenses" target="_blank" rel="noopener noreferrer">Anthropic's research on prompt injection in browser use</a>
+        documents exactly this pattern: white text embedded in a vendor inquiry email, invisible to the user,
+        directing the agent to forward emails containing the word "confidential" to an external address
+        before completing its assigned task. This is prompt injection delivered through the content layer.
+      </p>
+
+      <p>
+        <strong>Mitigation:</strong> Content hygiene before ingestion — strip or flag DOM nodes whose
+        computed styles indicate hidden content before the agent processes the page. This is a
+        pre-ingestion problem, not a tool-call problem. Complement with agent-level skepticism: train or
+        prompt the model to treat instructions found in web content as lower-trust than its system prompt.
+      </p>
+
+      <h3>2. Hidden CSS Directives</h3>
+
+      <p>
+        <strong>Mechanism:</strong> A more targeted variant. Malicious nodes are inserted with
+        <code>display: none</code>, <code>opacity: 0</code>, or <code>visibility: hidden</code> —
+        properties that reliably remove them from visual rendering while leaving them in the DOM.
+        Unlike off-screen positioning, these are harder to detect heuristically because they're
+        semantically "hidden" rather than just visually displaced.
+      </p>
+
+      <p>
+        The attack is particularly effective against agents that use DOM serialization (reading the raw
+        HTML or parsed tree) rather than screenshot-based perception. A screenshot-based agent might miss
+        these nodes; a DOM-reading agent will see them clearly.
+      </p>
+
+      <p>
+        <strong>Mitigation:</strong> At the framework level, filter nodes with computed
+        <code>display: none</code> or zero-opacity before serializing DOM content for the model.
+        For screenshot-based agents, this attack surface narrows significantly — but screenshot agents
+        face the exfiltration vector described below. Neither approach is a complete solution alone.
+      </p>
+
+      <h3>3. Click Injection</h3>
+
+      <p>
+        <strong>Mechanism:</strong> An injected instruction directs the agent to click a specific UI element —
+        an OAuth consent button, a "Download" trigger, a payment confirmation, a "Allow all cookies"
+        dialog. The agent has the capability and the (injected) instruction; it executes the click.
+        The <strong>AI agent browser hijack</strong> here isn't about stealing credentials directly —
+        it's about exploiting the agent's legitimate ability to interact with UI to perform an
+        unauthorized action on the user's behalf.
+      </p>
+
+      <p>
+        Click injection is particularly dangerous for agents with persistent sessions, because a single
+        click can authorize a long-lived grant (OAuth token, app permission, subscription confirmation)
+        that persists well beyond the compromised session.
+      </p>
+
+      <p>
+        <strong>Mitigation:</strong> Policy-level controls on high-risk click targets. Define a blocklist
+        of UI patterns — consent dialogs, OAuth flows, download confirmations, payment UIs — and require
+        explicit user confirmation before the agent proceeds. This is exactly the kind of tool-call-layer
+        intervention Shoofly provides: the <code>browser_click</code> call is inspected against policy
+        before it fires.
+      </p>
+
+      <h3>4. Form Fill Hijacking</h3>
+
+      <p>
+        <strong>Mechanism:</strong> The agent is directed to fill a form — but the values come from
+        attacker-controlled instructions rather than the user's intent. Targets include PII fields
+        (name, address, phone), password fields, payment details, and email addresses. The mechanism
+        is a classic confused deputy: the agent has access to sensitive data (from memory, context,
+        or prior form fills) and legitimate form-fill capabilities, but the injected instruction
+        redirects where that data goes.
+      </p>
+
+      <p>
+        A more subtle variant doesn't require the agent to have sensitive data at all — it just redirects
+        an existing fill task. If the agent was already going to fill in an address, injected content
+        can modify the target field or the value mid-task.
+      </p>
+
+      <p>
+        <strong>Mitigation:</strong> Validate form fill targets against session intent before execution.
+        The agent's <code>browser_type</code> or equivalent call should be inspectable: what field,
+        what value, does this match what the user asked for? Sensitive field types (
+        <code>type="password"</code>, <code>autocomplete="cc-number"</code>, etc.) warrant higher
+        scrutiny. Don't allow agents to fill credential fields autonomously without an explicit
+        user instruction in the current session.
+      </p>
+
+      <h3>5. Screen Exfiltration</h3>
+
+      <p>
+        <strong>Mechanism:</strong> Screenshot-capable agents can be instructed to capture the current
+        screen, encode the image (base64 or otherwise), and POST it to an attacker-controlled endpoint
+        via a <code>browser_request</code> or similar outbound call. The payload can include anything
+        visible on screen: credentials, documents, private conversations, financial data.
+        No file access required — just screenshot + network egress.
+      </p>
+
+      <p>
+        This vector is insidious because each individual capability (screenshot, HTTP request) is
+        entirely legitimate. The attack is in the combination and the destination. It's also difficult
+        to catch at the model level because the injected instruction can be framed as routine
+        telemetry or a debugging step.
+      </p>
+
+      <p>
+        <strong>Mitigation:</strong> Outbound network policy at the tool-call layer. Restrict
+        <code>browser_request</code> (and analogous calls) to allowlisted domains. Flag or block
+        any outbound call that carries a screenshot or large binary payload to a domain that wasn't
+        explicitly authorized for the current task. This is a defense-in-depth measure —
+        combine it with screenshot rate limiting and session-scoped network policies.
+      </p>
+
+      <h2>Defense-in-Depth for Computer-Use Agents</h2>
+
+      <p>
+        No single control closes the full attack surface. The right architecture stacks defenses
+        across all three layers identified above:
+      </p>
+
+      <ul>
+        <li><strong>Content hygiene (pre-ingestion):</strong> Filter hidden DOM nodes, flag suspicious
+        text patterns, strip injected content before the model ever sees it. This is library/framework
+        work — browser-use, Playwright wrappers, or a dedicated sanitization layer sitting between
+        the browser and the agent context.</li>
+        <li><strong>Model-level robustness:</strong> Use models that have been hardened against prompt
+        injection (Anthropic's research on Claude Opus 4.5 is the current public benchmark).
+        Apply system-prompt framing that treats web content as lower-trust than user instructions.
+        This reduces — but doesn't eliminate — injection success rates.</li>
+        <li><strong>Tool-call policy (pre-execution):</strong> Inspect every tool call against a
+        threat policy before it fires. Block calls that match high-risk patterns regardless of what
+        the model was instructed to do. This is the layer Shoofly operates at.</li>
+        <li><strong>Network egress controls:</strong> Allowlist outbound domains. Block binary payloads
+        to unrecognized endpoints. This catches exfiltration attempts that slip through the
+        tool-call layer.</li>
+        <li><strong>Session scope and least privilege:</strong> Agents shouldn't carry credentials,
+        sensitive context, or broad permissions beyond what the current task requires.
+        Scope access tightly; expire sessions promptly.</li>
+      </ul>
+
+      <p>
+        For implementation guidance, see the <a href="/guides/">Shoofly guides</a>.
+        For how this applies to OpenClaw-hosted agents specifically, see
+        <a href="/openclaw-security/">OpenClaw security</a>.
+        The injection pattern here closely mirrors what we see with
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> —
+        injected instructions exploiting legitimate tool capabilities is the common thread.
+      </p>
+
+      <h2>What Shoofly Covers — and What It Doesn't</h2>
+
+      <p>
+        Being honest about scope is part of doing security right. Here's the actual breakdown:
+      </p>
+
+      <p>
+        <strong>What Shoofly does:</strong> Shoofly monitors and blocks at the tool call layer.
+        Every tool invocation — <code>browser_navigate</code>, <code>browser_click</code>,
+        <code>bash</code>, <code>write_file</code>, and others — passes through Shoofly's
+        pre-execution gate before it fires. Calls that match threat policy rules are blocked before
+        any damage can occur. Shoofly Basic (free) detects and alerts, with a threat policy that's
+        open and auditable — you can read and modify every rule. Shoofly Advanced upgrades
+        to full pre-execution blocking, adds real-time alerts via Telegram and desktop notifications,
+        and includes policy linting so rule mistakes get caught before they matter.
+      </p>
+
+      <p>
+        <strong>What Shoofly doesn't do:</strong> Shoofly does not sanitize DOM content before
+        agent ingestion. It doesn't strip hidden CSS nodes, filter invisible text, or inspect the
+        HTML the agent is about to process. That's a separate layer — pre-ingestion content hygiene —
+        and it has to be handled at the framework or wrapper level, not at the tool-call layer.
+      </p>
+
+      <p>
+        The right stack is content hygiene <em>plus</em> Shoofly. Neither alone is complete.
+        Content hygiene reduces what malicious instructions reach the model. Shoofly blocks
+        the tool calls those instructions produce, even when some injections get through.
+        They address different stages of the same attack chain.
+      </p>
+
+      <p>
+        For the broader landscape of <a href="/ai-agent-security/">AI agent security</a> controls —
+        including how Shoofly compares to other approaches — see our overview.
+        For <a href="/agentic-ai-security/">agentic AI security</a> at the system level,
+        start there.
+      </p>
+
+      <hr>
+
+      <p>
+        Add runtime security for <a href="/claude-code-dispatch">Claude Code</a> and
+        <a href="/openclaw">OpenClaw</a> agents — install Shoofly Basic free:
+      </p>
+      <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+
+      <p><a href="/#pricing">See plans and pricing →</a></p>
+
+      <hr>
+
+      <p style="font-size:0.9rem; color:var(--text-muted);">
+        <strong style="color:var(--text);">Related reading:</strong>
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP Tool Poisoning</a> ·
+        <a href="/agentic-ai-security/">Agentic AI Security</a> ·
+        <a href="/guides/">Implementation Guides</a> ·
+        <a href="/openclaw-security/">OpenClaw Security</a> ·
+        <a href="/claude-code-security/">Claude Code Security</a>
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
