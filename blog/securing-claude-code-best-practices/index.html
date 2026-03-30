@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<!-- keyword-map:
+  primary: securing Claude Code
+  secondary: Claude Code security, Claude Code config exploit, AI coding assistant security, Claude Code best practices
+  url: /blog/securing-claude-code-best-practices/
+  pillar-page: /claude-code-security/
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CVE-2025-59536 proved that securing Claude Code is a real engineering concern. Here's a practical checklist developers can apply today." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="Securing Claude Code: Best Practices for Developers — Shoofly" />
+  <meta property="og:description" content="CVE-2025-59536 proved that securing Claude Code is a real engineering concern. Here's a practical checklist developers can apply today." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/securing-claude-code-best-practices/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Securing Claude Code: Best Practices for Developers — Shoofly" />
+  <meta name="twitter:description" content="CVE-2025-59536 proved that securing Claude Code is a real engineering concern. Here's a practical checklist developers can apply today." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Securing Claude Code: Best Practices for Developers — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/securing-claude-code-best-practices/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body strong a, .post-body a strong { color: var(--accent); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .checklist { list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; }
+    .checklist li { display: flex; align-items: flex-start; gap: 0.65rem; padding: 0.6rem 0.75rem; border-radius: 6px; font-size: 1.05rem; line-height: 1.6; }
+    .checklist li:nth-child(odd) { background: var(--bg-alt); }
+    .checklist li::before { content: "☐"; font-size: 1rem; color: var(--accent); flex-shrink: 0; margin-top: 0.1rem; }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-15">March 15, 2026</time>
+        <span class="post-tag">Best Practices</span>
+      </div>
+      <h1>Securing Claude Code: Best Practices for Developers</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+      <p>
+        Claude Code is one of the most capable AI coding assistant security tools available — and the same capabilities that make it useful make securing Claude Code a real engineering concern. It can read your codebase,
+        write and edit files, run shell commands, and chain multiple operations together autonomously.
+        That power is the point — and it's also why <strong>Claude Code security</strong> deserves real
+        engineering attention, not just a checkbox on an onboarding doc.
+      </p>
+
+      <p>
+        This guide is a practical checklist for developers actively using Claude Code. Less theory,
+        more things you can do today. We'll also cover why <a href="/claude-code-security/">a full security posture</a>
+        requires both config hardening and runtime protection — and why one without the other leaves
+        meaningful gaps.
+      </p>
+
+      <h2>CVE-2025-59536: Why Securing Claude Code Is No Longer Theoretical</h2>
+
+      <p>
+        In February 2026, researchers Aviv Donenfeld and Oded Vanunu at
+        <a href="https://research.checkpoint.com/" target="_blank" rel="noopener noreferrer">Check Point Research</a>
+        disclosed <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/"><strong>CVE-2025-59536</strong></a>
+        (GitHub Advisory <a href="https://github.com/advisories/GHSA-jh7p-qr78-84p7" target="_blank" rel="noopener noreferrer">GHSA-jh7p-qr78-84p7</a>).
+        The vulnerability involved a <strong>Claude Code config file exploit</strong> — specifically, a flaw
+        in how Claude Code processed configuration that could enable privilege escalation and unauthorized
+        code execution.
+      </p>
+
+      <p>
+        The disclosure date was February 26, 2026. The vulnerability is patched, but its existence
+        reframes something important: <strong>config files are a security boundary</strong>. Not just
+        a place where you set preferences.
+      </p>
+
+      <p>
+        For tools like Claude Code — where a malformed or tampered config can influence what the agent
+        does with shell access — the integrity of your configuration files matters as much as the integrity
+        of your source code. Treat them accordingly.
+      </p>
+
+      <p>
+        <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/">Read our full CVE-2025-59536 breakdown →</a>
+      </p>
+
+      <h2>The Attack Surface Unique to Coding Agents</h2>
+
+      <p>
+        Traditional developer tools have a defined and relatively narrow attack surface. A linter reads files.
+        A test runner executes tests. Neither takes autonomous action based on what it reads.
+      </p>
+
+      <p>
+        Claude Code is different. It has autonomous shell access, can read and write across your filesystem,
+        can invoke <a href="/mcp-security/">MCP tool integrations</a>, and can chain actions together without
+        a human approving each step. That's what makes it productive. It's also what makes the attack surface
+        meaningfully larger.
+      </p>
+
+      <p>
+        The specific risks worth understanding:
+      </p>
+
+      <p>
+        <strong>Config file manipulation.</strong> As CVE-2025-59536 demonstrated, <code>CLAUDE.md</code> and
+        related config files can influence agent behavior in ways that weren't intended. A malicious or
+        corrupted config isn't just a misconfiguration — it's a potential code execution path.
+      </p>
+
+      <p>
+        <strong>Prompt injection via untrusted content.</strong> When Claude Code reads a file, a repo,
+        a web page, or any external content, that content has the opportunity to include instructions
+        aimed at the agent. If those instructions look plausible enough, the agent may act on them.
+      </p>
+
+      <p>
+        <strong>MCP tool abuse.</strong> Model Context Protocol integrations extend what Claude Code can do.
+        Each integration is a new capability surface. Unreviewed or compromised MCP tools can be weaponized
+        to exfiltrate data, modify files, or make outbound requests. See our
+        <a href="/mcp-security/">MCP security guide</a> for a full breakdown.
+      </p>
+
+      <p>
+        <strong>Privilege creep.</strong> Running Claude Code with elevated permissions — even briefly —
+        means any exploitation carries an elevated blast radius.
+      </p>
+
+      <h2>Best Practices Checklist</h2>
+
+      <p>
+        These are the controls that matter most for <strong>Claude Code best practices</strong>.
+        They layer — apply them in order of your risk tolerance and environment sensitivity.
+      </p>
+
+      <ul class="checklist">
+        <li>
+          <span><strong>Pin and review <code>CLAUDE.md</code> and config files — treat them as code, not config.</strong>
+          These files influence agent behavior directly. Version-control them, diff them on change,
+          and review them with the same scrutiny you'd apply to a deployment script.</span>
+        </li>
+        <li>
+          <span><strong>Restrict filesystem permissions to project scope.</strong>
+          Claude Code doesn't need access to your home directory, SSH keys, or credential stores
+          to work on a project. Scope its working directory tightly and apply filesystem-level restrictions
+          where your OS supports it.</span>
+        </li>
+        <li>
+          <span><strong>Audit MCP tool integrations before enabling.</strong>
+          Every MCP tool you add extends Claude Code's action surface. Before enabling an integration,
+          review what it can do, what data it accesses, and whether it makes outbound requests.
+          See <a href="/mcp-security/">our MCP security guide</a> for specifics.</span>
+        </li>
+        <li>
+          <span><strong>Never run with elevated privileges by default.</strong>
+          Run Claude Code as a least-privilege user. If a task genuinely requires elevated access,
+          grant it for that task explicitly — don't leave it on as a standing configuration.</span>
+        </li>
+        <li>
+          <span><strong>Use allowlists for shell commands if your framework supports it.</strong>
+          Constraining which shell commands the agent is permitted to run limits what a successful
+          prompt injection or config exploit can actually do. Allowlists are a hard boundary;
+          monitoring alone is not.</span>
+        </li>
+        <li>
+          <span><strong>Monitor tool calls in real time.</strong>
+          Know what Claude Code is doing as it does it — not just in logs you review later.
+          Real-time monitoring gives you the ability to intervene before damage propagates.
+          <a href="/#pricing">Shoofly Basic</a> is free and built specifically for this.</span>
+        </li>
+        <li>
+          <span><strong>Add pre-execution blocking for production or shared environments.</strong>
+          In higher-risk contexts — shared dev environments, CI/CD pipelines, anywhere with sensitive
+          data — monitoring isn't enough. You want a control that can stop a bad call before it fires.
+          That's what <a href="/#pricing-advanced">Shoofly Advanced</a> is designed for.</span>
+        </li>
+      </ul>
+
+      <p>
+        For a full walkthrough of implementing these controls, see <a href="/guides/">our guides</a>.
+      </p>
+
+      <h2>Runtime Monitoring vs. Config Hardening: Why You Need Both</h2>
+
+      <p>
+        This is a common gap in AI coding assistant security: config hardening and runtime monitoring are often treated as alternatives. They're not.
+      </p>
+
+      <p>
+        <strong>Config hardening reduces the attack surface before runtime.</strong> Pinning
+        <code>CLAUDE.md</code>, restricting permissions, auditing MCP tools — these controls shrink
+        the set of things that can go wrong. They're proactive and work even when no one is watching.
+      </p>
+
+      <p>
+        <strong>Runtime monitoring catches what config hardening can't.</strong> Prompt injection
+        doesn't require a misconfigured file. A tool call can carry malicious intent sourced from
+        untrusted content the agent processed mid-session. You can't harden your way out of that
+        class of attack — you need real-time visibility.
+      </p>
+
+      <p>
+        And then there's the gap between both: the window after the agent has formed its intent
+        and before it executes. Config hardening operates before that window. Logging operates after.
+        <strong>Pre-execution blocking</strong> operates inside it — intercepting the tool call
+        synchronously, evaluating it against policy at the hook layer, and halting it if the policy
+        is violated. The call never fires. There's no cleanup, no rollback, no incident report.
+        Just a stopped action.
+      </p>
+
+      <p>
+        That's the architectural difference. <a href="/blog/why-we-block-instead-of-detect/">We've written in detail about why blocking beats detection →</a>
+      </p>
+
+      <h2>Quick-Start: Adding a Security Layer to Claude Code</h2>
+
+      <p>
+        The fastest path to runtime security for Claude Code is Shoofly Basic. It's free, installs
+        in one command, and starts monitoring tool calls immediately. The threat policy is open and
+        auditable — you can read what it flags and why, and modify it to fit your environment.
+      </p>
+
+      <p>
+        Install <strong>runtime security for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents</strong>:
+      </p>
+
+      <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+
+      <p>
+        Once installed, Shoofly Basic hooks into your Claude Code session and monitors tool calls
+        in real time. If a call matches a threat pattern — unexpected file access, suspicious shell
+        commands, out-of-scope network egress — it fires an alert.
+      </p>
+
+      <p>
+        For teams or shared environments, <a href="/#pricing-advanced">Shoofly Advanced</a>
+        upgrades to full pre-execution blocking: the hook layer intercepts tool calls synchronously.
+        A policy violation means the call never fires — not a post-facto alert, not a log entry.
+        Advanced also adds real-time alerts via Telegram and desktop notifications, plus policy linting.
+      </p>
+
+      <p>
+        The full <a href="/claude-code-security/">Claude Code security guide</a> covers setup through
+        advanced policy configuration. Implementation walkthroughs are in <a href="/guides/">the guides section</a>.
+      </p>
+
+      <hr>
+
+      <p><a href="/#pricing">See plans and pricing →</a></p>
+
+      <p style="font-size:0.9rem; color:var(--text-muted);">
+        <strong style="color:var(--text);">Related reading:</strong>
+        <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/">CVE-2025-59536 deep dive</a> ·
+        <a href="/blog/why-we-block-instead-of-detect/">Why we block instead of detect</a> ·
+        <a href="/mcp-security/">MCP security guide</a> ·
+        <a href="/claude-code-security/">Claude Code security overview</a>
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
