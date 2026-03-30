@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<!-- Keyword map:
+     Primary:    prompt injection blocking
+     Secondary:  agentic prompt injection prevention, pre-execution blocking,
+                 prompt injection defense, LLM injection attack
+     URL:        /blog/prompt-injection-blocking-pre-execution-security/
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Prompt injection in agentic systems doesn't just produce bad text — it produces malicious tool calls. Here's how the attack chain works, and why pre-execution blocking is the only defense that matters." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="Prompt Injection Blocking: How Pre-Execution Security Stops the Attack — Shoofly" />
+  <meta property="og:description" content="Prompt injection in agentic systems doesn't just produce bad text — it produces malicious tool calls. Here's how the attack chain works, and why pre-execution blocking is the only defense that matters." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Prompt Injection Blocking: How Pre-Execution Security Stops the Attack — Shoofly" />
+  <meta name="twitter:description" content="Prompt injection in agentic systems doesn't just produce bad text — it produces malicious tool calls. Here's how the attack chain works, and why pre-execution blocking is the only defense that matters." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Prompt Injection Blocking: How Pre-Execution Security Stops the Attack — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body strong a, .post-body a strong { color: var(--accent); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-29">March 29, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>Prompt Injection Blocking: How Pre-Execution Security Stops the Attack</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+      <p>
+        Most people who worry about prompt injection are thinking about the wrong problem. They picture a
+        chatbot returning offensive text, or a model being tricked into saying something it shouldn't.
+        That's a real issue — but it's not the one that gets you compromised.
+      </p>
+
+      <p>
+        In an <a href="/agentic-ai-security/">agentic system</a>, prompt injection doesn't produce bad text.
+        It produces malicious tool calls. And tool calls do things in the world: they read files, write to
+        databases, make HTTP requests, execute shell commands. The output isn't a sentence you can discard.
+        It's an action that already happened.
+      </p>
+
+      <p>
+        That distinction is why <strong>prompt injection blocking</strong> in agentic contexts requires a
+        completely different approach than traditional input sanitization. This post breaks down how the
+        attack actually works, where existing defenses fall short, and why pre-execution blocking at the
+        tool call layer is the only backstop that reliably works.
+      </p>
+
+      <h2>How Prompt Injection Actually Works in Agentic Contexts</h2>
+
+      <p>
+        The classic prompt injection framing is: attacker smuggles instructions into user-controlled input,
+        model follows those instructions instead of the developer's. That's accurate as far as it goes.
+        What it misses is the <em>consequence</em> in an agentic context.
+      </p>
+
+      <p>
+        Modern AI agents are built around tool use. The model doesn't just respond — it decides what actions
+        to take and calls functions to take them. When an agent reads a document, summarizes a web page,
+        processes a file, or queries an external API, it's ingesting content from the environment. That
+        content becomes part of the model's context. And anything in the model's context can influence
+        its decisions.
+      </p>
+
+      <p>
+        This is what makes <strong>agentic prompt injection prevention</strong> so difficult. In a standard
+        chatbot, you can sanitize user input before it reaches the model. In an agent, the model is designed
+        to consume arbitrary external content — that's its job. You can't sanitize the web. You can't
+        sanitize every file your user might ask the agent to read. The attack surface is, by design, open.
+      </p>
+
+      <p>
+        Injection vectors in agentic systems include: web pages the agent browses, documents it processes,
+        API responses it parses, code repositories it reviews, emails it reads, and — relevant to
+        <a href="/mcp-security/">MCP-based architectures</a> — tool descriptions that ship with malicious
+        instructions embedded in their metadata. Any text that enters the model's context window is a
+        potential injection surface.
+      </p>
+
+      <h2>The Attack Chain: From Injected Text to Executed Tool Call</h2>
+
+      <p>
+        Understanding the full attack chain matters because it reveals exactly where defenses can and can't
+        intervene. Here's how a typical <strong>LLM injection attack</strong> unfolds in an agentic system:
+      </p>
+
+      <p>
+        <strong>Step 1 — Delivery.</strong> The agent ingests content containing hidden or disguised
+        instructions. This might be visible text formatted to look like a system message, invisible
+        characters injected into an otherwise normal document, or off-screen HTML that the agent's
+        vision capabilities still process.
+      </p>
+
+      <p>
+        <strong>Step 2 — Interpretation.</strong> The model processes the injected content alongside its
+        legitimate context. Because the model has no reliable way to distinguish between instructions
+        from its operator and instructions embedded in content, it treats both as potentially actionable.
+        A well-crafted injection exploits this by framing the malicious instruction as a high-priority
+        system directive.
+      </p>
+
+      <p>
+        <strong>Step 3 — Tool call formation.</strong> The model decides to act. It selects a tool —
+        maybe <code>bash</code>, <code>read_file</code>, <code>http_request</code>, or
+        <code>send_email</code> — and constructs the arguments. At this point the attack has already
+        succeeded at the cognitive level. The question is whether anything stops the call before it fires.
+      </p>
+
+      <p>
+        <strong>Step 4 — Execution.</strong> Without a blocking layer, the tool call fires. The file gets
+        read. The request goes out. The command runs. The window to prevent harm has closed.
+      </p>
+
+      <p>
+        This chain is why <strong>prompt injection defense</strong> aimed at Step 1 or Step 2 — input
+        sanitization, instruction hierarchy, constitutional prompting — is necessary but not sufficient.
+        You need a backstop at Step 3, before Step 4 happens.
+      </p>
+
+      <h2>Real-World Examples: Perplexity Comet and Invisible Screenshot Injection</h2>
+
+      <p>
+        These attacks aren't theoretical. Two documented cases illustrate the attack chain in practice.
+      </p>
+
+      <p>
+        The first involves Perplexity's Comet browser agent. <a href="https://brave.com/blog/comet-prompt-injection/" target="_blank" rel="noopener noreferrer">Brave Security demonstrated in August 2025</a>
+        how injected commands embedded in web content could instruct the agent to navigate to banking sites,
+        extract saved passwords, and exfiltrate sensitive data to an attacker-controlled server. Separately,
+        LayerX Research disclosed "CometJacking" — showing how a single malicious click could hijack
+        Comet's session and expose user data. Perplexity has since published
+        <a href="https://www.perplexity.ai/hub/blog/mitigating-prompt-injection-in-comet" target="_blank" rel="noopener noreferrer">their own response</a>
+        acknowledging the attack class and describing mitigations. These incidents are cited here as
+        documented real-world examples of the attack pattern — Shoofly had no involvement.
+      </p>
+
+      <p>
+        The second is what researchers call invisible screenshot injection — a documented attack pattern
+        targeting vision-capable agents. When an agent uses a browser or screen-capture capability, it
+        renders visual content and passes it to a multimodal model. Attackers can embed instructions in
+        that content using techniques invisible to human users: CSS-hidden text, off-screen elements,
+        or content rendered at zero opacity. The vision model reads it. The agent acts on it. The user
+        never sees anything unusual.
+      </p>
+
+      <p>
+        Both attacks share the same structure: trusted channel, injected payload, tool call as the outcome.
+        Neither would be stopped by input sanitization alone. The agent is doing exactly what it's supposed
+        to do — reading web content, processing visual information — and the injection rides along for free.
+        This is also directly relevant to <a href="/claude-code-security/">coding agents</a> that read
+        repositories, review PRs, or process external documentation.
+      </p>
+
+      <p>
+        For a related class of attack delivered through tool metadata rather than content, see our post on
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a>.
+        The delivery mechanism differs; the exploit chain is the same.
+      </p>
+
+      <h2>Why Input-Layer Defenses Aren't Enough</h2>
+
+      <p>
+        The conventional response to prompt injection is to try to fix it at the input layer: better
+        system prompts, stricter instruction hierarchies, content filtering before the model sees it,
+        or training the model to be more skeptical of instructions in user-controlled content.
+      </p>
+
+      <p>
+        These approaches have genuine value. A well-structured system prompt that clearly delineates
+        operator instructions from user content does reduce injection success rates. Models are getting
+        better at recognizing and ignoring suspicious embedded instructions. This progress is real.
+      </p>
+
+      <p>
+        But none of it is deterministic. Models don't parse text with the precision of a rule engine.
+        They have no internal firewall between "this is a system instruction" and "this is content I'm
+        summarizing." Sufficiently creative injections — especially those that mimic the style of
+        legitimate system messages, or that exploit attention patterns the model learned in training —
+        will get through. The question isn't whether input-layer defenses reduce the attack surface.
+        They do. The question is whether they're a complete defense. They're not.
+      </p>
+
+      <p>
+        There's also the tool description problem. <a href="/mcp-security/">MCP servers</a> ship tool
+        descriptions that the model reads at initialization. If those descriptions contain injected
+        instructions — telling the model to always include certain data in API calls, or to prefer
+        certain actions under specific conditions — no amount of input filtering will catch it, because
+        the injection is part of the tool definition itself. You'd have to audit every tool description
+        before loading it. Which is, incidentally, something a policy-based security layer can do.
+      </p>
+
+      <p>
+        The deeper problem is that input-layer defenses operate at the wrong point in the attack chain.
+        They try to prevent the model from being influenced. A backstop at the tool call layer doesn't
+        care whether the model was influenced — it asks whether the resulting action is permitted.
+        That's a much simpler question to answer reliably.
+      </p>
+
+      <h2>Pre-Execution Blocking as the Backstop</h2>
+
+      <p>
+        <strong>Pre-execution blocking</strong> works at Step 3 of the attack chain: after the model has
+        decided what tool to call, but before the runtime fires the call. At that moment, the full intent
+        is visible — tool name, arguments, parameters — and a policy engine can evaluate it synchronously.
+        If the call violates policy, it never executes. The violation is logged, an alert fires, and the
+        agent gets back an error rather than a result.
+      </p>
+
+      <p>
+        This is architecturally different from detection. Detection observes what happened. Blocking
+        determines what happens. For the categories of harm that matter most in agentic systems —
+        data exfiltration, unauthorized file access, unexpected network egress, destructive shell
+        commands — the only useful intervention is one that happens before the damage is done.
+        That's what <a href="/blog/why-we-block-instead-of-detect/">blocking buys you that detection doesn't</a>.
+      </p>
+
+      <p>
+        In Shoofly's implementation, the block happens at the hook layer. Every tool call passes through
+        the policy engine synchronously before dispatch. The policy rules are open and auditable — you
+        can read exactly what's being evaluated, modify the rules for your threat model, and understand
+        every decision the system makes. There's no black box between your agent and your policy.
+      </p>
+
+      <p>
+        Shoofly Basic is free and covers detection and alerting, with an open, auditable threat policy you
+        can inspect and extend. Shoofly Advanced upgrades to full pre-execution blocking: calls that
+        violate policy never fire, with real-time alerts via Telegram and desktop notifications, plus
+        policy linting to catch configuration errors before they become gaps. See
+        <a href="/#pricing">plans and pricing</a> for details.
+      </p>
+
+      <p>
+        Pre-execution blocking doesn't replace input-layer defenses. It complements them. Run the best
+        system prompt you can. Use a model that's been trained to resist injection. Apply content
+        filtering where it makes sense. Then add a blocking layer at the tool call boundary as the
+        final backstop — because that's the one point in the chain where policy can be enforced
+        deterministically, regardless of what the model decided.
+      </p>
+
+      <p>
+        Prompt injection in <a href="/agentic-ai-security/">agentic systems</a> is a hard problem precisely
+        because the attack surface is the agent's job. You can't close it without disabling the agent.
+        What you can do is ensure that even when an injection succeeds at the cognitive level, it doesn't
+        succeed at the execution level. That's the goal of <strong>agentic prompt injection prevention</strong>
+        built around pre-execution blocking. And it's the only layer of defense where the answer to
+        "was this stopped?" is reliably yes or no.
+      </p>
+
+      <p>
+        For implementation guidance, see the <a href="/guides/">Shoofly guides</a>.
+      </p>
+
+      <hr>
+
+      <p><a href="/#pricing">See plans and pricing →</a></p>
+
+      <p>Add runtime security for <a href="/claude-code-dispatch">Claude Code</a> and <a href="/openclaw">OpenClaw</a> agents:</p>
+      <pre><code>curl -fsSL https://shoofly.dev/install.sh | bash</code></pre>
+
+      <hr>
+
+      <p style="font-size:0.9rem; color:var(--text-muted);">
+        <strong style="color:var(--text);">Related reading:</strong>
+        <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP Tool Poisoning</a> ·
+        <a href="/blog/why-we-block-instead-of-detect/">Why We Block Instead of Detect</a> ·
+        <a href="/mcp-security/">MCP Security</a> ·
+        <a href="/agentic-ai-security/">Agentic AI Security</a> ·
+        <a href="/claude-code-security/">Claude Code Security</a> ·
+        <a href="/guides/">Guides</a>
+      </p>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
