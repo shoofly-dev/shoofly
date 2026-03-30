@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Shoofly security guides — evergreen reference pages on AI agent security, Claude Code security, MCP tool poisoning, and more." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="Security Guides — Shoofly" />
+  <meta property="og:description" content="Evergreen reference guides on AI agent security, Claude Code security, MCP tool poisoning prevention, OpenClaw security, and more." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shoofly.dev/guides/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Security Guides — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/guides/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117; --bg-alt: #161b22; --bg-card: #161b22;
+      --border: #30363d; --text: #e6edf3; --text-muted: #8b949e;
+      --accent: #16a34a; --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background-color: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 1rem; line-height: 1.6; -webkit-font-smoothing: antialiased; padding-top: 56px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background-color: var(--bg-alt); border-bottom: 1px solid var(--border); height: 56px; padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 860px; margin: 0 auto; padding: 0 1.5rem; }
+    .hero { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); }
+    .hero-title { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; color: var(--text); margin-bottom: 0.5rem; }
+    .hero-sub { font-size: 1.05rem; color: var(--text-muted); }
+    .guides-grid { padding: 3rem 0; display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    .guide-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 2rem; transition: border-color 0.15s; }
+    .guide-card:hover { border-color: var(--accent); }
+    .guide-card a { color: var(--text); text-decoration: none; display: block; }
+    .guide-card a:hover h2 { color: var(--accent); }
+    .guide-card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; }
+    .guide-card-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .guide-card h2 { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.5rem; transition: color 0.15s; }
+    .guide-card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 4rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-title">Security Guides</h1>
+      <p class="hero-sub">Evergreen reference pages on AI agent security, attack vectors, and how to protect your agent stack.</p>
+    </div>
+  </section>
+
+  <main>
+    <div class="container">
+      <div class="guides-grid">
+
+        <div class="guide-card">
+          <a href="/agentic-ai-security/">
+            <div class="guide-card-meta"><span class="guide-card-tag">Fundamentals</span></div>
+            <h2>Pre-Execution Agentic AI Security: Why Blocking at the Decision Gate Matters</h2>
+            <p>Why input guardrails fail for agents, why post-execution detection is too late, and how pre-execution blocking works at the decision gate.</p>
+          </a>
+        </div>
+
+        <div class="guide-card">
+          <a href="/claude-code-security/">
+            <div class="guide-card-meta"><span class="guide-card-tag">Claude Code</span></div>
+            <h2>Claude Code Security: Prompt Injection, CVEs, and How to Lock It Down</h2>
+            <p>Known CVEs (including CVE-2025-59536), CLAUDE.md attack vectors, indirect prompt injection, and practical steps to secure Claude Code CLI, Cowork, and Dispatch.</p>
+          </a>
+        </div>
+
+        <div class="guide-card">
+          <a href="/mcp-security/">
+            <div class="guide-card-meta"><span class="guide-card-tag">MCP</span></div>
+            <h2>MCP Tool Poisoning Prevention: How the Attack Works and How to Stop It</h2>
+            <p>MCP tool poisoning embeds malicious instructions in tool descriptions the LLM silently executes. Attack variants, real CVEs, and prevention steps.</p>
+          </a>
+        </div>
+
+        <!-- Add new guide cards here as pages ship -->
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
