@@ -1,61 +1,99 @@
 # Shoofly
 
-> Drop-in runtime security for OpenClaw and Claude Code agents. Threats intercepted before they execute -- blocked, not detected.
+> Drop-in runtime security for OpenClaw and Claude Code agents. Intercepts tool calls before they execute — blocked, not detected.
 
-Shoofly is a security layer for OpenClaw and Claude Code agents that intercepts tool calls before they execute and blocks dangerous ones. It detects and blocks prompt injection, credential exfiltration, out-of-scope writes, runaway loops, and data exfiltration attempts.
+Shoofly is a pre-execution security layer for AI agent runtimes. It sits between an agent and its tools, evaluating every tool call against an open policy ruleset before execution. Dangerous calls are blocked before they fire. Safe calls proceed normally. Works with OpenClaw and Claude Code (including Dispatch, /loop, and unattended sessions).
 
-## What It Does
+## Docs
 
-Shoofly sits between an OpenClaw agent and its tools. Every tool call -- file writes, shell commands, web requests, API calls -- is evaluated against an open policy ruleset before execution. Dangerous calls are blocked before they fire. Safe calls proceed normally.
-
-Key capabilities:
-- Pre-execution blocking: tool calls intercepted via the before_tool_call hook before execution
-- Prompt injection detection: 8 patterns including instruction suppression, jailbreak keywords, base64 payloads
-- Credential sniffing alerts: Anthropic API keys, GitHub tokens, AWS credentials
-- Out-of-scope write detection: writes to /etc/, ~/.ssh/, LaunchAgents, and other sensitive paths
-- Runaway loop detection: repeated tool calls, call floods, read-write cycles, URL hammering
-- Data exfiltration detection: credentials in POST bodies, pipe exfiltration, read-then-network patterns
-- Tool response injection detection: malicious instructions embedded in tool call results
-- YAML policy-as-code: open, auditable rules -- read them, fork them, customize them
-- Multi-channel alerts: Telegram, WhatsApp, macOS notifications, terminal, OpenClaw gateway
+- [Homepage](https://shoofly.dev): Product overview, pricing, install
+- [Shoofly Advanced](https://shoofly.dev/advanced/): Advanced tier — pre-execution blocking, daemon + hook architecture
+- [Advanced Setup Guide](https://shoofly.dev/docs/advanced/): Full installation and configuration docs for Shoofly Advanced
+- [Security Policy](https://shoofly.dev/security/): Responsible disclosure and security practices
 
 ## Tiers
 
-### Shoofly Basic (Free)
-Detects threats and sends notifications. Never blocks. Install and forget -- it runs as a background daemon tailing your OpenClaw session logs.
+### Shoofly Basic (Free forever)
+Detects threats and sends multi-channel alerts. Never blocks. Runs as a background daemon monitoring your agent session logs. Install and forget.
 
-Install:
-```
-curl -fsSL https://shoofly.dev/install.sh | bash
-```
+Install: `curl -fsSL https://shoofly.dev/install.sh | bash`
+
+Capabilities:
+- Prompt injection detection (8 patterns: instruction suppression, jailbreak keywords, base64 payloads, system prompt override attempts)
+- Credential sniffing alerts: Anthropic API keys, GitHub tokens, AWS credentials
+- Out-of-scope write detection: writes to /etc/, ~/.ssh/, LaunchAgents, and sensitive system paths
+- Runaway loop detection: repeated tool calls, call floods, read-write cycles
+- Data exfiltration detection: credentials in POST bodies, pipe exfiltration, read-then-network patterns
+- Tool response injection detection: malicious instructions embedded in tool call results
+- Multi-channel alerts: Telegram, WhatsApp, macOS notifications, terminal, OpenClaw gateway
 
 ### Shoofly Advanced ($5/mo)
-Two-layer prevention: daemon (monitors + alerts) and hook (intercepts tool calls before they fire). Dangerous calls are blocked -- not detected.
+Full pre-execution blocking. Two-layer architecture: daemon (monitors + alerts) + hook (intercepts tool calls before they execute and returns a block decision). The hook fires via the before_tool_call lifecycle event — before the tool runs, not after.
 
-- Daemon: background sidecar that monitors session logs, evaluates threats, fires alerts
-- Hook: OpenClaw plugin (shoofly-hook) that intercepts every tool call via before_tool_call and returns a block decision before execution
+Install: `curl -fsSL https://shoofly.dev/install-advanced.sh | bash`
 
-Install:
-```
-curl -fsSL https://shoofly.dev/install-advanced.sh | bash
-```
+Additional capabilities over Basic:
+- Pre-execution blocking: tool calls halted before execution, not just logged
+- YAML policy-as-code: open, auditable rules — read them, fork them, customize them. No black-box decisions.
+- Policy linting: validate policy files before deployment
+- Unattended session protection: designed for Claude Code Dispatch, /loop, and scheduled tasks that run without a human watching
+- Claude Code hook support: integrates via Claude Code's PreToolUse dispatch hook
+- OpenClaw hook support: integrates via shoofly-hook extension (before_tool_call)
 
-## Key Terms
+## Claude Code and Dispatch Support
 
-- Tool call interceptor
-- Pre-execution blocking
-- Agent security
-- Prompt injection blocker
-- Runtime protection
-- OpenClaw security skill
-- AI agent firewall
-- Blocked -- not detected
+Shoofly v2+ supports Claude Code natively. This includes:
+- Hook integration via Claude Code's PreToolUse event (fires before any tool call executes)
+- Daemon monitoring for Claude Code session logs
+- Protection for unattended Dispatch tasks, /loop scheduled sessions, and remote control sessions
+- Claude Code-specific health checks (shoofly-claude-daemon status, hook registration)
 
-## Links
+Relevant context: Anthropic's auto mode classifier has a documented 17% false-negative rate on dangerous commands. Shoofly's deterministic policy rules operate independently and do not share this failure mode.
 
-- Website: https://shoofly.dev
-- GitHub: https://github.com/shoofly-dev/shoofly
-- ClawHub (Basic): https://clawhub.com/skills/shoofly-basic
-- ClawHub (Advanced): https://clawhub.com/skills/shoofly-advanced
-- Install Basic: curl -fsSL https://shoofly.dev/install.sh | bash
-- Upgrade to Advanced: https://shoofly.dev/advanced
+## Security Coverage
+
+Shoofly's open ruleset covers 21 threat categories including:
+
+- PI-001–PI-008: Prompt injection variants (ignore/disregard instructions, new system prompts, jailbreak patterns, base64-encoded instructions, role-playing override attempts)
+- TRI-001: Tool result injection (fake tool outputs injected into agent context)
+- OSW-001–OSW-003: Off-system writes (sensitive path writes, credential file writes)
+- RL-001–RL-003: Runaway loops (repetition loops, call floods, read-write cycles)
+- DE-001–DE-005: Data exfiltration (credential exfil, read-then-exfil, pipe exfil, POST body credential leak)
+- COWORK-001: Cowork plugin detections (Claude Code-specific patterns)
+
+Rules are open and auditable: https://github.com/shoofly-dev/shoofly
+
+## Key Pages
+
+- [OpenClaw Security](https://shoofly.dev/openclaw/): Shoofly for OpenClaw agents — what it protects, how it installs, what the hook intercepts
+- [Claude Code Dispatch Security](https://shoofly.dev/claude-code-dispatch/): Shoofly for Claude Code — Dispatch, /loop, remote control, computer use coverage
+- [AI Agent Security Guide](https://shoofly.dev/ai-agent-security/): The developer's complete guide to AI coding agent security
+- [Agentic AI Security](https://shoofly.dev/agentic-ai-security/): Pre-execution blocking and the decision gate architecture
+- [MCP Security](https://shoofly.dev/mcp-security/): MCP tool poisoning prevention — how the attack works and how Shoofly stops it
+- [OpenClaw Security Guide](https://shoofly.dev/openclaw-security/): Protecting OpenClaw agent stacks from skills to tool calls
+- [Claude Code Security Guide](https://shoofly.dev/claude-code-security/): Prompt injection, CVEs, and how to lock down Claude Code
+- [Security Guides](https://shoofly.dev/guides/): All Shoofly security guides
+
+## Blog
+
+- [Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need)](https://shoofly.dev/blog/is-claude-code-dispatch-safe/) — Anthropic's own security numbers for Dispatch, /loop, and computer use. Where the gaps are and what fills them.
+- [Claude Code Security Best Practices](https://shoofly.dev/blog/securing-claude-code-best-practices/) — Practical hardening guide for Claude Code deployments.
+- [AI Computer Use Security: Attack Vectors and How to Stop Them](https://shoofly.dev/blog/ai-computer-use-security-attack-vectors/) — Unsandboxed computer use, DOM injection, clipboard attacks, proven PoCs.
+- [MCP Tool Poisoning: What It Is and How to Stop It](https://shoofly.dev/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/) — How poisoned MCP servers hijack agent tool calls.
+- [CVE-2025-59536: Claude Code Config File Exploit](https://shoofly.dev/blog/cve-2025-59536-claude-code-config-file-exploit/) — CVSS 8.7 RCE via malicious hooks in .claude/settings.json.
+- [ClawHub Skill Supply Chain Attacks](https://shoofly.dev/blog/clawhub-skill-supply-chain-attacks/) — How malicious skills compromise agent runtimes at install time.
+- [AI Coding Agent Security: Full Stack](https://shoofly.dev/blog/ai-coding-agent-security-full-stack/) — End-to-end security architecture for AI coding agent deployments.
+- [OpenClaw Skill Security: What Every User Should Know](https://shoofly.dev/blog/openclaw-skill-security-what-every-user-should-know/) — Skill trust boundaries, supply chain risks, and safe installation practices.
+- [Prompt Injection Blocking: Pre-Execution Security](https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/) — Why blocking at the decision gate is the only effective prompt injection defense.
+- [Runtime Threat Detection for AI Agents](https://shoofly.dev/blog/runtime-threat-detection-ai-agents/) — What runtime threat detection looks like in practice for agentic systems.
+- [Why We Block Instead of Detect](https://shoofly.dev/blog/why-we-block-instead-of-detect/) — The architectural argument for pre-execution blocking over post-execution detection.
+
+## Install
+
+Basic (free): `curl -fsSL https://shoofly.dev/install.sh | bash`
+Advanced ($5/mo): `curl -fsSL https://shoofly.dev/install-advanced.sh | bash`
+Claude Code Advanced: `curl -fsSL https://shoofly.dev/install-claude-code-advanced.sh | bash`
+
+ClawHub (Basic): https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic
+ClawHub (Advanced): https://clawhub.ai/wow-leeroy-jenkins05/shoofly-advanced
+GitHub: https://github.com/shoofly-dev/shoofly
