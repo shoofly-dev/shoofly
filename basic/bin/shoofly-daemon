@@ -361,7 +361,13 @@ evaluate_line() {
   local summary="${matched_threat_id}: ${threat_label} detected"
 
   # Fire notification for all detections (action_basic: notify in threats.yaml)
-  local alert_msg="SHOOFLY BASIC 🪰🧹 WARNING: ${threat_label} detected on ${AGENT_NAME}. Try ⚡🪰⚡ SHOOFLY ADVANCED to block attacks before they're inside your agent infra. shoofly.dev/advanced"
+  local alert_msg="🚨 SHOOFLY ALERT — ${matched_threat_id}
+Agent: ${AGENT_NAME}
+Threat: ${threat_label}
+Confidence: ${confidence}
+Tool: ${tool_name}
+
+⚡ Upgrade to Shoofly Advanced to block this automatically: shoofly.dev/advanced"
   fire_notification "$alert_msg"
   local notified="true"
 

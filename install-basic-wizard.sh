@@ -99,6 +99,17 @@ fi
 # 9. Start daemon in foreground for first run verification, then background
 ~/.shoofly/bin/shoofly-daemon --config ~/.shoofly/config.json --verify && echo "✓ Shoofly daemon verified"
 
+# 10. Send smoke test notification so user can confirm delivery
+echo ""
+echo "🧪 Sending test notification..."
+~/.shoofly/bin/shoofly-notify auto "🪰 SHOOFLY BASIC — INSTALL VERIFIED ✅
+
+Agent: $AGENT_NAME
+Status: Monitoring active
+Tier: Basic (detect + notify)
+
+Your agent is now being watched. This is a one-time setup confirmation." 2>/dev/null && echo "✓ Test notification sent" || echo "  (notification skipped — check channel config)"
+
 echo ""
 echo "✅ Shoofly Basic installed!"
 echo "   Alerts log: ~/.shoofly/logs/alerts.log"
