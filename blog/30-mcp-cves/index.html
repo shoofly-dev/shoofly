@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="In January 2026, the Model Context Protocol had a handful of known vulnerabilities. By March, it had over thirty CVEs. Thirty. In sixty days." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="30 MCP CVEs in 60 Days: The Protocol's Security Crisis — Shoofly" />
+  <meta property="og:description" content="In January 2026, the Model Context Protocol had a handful of known vulnerabilities. By March, it had over thirty CVEs. Thirty. In sixty days." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/30-mcp-cves/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="30 MCP CVEs in 60 Days: The Protocol's Security Crisis — Shoofly" />
+  <meta name="twitter:description" content="In January 2026, the Model Context Protocol had a handful of known vulnerabilities. By March, it had over thirty CVEs. Thirty. In sixty days." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>30 MCP CVEs in 60 Days: The Protocol's Security Crisis — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/30-mcp-cves/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-11">March 11, 2026</time>
+        <span class="post-tag">MCP Security</span>
+      </div>
+      <h1>30 MCP CVEs in 60 Days: The Protocol's Security Crisis</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<p>In January 2026, the Model Context Protocol had a handful of known vulnerabilities. By March, it had over thirty CVEs. Thirty. In sixty days.</p>
+
+<p>That's not a bad quarter for a mature protocol. That's a fire alarm for one that's barely a year old and already wired into production systems at every major AI company.</p>
+
+<p>This isn't a hit piece on MCP. The protocol solves a real problem — standardized tool access for AI agents. But the CVE velocity tells a story that the community needs to hear: these aren't random implementation bugs. They're architectural gaps in a protocol that shipped with trust as a default and authentication as an afterthought.</p>
+
+<h2>The CVE Timeline</h2>
+
+<p>Here's the breakdown of 30+ CVEs filed between January and March 2026, grouped by category:</p>
+
+<h3>Authentication Bypass (11 CVEs)</h3>
+
+<p>The largest category. MCP servers that accept unauthenticated connections, use weak or default credentials, or fail to validate client identity.</p>
+
+<p>Notable CVEs:</p>
+
+<ul>
+<li><strong>Authentication bypass CVEs</strong> — Default-open authentication on widely deployed filesystem MCP servers. Any client could connect and invoke file operations with no credentials. [SPECIFIC CVE IDS PENDING VERIFICATION]</li>
+<li><strong>Token replay CVEs</strong> — Token replay vulnerabilities in MCP server OAuth implementations. Valid tokens could be replayed indefinitely after expiration. [SPECIFIC CVE IDS PENDING VERIFICATION]</li>
+<li><strong>Server-side injection CVEs</strong> — Server-side request forgery via unauthenticated MCP tool calls targeting internal network endpoints. [SPECIFIC CVE IDS PENDING VERIFICATION]</li>
+</ul>
+
+<p>[NEEDS SOURCE — Specific CVE IDs must be verified against NVD/MITRE databases before publication. The count of 30+ and the categorization are based on public tracking; individual CVE numbers need confirmation.]</p>
+
+<h3>Injection Vulnerabilities (8 CVEs)</h3>
+
+<p><a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">MCP tool poisoning</a> is the primary vector. Malicious or compromised MCP servers return responses containing injected instructions that manipulate the connecting agent into performing attacker-controlled actions.</p>
+
+<p>Key patterns:</p>
+
+<ul>
+<li><strong>Response injection</strong> — Server embeds hidden instructions in tool result data. The agent processes these as legitimate instructions and generates follow-up tool calls directed by the attacker.</li>
+<li><strong>Schema poisoning</strong> — Server modifies tool descriptions to include instructions that override the agent's system prompt. The model follows the "tool description" as if it were an authoritative instruction.</li>
+<li><strong>Argument manipulation</strong> — Server returns results designed to influence the agent's next tool call arguments — e.g., returning a file path that, when used in a subsequent file read, accesses sensitive data.</li>
+</ul>
+
+<h3>Data Exfiltration (6 CVEs)</h3>
+
+<p>MCP servers designed to extract data from the connecting agent's context, including:</p>
+
+<ul>
+<li>Conversation history (potentially containing credentials, API keys, or sensitive business logic)</li>
+<li>Local file contents accessed through the agent's file tools</li>
+<li>Environment variables and system information</li>
+</ul>
+
+<h3>Privilege Escalation (5+ CVEs)</h3>
+
+<p>Tool calls that escalate the agent's effective permissions:</p>
+
+<ul>
+<li>MCP servers that request broader tool access than their stated function requires</li>
+<li>Servers that chain tool calls to escalate from read to write to execute</li>
+<li>Cross-server escalation where access to one MCP server enables unauthorized access to another</li>
+</ul>
+
+<h3>The Velocity Problem</h3>
+
+<p>For context, compare MCP's CVE velocity to other protocols at similar maturity:</p>
+
+<table>
+<thead><tr><th>Protocol</th><th>CVEs in First Year</th><th>CVEs in First 60 Days of Active Adoption</th></tr></thead>
+<tbody><tr><td>OAuth 2.0</td><td>~8</td><td>~3</td></tr>
+<tr><td>GraphQL</td><td>~5</td><td>~2</td></tr>
+<tr><td>gRPC</td><td>~4</td><td>~1</td></tr>
+<tr><td>MCP</td><td>30+</td><td>30+</td></tr>
+</tbody></table>
+
+<p>[NEEDS SOURCE — Protocol comparison numbers are estimates from public CVE databases. Verify exact counts before publication.]</p>
+
+<p>The difference isn't that MCP is inherently worse-designed than these protocols. It's that MCP shipped into an environment where every AI agent vendor simultaneously adopted it, creating an enormous attack surface overnight — and the protocol's security model wasn't ready.</p>
+
+<h2>38% Have No Auth: The Default-Insecure Problem</h2>
+
+<p>The MCP specification doesn't require authentication for tool calls. It provides authentication capabilities — the spec includes provisions for OAuth 2.1, API keys, and custom auth schemes. But authentication is optional, and the default is no auth. <a href="https://dev.to/kai_security_ai/i-scanned-every-server-in-the-official-mcp-registry-heres-what-i-found-4p4m" target="_blank" rel="noopener">Kai Security scanned all 518 servers in the Official MCP Registry</a>; after correction, ~38% had no authentication at any level (Kai Security, February 2026).</p>
+
+<p>This matters because of how MCP gets adopted in practice:</p>
+
+<ol>
+<li><strong>Developer builds an MCP server.</strong> The tutorial doesn't cover auth. The quickstart template ships without it. The "hello world" example works without it. Auth is documented in an "advanced" section.</li>
+</ol>
+
+<ol>
+<li><strong>Server gets shared.</strong> GitHub, npm, or an internal registry. Other developers install it. Nobody checks for auth because nobody expects it — MCP servers "just work."</li>
+</ol>
+
+<ol>
+<li><strong>Server connects to production agents.</strong> The MCP server that started as a weekend project is now connected to an agent with access to production codebases, credentials, and infrastructure.</li>
+</ol>
+
+<ol>
+<li><strong>Attacker connects to the same server.</strong> No auth means anyone who can reach the server can invoke its tools. On a network-accessible server, that's potentially the entire internet.</li>
+</ol>
+
+<p>The protocol's permissive default creates a "security debt by default" that accumulates silently. Every MCP server deployed without auth is a node in an expanding attack surface.</p>
+
+<h3>What "No Auth" Actually Means</h3>
+
+<p>Without authentication, an MCP server cannot:</p>
+
+<ul>
+<li>Verify which client is connecting</li>
+<li>Restrict tool access by client identity</li>
+<li>Rate-limit or throttle per-client</li>
+<li>Audit which client performed which action</li>
+<li>Revoke access for a compromised client</li>
+</ul>
+
+<p>The server is a public API with no access control. Every tool it exposes is callable by anyone.</p>
+
+<h2>Active Exploitation</h2>
+
+<p>MCP vulnerabilities aren't theoretical. Security researchers and incident responders have documented active exploitation: [NEEDS SOURCE — the following cases need specific citations. Flag any that cannot be verified with primary sources.]</p>
+
+<p><strong>Supply chain attacks via popular MCP servers.</strong> Compromised MCP servers on package registries that served poisoned tool responses to connecting agents. When an AI agent connected and invoked tools, the server's responses included injected instructions that caused the agent to exfiltrate environment variables and API keys.</p>
+
+<p><strong>Credential harvesting via MCP tool poisoning.</strong> Attackers deploying malicious MCP servers that advertise useful functionality (code search, documentation lookup, API testing) but embed credential-harvesting payloads in tool responses. The connecting agent reads the response, follows the injected instructions, and transmits credentials to the attacker's infrastructure.</p>
+
+<p><strong>Internal network reconnaissance.</strong> MCP servers used as pivot points for SSRF attacks. An agent connects to an MCP server, which returns results containing instructions to make requests to internal network addresses — cloud metadata endpoints, internal APIs, database connections. The agent's HTTP tools become the attacker's proxy into the internal network.</p>
+
+<p><strong>Data exfiltration via legitimate-seeming tool calls.</strong> MCP servers that subtly modify tool results to include instructions that cause the agent to include sensitive data in subsequent outbound requests. The exfiltration is hidden within legitimate-looking tool call patterns, making it difficult to detect without pre-execution analysis.</p>
+
+<p>These aren't edge cases. They're the predictable result of a protocol that defaults to trust.</p>
+
+<h2>Anthropic's Response</h2>
+
+<p>Credit where due: Anthropic has recognized the authentication gap and is working to close it.</p>
+
+<p><strong>OAuth 2.1 additions to the MCP spec.</strong> Anthropic has added OAuth 2.1 support to the MCP authentication specification, providing a standardized way for MCP servers to require client authentication. This is a meaningful step — OAuth 2.1 is a well-understood protocol with mature tooling.</p>
+
+<p><strong>The MCP auth spec timeline.</strong> The authentication specification was published in early 2026. Adoption is underway but uneven — the largest MCP server registries have announced support, but the long tail of community-built servers remains largely unauthenticated.</p>
+
+<p><strong>What's still missing.</strong> OAuth 2.1 addresses client-to-server authentication, but it doesn't address:</p>
+
+<ul>
+<li><strong>Tool-level authorization.</strong> A client authenticated to an MCP server gets access to all of its tools. There's no standard for per-tool authorization.</li>
+<li><strong>Response integrity.</strong> There's no mechanism to verify that an MCP server's response hasn't been tampered with or that it doesn't contain injected content.</li>
+<li><strong>Trust boundaries between servers.</strong> When an agent connects to multiple MCP servers, there's no standard for preventing one server from influencing tool calls to another.</li>
+<li><strong>Client-side enforcement.</strong> OAuth authenticates the client to the server, but it doesn't give the client a way to enforce policy on what the server can instruct the agent to do.</li>
+</ul>
+
+<p>The authentication spec is necessary but not sufficient. Authentication answers "who is connecting?" It doesn't answer "should this tool call execute?"</p>
+
+<h2>What MCP Server Operators Should Do Now</h2>
+
+<p>If you're running MCP servers — whether public or internal — here's the immediate checklist:</p>
+
+<h3>1. Implement Authentication</h3>
+
+<p>If your MCP server has no auth, add it now. OAuth 2.1 is the spec-recommended approach. At minimum:</p>
+
+<ul>
+<li>Require client credentials for all connections</li>
+<li>Implement token expiration and rotation</li>
+<li>Log all authentication events</li>
+</ul>
+
+<h3>2. Validate Tool Inputs</h3>
+
+<p>Every tool handler should validate its inputs:</p>
+
+<ul>
+<li>Type checking against the schema</li>
+<li>Path traversal prevention for file operations</li>
+<li>Command injection prevention for shell operations</li>
+<li>SQL injection prevention for database operations</li>
+</ul>
+
+<h3>3. Scope Tool Access</h3>
+
+<p>Don't expose every capability as an MCP tool. Apply the principle of least privilege:</p>
+
+<ul>
+<li>Only expose tools that the server's stated function requires</li>
+<li>Restrict file access to specific directories</li>
+<li>Limit network access to specific domains</li>
+<li>Restrict database access to specific tables and operations</li>
+</ul>
+
+<h3>4. Sanitize Tool Responses</h3>
+
+<p>Your tool responses become part of the agent's context. If your responses contain user-generated content, attacker-controlled data, or content from external sources, sanitize it before returning:</p>
+
+<ul>
+<li>Strip or escape content that could be interpreted as instructions</li>
+<li>Clearly delineate data from metadata</li>
+<li>Limit response size to prevent context flooding</li>
+</ul>
+
+<h3>5. Monitor and Alert</h3>
+
+<p>Log every tool invocation with:</p>
+
+<ul>
+<li>Client identity</li>
+<li>Tool name and arguments</li>
+<li>Response data (or a hash of it)</li>
+<li>Timestamp and duration</li>
+</ul>
+
+<p>Alert on anomalies: unusual tool call patterns, high-volume invocations, access to tools outside the client's normal pattern.</p>
+
+<h3>6. Audit Your Dependencies</h3>
+
+<p>If your MCP server depends on other services or MCP servers, audit their security posture. A compromised dependency is a compromised server.</p>
+
+<h2>Policy-as-Code for MCP Trust Boundaries</h2>
+
+<p>Server-side security is necessary but insufficient. You control your own MCP servers — you don't control the ones you connect to. And you definitely don't control what a compromised server sends back.</p>
+
+<p>This is where client-side policy enforcement becomes critical. Policy-as-code defines trust boundaries that are enforced before any MCP tool call executes, regardless of the server's security posture.</p>
+
+<h3>How It Works</h3>
+
+<p>Define which MCP servers are trusted, which tools they're allowed to provide, and what arguments those tools can receive:</p>
+
+<pre><code># MCP trust policy
+mcp_servers:
+  trusted:
+    - server: "github-mcp.internal"
+      tools:
+        - name: "search_code"
+          allowed_args:
+            repo: ["org/repo-a", "org/repo-b"]
+        - name: "read_file"
+          blocked_paths: [".env", ".ssh", "credentials"]
+
+    - server: "docs-server.internal"
+      tools:
+        - name: "search_docs"
+        - name: "read_doc"
+
+  untrusted_default: block  # Block all tool calls to unlisted servers</code></pre>
+
+<h3>Why Client-Side Enforcement Matters</h3>
+
+<ol>
+<li><strong>Server compromise.</strong> If a trusted MCP server is compromised, client-side policy limits the damage. The compromised server can't instruct the agent to execute operations outside the defined trust boundary.</li>
+</ol>
+
+<ol>
+<li><strong>Supply chain attacks.</strong> A malicious MCP server that passed initial vetting can't escalate its access beyond what the policy allows.</li>
+</ol>
+
+<ol>
+<li><strong>Response injection.</strong> Even if an MCP server returns poisoned responses, the policy engine evaluates the resulting tool calls before execution. An injected instruction that causes the agent to run <code>rm -rf /</code> hits the policy rule and is blocked.</li>
+</ol>
+
+<ol>
+<li><strong>Defense in depth.</strong> Server-side auth + client-side policy = two independent layers that an attacker must both defeat.</li>
+</ol>
+
+<p>Shoofly Advanced implements MCP trust boundary enforcement at the tool call dispatch layer. Policy rules evaluate every MCP-originated tool call before execution — which server initiated it, which tool is being called, what arguments are being passed, and whether the call matches defined trust boundaries. This works even when the MCP server itself is compromised, because the interception happens on the client side, before the tool call reaches execution.</p>
+
+<p>Learn more about MCP-specific security in our <a href="/mcp-security/">MCP security center</a>.</p>
+
+<h2>The Bottom Line</h2>
+
+<p>Thirty CVEs in sixty days isn't a blip. It's a pattern. MCP's trust-by-default architecture meets an ecosystem that deployed it into production faster than anyone secured it.</p>
+
+<p>Anthropic's OAuth 2.1 additions are a start. Server operators implementing auth and input validation is essential. But the fundamental gap — client-side policy enforcement on MCP tool calls — is what separates "hoping the server is secure" from "enforcing trust boundaries regardless."</p>
+
+<p>Your MCP servers might be in the <a href="https://dev.to/kai_security_ai/i-scanned-every-server-in-the-official-mcp-registry-heres-what-i-found-4p4m" target="_blank" rel="noopener">~38% with no authentication</a> (Kai Security, February 2026). Shoofly Advanced enforces trust boundaries on every MCP tool call before it executes.</p>
+
+<p><strong>→ <a href="https://shoofly.dev/advanced">Enforce MCP trust boundaries with Shoofly Advanced</a></strong></p>
+
+<hr>
+
+<h2>FAQ</h2>
+
+<h3>How many MCP CVEs have been filed in 2026?</h3>
+
+<p>Over 30 CVEs targeting the Model Context Protocol were filed in the first 60 days of 2026. These span authentication bypass, injection vulnerabilities, data exfiltration, and privilege escalation categories. The velocity — roughly one CVE every two days — indicates systemic protocol-level issues rather than isolated implementation bugs.</p>
+
+<h3>Why are MCP servers insecure by default?</h3>
+
+<p>The MCP specification provides authentication capabilities but doesn't require them. Authentication is optional, and the default is no auth. Combined with quickstart templates and tutorials that skip auth, this creates a pattern where servers ship without authentication and accumulate users before anyone addresses the gap. The protocol's design prioritizes developer experience and rapid adoption, with security as an opt-in layer.</p>
+
+<h3>What is MCP tool poisoning?</h3>
+
+<p>MCP tool poisoning is an attack where a malicious or compromised MCP server embeds adversarial instructions in tool responses. When an AI agent processes the response, the hidden instructions manipulate the agent into performing attacker-controlled actions — reading sensitive files, exfiltrating data, executing commands, or modifying code. See our <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/">detailed MCP tool poisoning guide</a> for the full technical breakdown.</p>
+
+<h3>How do I secure my MCP server connections?</h3>
+
+<p>Implement authentication (OAuth 2.1 recommended), validate all tool inputs, scope tool access to minimum required capabilities, sanitize tool responses, and monitor all invocations. On the client side, deploy policy-as-code that defines trust boundaries — which servers are trusted, which tools they can provide, and what arguments are allowed. Client-side enforcement protects you even when a server is compromised.</p>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

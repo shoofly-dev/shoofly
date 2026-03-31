@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A principal security researcher at LayerX disclosed a zero-click remote code execution flaw in Claude Desktop Extensions. He assigned it a CVSS 10.0. Anthrop..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude DXT: The Researcher-Assigned CVSS 10.0 That Anthropic Says Is Working as Designed — Shoofly" />
+  <meta property="og:description" content="A principal security researcher at LayerX disclosed a zero-click remote code execution flaw in Claude Desktop Extensions. He assigned it a CVSS 10.0. Anthrop..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/claude-dxt-cvss10/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude DXT: The Researcher-Assigned CVSS 10.0 That Anthropic Says Is Working as Designed — Shoofly" />
+  <meta name="twitter:description" content="A principal security researcher at LayerX disclosed a zero-click remote code execution flaw in Claude Desktop Extensions. He assigned it a CVSS 10.0. Anthrop..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude DXT: The Researcher-Assigned CVSS 10.0 That Anthropic Says Is Working as Designed — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/claude-dxt-cvss10/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-07">March 7, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>Claude DXT: The Researcher-Assigned CVSS 10.0 That Anthropic Says Is Working as Designed</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<p>A principal security researcher at LayerX disclosed a zero-click remote code execution flaw in Claude Desktop Extensions. He assigned it a CVSS 10.0. Anthropic's response: it falls outside their current threat model. There is no CVE. There is no patch.</p>
+
+<p>Here's what actually happened, what it means, and what you can do about it right now.</p>
+
+<h2>What Is Claude DXT?</h2>
+
+<p>Claude Desktop Extensions — DXT for short — are Anthropic's packaging format for extending Claude Desktop with third-party capabilities. Think of them as plugins: a DXT can connect Claude to external services, grant it access to local tools, and bridge the gap between conversation and action on your machine.</p>
+
+<p>DXTs integrate via the Model Context Protocol (MCP), the same protocol Claude uses for tool calling more broadly. When you install a DXT, you're giving Claude Desktop a new set of tools it can invoke — reading your calendar, accessing files, calling APIs, running local executables. The DXT format bundles an MCP server with metadata, permissions declarations, and an install manifest into a single distributable package.</p>
+
+<p>The key architectural detail: DXTs run locally, on your machine, with your user-level privileges. They're not sandboxed in a container or isolated VM. When a DXT executes, it operates with the same access your user account has — your filesystem, your credentials, your network. This is by design. It's what makes DXTs useful. It's also what makes the vulnerability Roy Paz found significant.</p>
+
+<h2>The Vulnerability</h2>
+
+<p>On February 9, 2026, Roy Paz — Principal Security Researcher at LayerX Security — published a <a href="https://layerxsecurity.com/blog/claude-desktop-extensions-rce/" target="_blank" rel="noopener">detailed disclosure</a> of a zero-click remote code execution vulnerability in the DXT architecture. He assigned it a CVSS score of 10.0, the maximum severity rating on the Common Vulnerability Scoring System scale.</p>
+
+<p>To be precise about what that score means: the CVSS 10.0 is Paz's own assessment based on the standard CVSS v3.1 framework. No CVE number has been assigned. There is no NVD entry confirming or contesting the score. The rating reflects the researcher's evaluation of attack vector (network), attack complexity (low), privileges required (none), user interaction (none), and impact (complete compromise of confidentiality, integrity, and availability).</p>
+
+<p>The core of the flaw is a privilege escalation chain. A DXT that presents itself as a low-risk connector — something innocuous like a calendar integration or a weather widget — can chain its way to high-privilege local execution without additional user consent. Once installed, the extension can leverage its MCP server access to invoke tools and execute commands that go far beyond what the user believed they were authorizing.</p>
+
+<p>The attack is zero-click in the sense that no further user interaction is required after the initial DXT installation. The user installs what looks like a harmless extension. The extension's MCP server, now running locally with user privileges, can execute arbitrary code. There is no secondary permission gate between "user installs DXT" and "DXT executes arbitrary commands on the user's machine."</p>
+
+<p>The practical impact: an attacker who publishes a malicious DXT — or compromises a legitimate one — gets arbitrary code execution on every machine that installs it. File exfiltration, credential theft, persistent backdoor installation, lateral movement — the full menu of post-compromise activity becomes available through what the user thought was a calendar plugin.</p>
+
+<p>(<a href="https://layerxsecurity.com/blog/claude-desktop-extensions-rce/" target="_blank" rel="noopener">LayerX Security Blog</a>, <a href="https://cybersecuritynews.com/claude-desktop-extensions-0-click-vulnerability/" target="_blank" rel="noopener">Cybersecurity News</a>)</p>
+
+<h2>Anthropic's Response</h2>
+
+<p>Anthropic did not assign a CVE. They did not ship a patch. Their position, as communicated through spokesperson Jennifer Martinez to CSO Online, was:</p>
+
+<p>> "Claude Desktop's MCP integration is a local development tool where users explicitly configure and grant permissions to servers they choose to run... We recommend that users exercise the same caution when installing MCP servers as they do when installing [other] third-party software."</p>
+
+<p><a href="https://www.infosecurity-magazine.com/news/zeroclick-flaw-claude-dxt/" target="_blank" rel="noopener">Infosecurity Magazine</a> paraphrased Anthropic's stance as classifying the vulnerability "outside our current threat model."</p>
+
+<p>Let's be fair about what Anthropic is saying here. Their argument has internal logic: DXT installation is a deliberate user action. You choose to install an extension. You grant it permissions. The analogy to "installing third-party software" is not unreasonable on its face — when you install any application on your machine, you're trusting it with your user-level privileges.</p>
+
+<p>But there's a meaningful difference between installing a standalone application and installing a DXT. When you install a macOS app, you have decades of ecosystem conventions, code signing, notarization, Gatekeeper warnings, and App Store review (if applicable) standing between you and arbitrary code execution. When you install a DXT, you're adding an MCP server that runs inside Claude Desktop's trust boundary, inheriting the AI agent's ability to take autonomous action. The DXT doesn't just run when you launch it — it runs when Claude decides to invoke its tools, potentially in contexts the user didn't anticipate.</p>
+
+<p>The "treat it like any other third-party software" guidance also puts the entire burden of security evaluation on the end user. That's a defensible position for a local dev tool used by sophisticated developers. It's a much harder position to maintain as DXTs reach a broader audience and as the DXT ecosystem grows. Package managers solved this problem for code dependencies with registries, signing, and auditing infrastructure. The DXT ecosystem doesn't have any of that yet.</p>
+
+<p>(<a href="https://www.csoonline.com/article/4129820/anthropics-dxt-poses-critical-rce-vulnerability-by-running-with-full-system-privileges.html" target="_blank" rel="noopener">CSO Online</a>, <a href="https://www.infosecurity-magazine.com/news/zeroclick-flaw-claude-dxt/" target="_blank" rel="noopener">Infosecurity Magazine</a>)</p>
+
+<h2>Impact Assessment</h2>
+
+<p>Who's affected: anyone running Claude Desktop with third-party DXT extensions installed. The attack surface scales with the DXT ecosystem — every extension is a potential vector, and the ecosystem is growing rapidly.</p>
+
+<p><strong>What's at risk:</strong></p>
+
+<ul>
+<li><strong>Files and credentials.</strong> A malicious DXT has read/write access to anything your user account can touch. SSH keys, cloud credentials in <code>~/.aws</code>, environment variables, browser session tokens — all accessible.</li>
+<li><strong>Source code and intellectual property.</strong> Developers are the primary DXT user base. Their machines contain proprietary codebases, API keys, database connection strings, and deployment credentials.</li>
+<li><strong>Lateral movement.</strong> A compromised developer workstation is a beachhead into production infrastructure. SSH keys, VPN configs, and cloud IAM credentials on a dev machine can unlock access to production systems.</li>
+<li><strong>Supply chain poisoning.</strong> A compromised DXT doesn't just affect the machine it runs on. If it can modify source code or inject dependencies, it can propagate through build pipelines to downstream users and production systems.</li>
+</ul>
+
+<p><strong>The trust model problem:</strong> The CVSS 10.0 score reflects the combination of network attack vector, zero user interaction (post-install), no privileges required (the attacker just needs to publish a DXT), and full impact across confidentiality, integrity, and availability. You can disagree with the specific score — reasonable security professionals might rate it differently depending on how they weight the "user chose to install it" factor — but the underlying risk is real regardless of the number.</p>
+
+<p>The comparison to browser extensions is instructive. Chrome extensions went through the same evolution: an early permissive model, followed by ecosystem abuse, followed by mandatory review, granular permissions, and manifest v3 restrictions. The browser extension security model took years and multiple high-profile incidents to mature. DXTs are at the beginning of that curve.</p>
+
+<h2>What You Can Do Right Now</h2>
+
+<p>If you're using Claude Desktop with DXT extensions, here are concrete steps you can take today:</p>
+
+<p><strong>1. Audit your installed DXTs.</strong> Review every extension you've installed. Do you know who published it? Is the source code available for inspection? Remove anything you don't actively use or can't verify.</p>
+
+<p><strong>2. Review DXT source code before installing.</strong> If a DXT's source is available, read it. Look for network calls to unexpected endpoints, file system access outside its stated scope, and any command execution. If the source isn't available, that's a signal.</p>
+
+<p><strong>3. Monitor network traffic.</strong> Tools like Little Snitch (macOS) or Wireshark can show you what your DXT extensions are actually doing on the network. A calendar integration making HTTP requests to an unfamiliar IP address is a red flag.</p>
+
+<p><strong>4. Restrict DXT capabilities at the execution layer.</strong> This is where pre-execution interception matters. Anthropic's own architecture doesn't gate DXT tool calls after installation — once a DXT is installed, its tools are available to Claude without further permission checks. A pre-execution hook that sits between Claude's tool call decision and the actual execution can enforce policy rules on what DXT-initiated actions are allowed.</p>
+
+<p>Shoofly Advanced does exactly this. The daemon runs as a background sidecar to Claude Desktop, and the hook intercepts tool calls before they execute. You define policy rules in open and auditable YAML — which DXT tools are allowed to run, what file paths they can access, whether they can make network requests, what shell commands are permitted. When a DXT extension tries to do something outside its policy, the call is blocked before it executes. Not logged after the fact. Blocked before it happens.</p>
+
+<p>This isn't a fix for the architectural issue Paz identified. A pre-execution policy layer is a mitigation — it reduces the blast radius of a compromised DXT by restricting what it can actually do, even if it tries to escalate privileges. The underlying trust model issue in the DXT architecture is something only Anthropic can address.</p>
+
+<p><strong>5. Isolate Claude Desktop.</strong> If you're running Claude Desktop for work that touches sensitive systems, consider running it in a VM or container. This is the blunt-force approach, but it's effective — a compromised DXT in a VM can't reach your host filesystem or credentials.</p>
+
+<h2>The Bigger Picture: Extension Security in AI Agents</h2>
+
+<p>The DXT vulnerability isn't a one-off bug. It's a pattern.</p>
+
+<p>AI agents are useful precisely because they can take action — run tools, execute code, access files, make API calls. Every extension expands the attack surface, and the more autonomously the agent operates, the less opportunity a human has to catch a malicious tool call before it executes.</p>
+
+<p>We've seen this play out across the ecosystem:</p>
+
+<ul>
+<li><strong>MCP servers:</strong> 30+ CVEs filed in 60 days [NEEDS SOURCE — verify exact count and timeframe]. The protocol that DXTs are built on has its own security crisis.</li>
+<li><strong>Browser extensions:</strong> Chrome's manifest v3 migration was driven by years of extension abuse — data exfiltration, credential theft, ad injection. The AI agent extension ecosystem is replaying this history at accelerated speed.</li>
+<li><strong>Package registries:</strong> The ClawHub registry found <a href="https://www.koi.ai/blog/clawhavoc-341-malicious-clawedbot-skills-found-by-the-bot-they-were-targeting" target="_blank" rel="noopener">over 800 malicious skills</a> in a single scan — roughly 8% of the registry at the time. Supply chain attacks on AI agent tooling are already happening at scale.</li>
+</ul>
+
+<p>The industry response has been to push security to the model layer — better classifiers, smarter refusals, improved alignment. That work matters. But a perfectly aligned model that faithfully executes a tool call from a malicious extension is still executing the malicious tool call. The security boundary needs to exist at the execution layer, not just the model layer.</p>
+
+<p>This is the thesis behind pre-execution security: intercept the tool call between the agent's decision and the tool's execution. Evaluate it against deterministic policy rules. Block it if it violates policy. As Paz's research demonstrates, the gap between "user installed the extension" and "extension can do anything" is where the real risk lives.</p>
+
+<hr>
+
+<p>Anthropic's position on this isn't unreasonable for where they are today. Claude Desktop is, as they say, a local development tool. The DXT ecosystem is young. The user base is predominantly technical. These are fair points.</p>
+
+<p>But ecosystems grow. User bases broaden. The gap between "intended for sophisticated developers" and "actually used by everyone" closes faster than security infrastructure gets built. If the DXT trust model doesn't evolve, the incidents will come — and they'll come from extensions that looked perfectly safe at install time.</p>
+
+<p>Don't wait for Anthropic to fix this. <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> gives you policy rules that restrict what DXT extensions can do before they do it. Pre-execution interception via daemon and hook, open and auditable YAML policy rules, 100% local — no data sent externally. $5/mo.</p>
+
+<hr>
+
+<p>*Related reading:*</p>
+
+<ul>
+<li><a href="/blog/securing-claude-code-best-practices/">Securing Claude Code: Best Practices</a></li>
+<li><a href="/blog/ai-coding-agent-security-full-stack/">AI Coding Agent Security: The Full Stack</a></li>
+</ul>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

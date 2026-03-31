@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="---" />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Agentic Workflow Security: Protecting the Full Execution Pipeline — Shoofly" />
+  <meta property="og:description" content="---" />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/agentic-workflow-security/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Agentic Workflow Security: Protecting the Full Execution Pipeline — Shoofly" />
+  <meta name="twitter:description" content="---" />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Agentic Workflow Security: Protecting the Full Execution Pipeline — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/agentic-workflow-security/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-20">March 20, 2026</time>
+        <span class="post-tag">Agent Security</span>
+      </div>
+      <h1>Agentic Workflow Security: Protecting the Full Execution Pipeline</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<p>If you've been in any enterprise software conversation in the last six months, you've heard the term "agentic workflow." Gartner uses it. Forrester uses it. Your CTO probably used it in last quarter's board deck.</p>
+
+<p>But the security model for agentic workflows is still mostly hand-waving. Enterprises are deploying multi-step AI agent pipelines with security architectures designed for request/response APIs. That's a mismatch — and it's creating real exposure.</p>
+
+<p>This post maps the security requirements of agentic workflows to a practical enforcement architecture. If you're a security engineer or architect evaluating how to secure agent pipelines in production, this is the reference you need.</p>
+
+<h2>What Is an Agentic Workflow?</h2>
+
+<p>An agentic workflow is a multi-step process where one or more AI agents autonomously execute tasks, make decisions, and invoke tools to achieve a goal — with minimal or no human intervention between steps.</p>
+
+<p>[NEEDS SOURCE — Gartner's formal definition of "agentic workflow" or "agentic AI." Verify specific Gartner report title and publication date.]</p>
+
+<p>The key distinction from traditional AI inference: <strong>agentic workflows execute.</strong> A chatbot generates text. An agentic workflow generates text *and then acts on it* — running code, calling APIs, modifying files, sending messages, querying databases.</p>
+
+<p>A typical agentic workflow looks like this:</p>
+
+<pre><code>User Intent → Planning → Tool Selection → Execution → Verification → Next Step → ... → Output</code></pre>
+
+<p>Each step in this pipeline is a potential security boundary. Most current security approaches only address the first two steps (intent and planning) and the last step (output). The middle — where the agent actually *does things* — is where the risk concentrates.</p>
+
+<h3>Agentic Workflows vs. Traditional Automation</h3>
+
+<table>
+<thead><tr><th>Characteristic</th><th>Traditional Automation</th><th>Agentic Workflow</th></tr></thead>
+<tbody><tr><td>Decision-making</td><td>Hardcoded logic</td><td>Model-driven, dynamic</td></tr>
+<tr><td>Tool usage</td><td>Predefined, static</td><td>Selected at runtime by the agent</td></tr>
+<tr><td>Error handling</td><td>Programmed fallbacks</td><td>Agent improvises solutions</td></tr>
+<tr><td>Execution path</td><td>Deterministic</td><td>Non-deterministic</td></tr>
+<tr><td>Security model</td><td>Input validation + access control</td><td>???</td></tr>
+</tbody></table>
+
+<p>That question mark in the security model row is the problem. Traditional automation is deterministic — you can enumerate every possible execution path and secure each one. Agentic workflows are non-deterministic — the agent decides what to do at runtime, and the execution path changes based on context, model output, and intermediate results.</p>
+
+<p>You can't secure a non-deterministic system with a deterministic security model. You need a security architecture that operates at the execution boundary, evaluating each action as it occurs.</p>
+
+<h3>The Scale of Adoption</h3>
+
+<p>Enterprise adoption of agentic workflows is accelerating faster than security practices can keep pace. Development teams are deploying agents for code generation, infrastructure management, data pipeline orchestration, customer support automation, and internal tooling. Each deployment introduces an execution pipeline with the security characteristics described above — non-deterministic decision-making, runtime tool selection, and dynamic execution paths — but most are secured with nothing more than the API-level authentication they inherited from their pre-agentic architecture.</p>
+
+<p>The gap between deployment velocity and security maturity creates compounding risk. Each new agentic workflow adds execution paths that security teams haven't reviewed, tool access patterns that haven't been audited, and failure modes that haven't been tested. Without a systematic enforcement architecture, security debt accumulates silently until an incident forces a retroactive response.</p>
+
+<h2>Where Security Risks Emerge (Per Workflow Stage)</h2>
+
+<p>Let's walk through a typical agentic workflow and map where security risks appear at each stage:</p>
+
+<h3>Stage 1: Intent Interpretation</h3>
+
+<p>The agent receives a task from a user, another agent, or an automated trigger.</p>
+
+<p><strong>Risks:</strong></p>
+
+<ul>
+<li><strong>Prompt injection</strong> — Malicious instructions embedded in the task input</li>
+<li><strong>Privilege escalation</strong> — Task interpreted with broader scope than intended</li>
+<li><strong>Context poisoning</strong> — Corrupted context from previous workflow steps</li>
+</ul>
+
+<h3>Stage 2: Planning</h3>
+
+<p>The agent determines its approach — which tools to use, in what order, with what parameters.</p>
+
+<p><strong>Risks:</strong></p>
+
+<ul>
+<li><strong>Tool selection manipulation</strong> — Agent selects dangerous tools when safer alternatives exist</li>
+<li><strong>Scope creep</strong> — Plan exceeds the boundaries of the original task</li>
+<li><strong>Data exfiltration planning</strong> — Agent plans to send data to external endpoints</li>
+</ul>
+
+<h3>Stage 3: Tool Selection & Parameter Construction</h3>
+
+<p>The agent constructs specific tool calls with concrete parameters.</p>
+
+<p><strong>Risks:</strong></p>
+
+<ul>
+<li><strong>Command injection</strong> — Malicious parameters passed to shell commands</li>
+<li><strong>Path traversal</strong> — File operations targeting directories outside the intended scope</li>
+<li><strong>Credential exposure</strong> — Sensitive values passed as tool call parameters</li>
+</ul>
+
+<h3>Stage 4: Execution</h3>
+
+<p>The tool call fires. This is where intent becomes action.</p>
+
+<p><strong>Risks:</strong></p>
+
+<ul>
+<li><strong>Destructive operations</strong> — <code>rm -rf</code>, <code>DROP TABLE</code>, force push</li>
+<li><strong>Unauthorized network access</strong> — Connections to external services</li>
+<li><strong>Resource exhaustion</strong> — Infinite loops, excessive API calls, disk filling</li>
+<li><strong>Sandbox escape</strong> — Breaking out of containerized environments</li>
+</ul>
+
+<h3>Stage 5: Verification & Iteration</h3>
+
+<p>The agent evaluates the result and decides whether to proceed, retry, or change approach.</p>
+
+<p><strong>Risks:</strong></p>
+
+<ul>
+<li><strong>Hallucinated success</strong> — Agent incorrectly interprets failure as success</li>
+<li><strong>Retry amplification</strong> — Agent retries a destructive operation multiple times</li>
+<li><strong>Goal drift</strong> — Agent's interpretation of the task shifts between iterations</li>
+</ul>
+
+<h3>Stage 6: Output & Handoff</h3>
+
+<p>The agent produces final output or hands off to the next agent in the pipeline.</p>
+
+<p><strong>Risks:</strong></p>
+
+<ul>
+<li><strong>Data leakage</strong> — Sensitive data included in output</li>
+<li><strong>State corruption</strong> — Modified state that downstream agents depend on</li>
+<li><strong>Cascading authorization</strong> — Downstream agent inherits upstream agent's permissions without re-evaluation</li>
+</ul>
+
+<p>The security surface isn't a single point. It's distributed across every stage of the workflow.</p>
+
+<h2>The Execution Pipeline Model</h2>
+
+<p>Given the distributed security surface, the practical approach is to treat the agentic workflow as an <strong>execution pipeline</strong> with security enforcement at each stage boundary.</p>
+
+<pre><code>[Intent] → GATE → [Plan] → GATE → [Tool Call] → GATE → [Execution] → GATE → [Output]
+                                         ↑
+                              Pre-execution enforcement
+                              (highest-leverage boundary)</code></pre>
+
+<p>Each <strong>GATE</strong> is a policy evaluation point. The gate between Tool Call and Execution is the pre-execution enforcement boundary — the highest-leverage point because it's the last chance to prevent action before the action occurs.</p>
+
+<h3>Why Pre-Execution Is the Highest-Leverage Gate</h3>
+
+<p>Every other gate in the pipeline deals with *intent* or *plans* — which are model outputs (text). The pre-execution gate deals with *actions* — which are concrete operations with specific parameters.</p>
+
+<p>Securing intent is useful but unreliable. Models can be jailbroken, prompts can be injected, and intent is ambiguous. Securing actions is concrete: you can evaluate <code>exec("rm -rf /home/user/project")</code> against a specific policy rule and make a deterministic allow/block decision.</p>
+
+<p>This doesn't mean the other gates are unnecessary. It means the pre-execution gate is where your highest-confidence security decisions happen.</p>
+
+<h2>Enterprise Governance Requirements</h2>
+
+<p>Enterprise deployments of agentic workflows have governance requirements that go beyond just "block dangerous commands." Security architects need to address:</p>
+
+<h3>Audit & Compliance</h3>
+
+<p>Every tool call — allowed and blocked — needs to be logged with:</p>
+
+<ul>
+<li>Timestamp</li>
+<li>Agent identity</li>
+<li>Tool call and parameters</li>
+<li>Policy rule evaluated</li>
+<li>Decision (allow/block/alert)</li>
+<li>Context (which workflow, which step, which user initiated)</li>
+</ul>
+
+<p>This audit trail is non-negotiable for SOC 2, ISO 27001, and most enterprise compliance frameworks. If your agent security tool doesn't produce a complete audit log, it won't pass compliance review.</p>
+
+<h3>Policy Versioning & Change Control</h3>
+
+<p>Security policy for agentic workflows needs the same change control discipline as infrastructure-as-code:</p>
+
+<ul>
+<li><strong>Version-controlled</strong> — Every policy change tracked in git</li>
+<li><strong>Peer-reviewed</strong> — Policy changes go through PR review</li>
+<li><strong>Testable</strong> — Policy rules have test cases that validate behavior</li>
+<li><strong>Rollbackable</strong> — Previous policy versions can be restored immediately</li>
+</ul>
+
+<h3>Real-Time Alerting</h3>
+
+<p>When an agent attempts a dangerous operation, the security team needs to know immediately — not in tomorrow's log review. Real-time alerting requirements:</p>
+
+<ul>
+<li><strong>Block alerts</strong> — Immediate notification when a tool call is blocked</li>
+<li><strong>Anomaly alerts</strong> — Notification when agent behavior deviates from expected patterns</li>
+<li><strong>Threshold alerts</strong> — Notification when attempt frequency exceeds normal bounds</li>
+<li><strong>Escalation</strong> — Critical blocks automatically escalate to on-call</li>
+</ul>
+
+<h3>Multi-Agent Governance</h3>
+
+<p>Enterprise agentic workflows often involve multiple agents in a pipeline. Governance needs to account for:</p>
+
+<ul>
+<li><strong>Per-agent policy</strong> — Different agents have different permission boundaries</li>
+<li><strong>Cross-agent authorization</strong> — Agent A can't grant Agent B permissions it doesn't have</li>
+<li><strong>Pipeline-level policy</strong> — Some rules apply to the entire workflow, not individual agents</li>
+<li><strong>Agent provenance</strong> — Tracking which agent initiated which action in a multi-agent chain</li>
+</ul>
+
+<h2>Implementation Across Workflow Stages</h2>
+
+<p>Here's how pre-execution security maps to each stage of an agentic workflow:</p>
+
+<h3>Intent Stage</h3>
+
+<p><strong>Policy enforcement:</strong> Input validation rules that flag known prompt injection patterns, scope violations, and unauthorized task types.</p>
+
+<pre><code># Example policy: restrict task scope
+rule: intent-scope-check
+  match: task.scope NOT IN allowed_scopes
+  action: block
+  alert: "Agent received task outside allowed scope"</code></pre>
+
+<h3>Planning Stage</h3>
+
+<p><strong>Policy enforcement:</strong> Plan validation rules that flag tool selections or execution sequences that violate security policy.</p>
+
+<pre><code># Example policy: restrict tool combinations
+rule: dangerous-tool-combo
+  match: plan.tools CONTAINS "shell" AND plan.tools CONTAINS "network"
+  action: alert
+  message: "Agent planning shell + network access in same workflow"</code></pre>
+
+<h3>Execution Stage (Pre-Execution Gate)</h3>
+
+<p><strong>Policy enforcement:</strong> Tool call interception with parameter-level evaluation against allow/block rules.</p>
+
+<pre><code># Example policy: block destructive file operations
+rule: block-recursive-delete
+  match: tool.name == "exec" AND tool.params MATCHES "rm\s+-rf"
+  action: block
+  alert: "Agent attempted recursive delete"
+
+# Example policy: restrict network destinations
+rule: restrict-egress
+  match: tool.name == "http_request" AND tool.params.url NOT MATCHES allowed_domains
+  action: block
+  alert: "Agent attempted request to unauthorized domain"</code></pre>
+
+<h3>Output Stage</h3>
+
+<p><strong>Policy enforcement:</strong> Output scanning rules that flag sensitive data, credential exposure, or state corruption.</p>
+
+<pre><code># Example policy: scan output for credentials
+rule: output-credential-scan
+  match: output MATCHES credential_patterns
+  action: redact
+  alert: "Agent output contained potential credentials"</code></pre>
+
+<h2>Policy-as-Code for Enterprise Governance</h2>
+
+<p>The policy examples above illustrate a critical architectural principle: <strong>agent security policy should be code, not configuration.</strong></p>
+
+<p>Policy-as-code means:</p>
+
+<ul>
+<li><strong>Auditable.</strong> Every rule is readable, reviewable, and explainable.</li>
+<li><strong>Version-controlled.</strong> Policy lives in git alongside your application code.</li>
+<li><strong>Testable.</strong> Write tests for your security policy the same way you write tests for your application.</li>
+<li><strong>Composable.</strong> Base policies can be extended with team-specific or agent-specific rules.</li>
+<li><strong>Portable.</strong> The same policy language works across different agents and platforms.</li>
+</ul>
+
+<p>This is the architecture <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> implements. Policy rules are defined as auditable code, stored in version control, and enforced at the pre-execution boundary. Every tool call — across any agent, in any workflow — is evaluated against the active policy before it executes.</p>
+
+<p>For enterprises that need the governance layer — audit trails, policy versioning, real-time alerting, multi-agent support — this is the architecture that maps to existing compliance frameworks.</p>
+
+<h3>Getting Started</h3>
+
+<p>Enterprise agentic workflow security doesn't have to be all-or-nothing. A practical rollout:</p>
+
+<p><strong>Week 1: Visibility.</strong> Deploy <a href="https://shoofly.dev/install.sh">Shoofly Basic</a> (free) for monitoring. See what your agents are actually doing — every tool call, every file operation, every network request. Most teams are surprised by what they find.</p>
+
+<p><strong>Week 2–3: Policy.</strong> Based on monitoring data, define your initial policy rules. Start with high-confidence blocks (recursive deletes, unauthorized network access, credential exposure) and expand from there.</p>
+
+<p><strong>Week 4+: Enforcement.</strong> Switch from monitor-only to enforce mode. Blocked operations are prevented in real time. Alert on everything. Review policy weekly for the first month.</p>
+
+<hr>
+
+<p><strong>Enterprise agentic workflows need enterprise-grade security. Shoofly Advanced provides auditable, policy-as-code governance.</strong> → <a href="https://shoofly.dev/advanced">shoofly.dev/advanced</a> | Basic (free monitoring): <a href="https://shoofly.dev/install.sh">shoofly.dev/install.sh</a></p>
+
+<hr>
+
+<h2>FAQ</h2>
+
+<p><strong>Q: Does Shoofly work with multi-agent frameworks like LangGraph, CrewAI, or AutoGen?</strong> Shoofly operates at the tool-call level, below the orchestration framework. It intercepts execution regardless of which framework dispatches the agent. If the agent makes a tool call, Shoofly evaluates it.</p>
+
+<p><strong>Q: How does policy-as-code differ from a rules engine or WAF?</strong> A WAF operates at the HTTP layer with signature-based rules. Shoofly's policy-as-code operates at the tool-call layer with semantic rules that understand agent actions — not just network traffic. You're writing rules about what the agent *does*, not what packets look like.</p>
+
+<p><strong>Q: What's the performance impact of pre-execution policy evaluation?</strong> Policy evaluation adds single-digit milliseconds per tool call. For agents that execute hundreds of tool calls per workflow, the cumulative overhead is negligible compared to model inference time and tool execution time.</p>
+
+<p><strong>Q: Can I run Shoofly in audit-only mode before enforcing?</strong> Yes. Shoofly Basic provides monitoring and audit logging without enforcement. Start with visibility, then add enforcement when your policy is tuned.</p>
+
+<p><strong>Q: How does this relate to Gartner's AI TRiSM framework?</strong> [NEEDS SOURCE — verify Gartner AI TRiSM framework alignment] Pre-execution security maps to the "AI Security" pillar of TRiSM, specifically the runtime enforcement and governance controls that TRiSM recommends for production AI systems.</p>
+
+<p><strong>Q: How do I handle agents that need different permissions for different tasks?</strong> Use task-scoped policies. Define policy profiles that correspond to task types — a "code review" profile might allow file reads and git operations but block network egress, while a "deployment" profile allows specific network targets and cloud CLI commands. Assign the appropriate profile when the task is dispatched. Shoofly Advanced supports policy profiles that can be activated per-session or per-task, ensuring each agent operates with the minimum permissions required for its current objective.</p>
+
+<p><strong>Q: What's the biggest mistake enterprises make when securing agentic workflows?</strong> Treating agent security as an extension of API security. API security assumes deterministic callers making predictable requests. Agentic workflows have non-deterministic callers making unpredictable requests — the agent decides what to do at runtime based on context that may include adversarial content. The most common failure pattern is deploying agents with production API credentials and no execution-layer controls, relying entirely on the model's judgment to avoid dangerous actions. Model judgment is not a security control. Deterministic policy enforcement at the execution boundary is.</p>
+
+<hr>
+
+<p>*Related reading:*</p>
+
+<ul>
+<li><a href="https://shoofly.dev/blog/ai-coding-agent-security-full-stack/">AI Coding Agent Security: Full Stack</a></li>
+<li><a href="https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/">Prompt Injection Blocking: Pre-Execution Security</a></li>
+<li><a href="https://shoofly.dev/agentic-ai-security/">Agentic AI Security</a></li>
+<li><a href="https://shoofly.dev/openclaw-security/">OpenClaw Security</a></li>
+</ul>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

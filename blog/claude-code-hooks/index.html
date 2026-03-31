@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="---" />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude Code Hooks: What They Block, What They Miss — Shoofly" />
+  <meta property="og:description" content="---" />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/claude-code-hooks/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Code Hooks: What They Block, What They Miss — Shoofly" />
+  <meta name="twitter:description" content="---" />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude Code Hooks: What They Block, What They Miss — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/claude-code-hooks/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-16">March 16, 2026</time>
+        <span class="post-tag">Claude Code Security</span>
+      </div>
+      <h1>Claude Code Hooks: What They Block, What They Miss</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<hr>
+
+<p>Claude Code hooks are one of the most genuinely useful security features Anthropic has shipped. They give you a pre-execution interception point — a place to inspect and block tool calls before they fire. If you've been asking for something like <code>iptables</code> for AI agents, hooks are the closest thing Claude Code offers natively.</p>
+
+<p>But hooks are a mechanism, not a solution. The gap between "you can write a shell script that blocks tool calls" and "you have a reliable, maintainable security layer" is the gap where incidents happen. And as CVE-2025-59536 demonstrated, hooks themselves can become the attack vector.</p>
+
+<p>This is not an anti-hooks post. Hooks are the right idea. The question is whether DIY shell scripts are the right implementation.</p>
+
+<h2>How Claude Code Hooks Work</h2>
+
+<p>Claude Code hooks use a lifecycle model with two interception points: <strong>PreToolUse</strong> and <strong>PostToolUse</strong>.</p>
+
+<p><strong>PreToolUse</strong> fires before a tool call executes. Your hook receives the tool name, the arguments the LLM generated, and context about the current session. Your script inspects these, and returns a verdict: allow, block, or modify. If the hook blocks, the tool call never fires. This is genuine pre-execution security — the action is stopped before it happens.</p>
+
+<p><strong>PostToolUse</strong> fires after a tool call completes. Your hook receives the same context plus the tool's output. This is useful for logging, alerting, and audit trails — but it's not a security boundary. By the time PostToolUse runs, the <code>rm -rf</code> already executed.</p>
+
+<p>To set up a hook, you add an entry to <code>.claude/settings.json</code>:</p>
+
+<pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "command": "/path/to/your/hook-script.sh"
+      }
+    ]
+  }
+}</code></pre>
+
+<p>The <code>matcher</code> field specifies which tool triggers the hook (e.g., <code>Bash</code>, <code>Read</code>, <code>Write</code>, <code>Edit</code>). The <code>command</code> field points to your script. Claude Code passes the tool call details via stdin as JSON, and your script's exit code determines the verdict: 0 allows, non-zero blocks.</p>
+
+<p>This is clean, straightforward, and gives developers real control over what their agent can do. The architecture is sound.</p>
+
+<p>The problems are in everything around it.</p>
+
+<h2>What PreToolUse Can Block</h2>
+
+<p>When hooks work, they work well. Here are concrete examples of effective PreToolUse rules.</p>
+
+<p><strong>Block writes outside the project directory:</strong></p>
+
+<pre><code>#!/bin/bash
+# block-external-writes.sh
+INPUT=$(cat)
+TOOL=$(echo "$INPUT" | jq -r '.tool')
+FILE_PATH=$(echo "$INPUT" | jq -r '.arguments.file_path // empty')
+
+if [[ "$TOOL" == "Write" || "$TOOL" == "Edit" ]] &amp;&amp; [[ -n "$FILE_PATH" ]]; then
+  REAL_PATH=$(realpath "$FILE_PATH" 2&gt;/dev/null || echo "$FILE_PATH")
+  if [[ ! "$REAL_PATH" == /home/dev/myproject/* ]]; then
+    echo "BLOCKED: Write outside project directory: $FILE_PATH" &gt;&amp;2
+    exit 1
+  fi
+fi
+exit 0</code></pre>
+
+<p><strong>Block shell commands matching dangerous patterns:</strong></p>
+
+<pre><code>#!/bin/bash
+# block-dangerous-commands.sh
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.arguments.command // empty')
+
+BLOCKED_PATTERNS=("rm -rf" "chmod 777" "curl.*|.*sh" "wget.*|.*bash")
+for pattern in "${BLOCKED_PATTERNS[@]}"; do
+  if echo "$COMMAND" | grep -qE "$pattern"; then
+    echo "BLOCKED: Dangerous command pattern: $pattern" &gt;&amp;2
+    exit 1
+  fi
+done
+exit 0</code></pre>
+
+<p><strong>Restrict network destinations:</strong></p>
+
+<pre><code>#!/bin/bash
+# block-network-egress.sh
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.arguments.command // empty')
+
+if echo "$COMMAND" | grep -qE "curl|wget|fetch|http"; then
+  ALLOWED_HOSTS=("api.github.com" "registry.npmjs.org" "pypi.org")
+  MATCHED=false
+  for host in "${ALLOWED_HOSTS[@]}"; do
+    if echo "$COMMAND" | grep -q "$host"; then
+      MATCHED=true
+      break
+    fi
+  done
+  if [[ "$MATCHED" == false ]]; then
+    echo "BLOCKED: Network call to non-allowlisted host" &gt;&amp;2
+    exit 1
+  fi
+fi
+exit 0</code></pre>
+
+<p>These are functional. A developer who writes and maintains scripts like these has meaningful security coverage for their most critical tool calls.</p>
+
+<p>But look at what it took: three separate scripts, raw shell string matching, manual path resolution, hardcoded patterns, no composition between rules, and no credential awareness. Every developer who wants this coverage has to write, debug, and maintain their own version.</p>
+
+<h2>What Hooks Miss</h2>
+
+<p>The mechanism is sound. The implementation model has structural gaps.</p>
+
+<p><strong>No centralized policy management.</strong> Each hook is a standalone script. There's no way to compose rules, inherit from a base policy, or manage a rule set as a unit. If you have 12 hooks covering different tool types, you have 12 independent scripts with no shared logic.</p>
+
+<p><strong>Shell scripting errors are silent failures.</strong> If your hook script has a bug — a quoting error, a missing <code>jq</code> dependency, a malformed regex — it may silently allow the tool call through. A security layer that fails open on script errors is not a security layer; it's a suggestion.</p>
+
+<p><strong>No pattern matching beyond what you write yourself.</strong> The examples above use <code>grep -qE</code> for pattern matching. That means your security coverage is exactly as good as your regex. There's no built-in support for matching credential patterns, detecting exfiltration sequences (file read followed by network call), or recognizing prompt injection in tool arguments.</p>
+
+<p><strong>No credential detection.</strong> Hooks receive tool call arguments as raw JSON. If a <code>Bash</code> tool call contains <code>curl -H "Authorization: Bearer sk-live-abc123..."</code>, the hook sees a string. Recognizing that string contains a credential, and that the curl command would transmit it to an external endpoint, requires purpose-built detection logic that shell scripts don't provide out of the box.</p>
+
+<p><strong>No update or distribution mechanism.</strong> When a new attack pattern emerges — a new exfiltration technique, a new path traversal variant, a new credential format — every developer running DIY hooks needs to manually update their scripts. There's no feed, no registry, no update channel.</p>
+
+<p><strong>No audit trail.</strong> Hook scripts can log to files, but there's no structured event format, no centralized log collection, and no way to query "what did my hooks block last week?" without building your own logging infrastructure.</p>
+
+<p>These aren't bugs. They're the natural consequences of building a security system from shell scripts. For a single developer with simple rules and a low threat model, the trade-offs may be acceptable. For teams, for complex policies, for environments where security is a requirement rather than a nice-to-have — the gaps compound.</p>
+
+<h2>CVE-2025-59536: When Hooks Become the Attack Vector</h2>
+
+<p>This is where the architecture gets uncomfortable.</p>
+
+<p><a href="https://shoofly.dev/blog/cve-2025-59536-claude-code-config-file-exploit/">CVE-2025-59536</a> (CVSS 8.7, discovered by Check Point Research) demonstrated that <code>.claude/settings.json</code> — the same file that configures hooks — can be weaponized to execute arbitrary code on the developer's machine.</p>
+
+<p>The attack chain:</p>
+
+<ol>
+<li>An attacker commits a malicious <code>.claude/settings.json</code> to a repository — or injects one via a pull request, a dependency, or a compromised MCP server response.</li>
+<li>The settings file contains a hook definition pointing to an attacker-controlled script.</li>
+<li>When the developer opens the project with Claude Code, the malicious hook script executes <strong>before the trust dialog appears</strong>. The developer never sees a permission prompt.</li>
+<li>The attacker's script runs with the developer's full permissions — file access, network access, credential access.</li>
+</ol>
+
+<p>The CVSS 8.7 score reflects the severity: network-accessible attack vector, low complexity, no privileges required, high impact across confidentiality, integrity, and availability.</p>
+
+<p>The irony is precise. The mechanism designed for pre-execution security became the pre-execution attack vector. The hook executed before any trust decision was made, in the exact position where security controls should sit.</p>
+
+<p>This isn't a theoretical risk. Check Point Research published a working proof of concept. The vulnerability affects any Claude Code installation that processes repositories containing untrusted <code>.claude/settings.json</code> files — which includes every developer who clones a public repository, reviews a pull request, or works on a project with external contributors.</p>
+
+<p>Anthropic has addressed the specific exploit, but the structural issue remains: <code>.claude/settings.json</code> is a user-writable file that configures executable code paths. Any mechanism that executes shell scripts based on a configuration file in a project directory is a supply chain attack surface. The fix addresses the specific bypass, but the attack surface — configuration-driven code execution — is inherent to the design.</p>
+
+<p>For a deeper technical breakdown, see our <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/">full CVE-2025-59536 analysis</a>.</p>
+
+<h2>DIY vs. Managed: An Honest Comparison</h2>
+
+<p>The decision between DIY hooks and a managed security layer depends on your threat model, your team size, and how much maintenance burden you're willing to absorb.</p>
+
+<table>
+<thead><tr><th>Dimension</th><th>DIY Hooks</th><th>Shoofly Advanced</th></tr></thead>
+<tbody><tr><td><strong>Policy management</strong></td><td>Individual shell scripts, no composition</td><td>Policy-as-code YAML, composable rule sets</td></tr>
+<tr><td><strong>Rule composition</strong></td><td>Manual — each script is standalone</td><td>Built-in — rules inherit, compose, and override</td></tr>
+<tr><td><strong>Credential detection</strong></td><td>Write your own regex</td><td>4 built-in DE rules with credential pattern matching</td></tr>
+<tr><td><strong>Prompt injection detection</strong></td><td>Not available</td><td>8 PI rules with pattern matching</td></tr>
+<tr><td><strong>Out-of-scope write protection</strong></td><td>Manual path checking</td><td>3 OSW rules for /etc/, ~/.ssh/, ~/.aws/, credentials</td></tr>
+<tr><td><strong>Update mechanism</strong></td><td>Manual script updates</td><td>Managed rule updates via policy feed</td></tr>
+<tr><td><strong>Attack surface</strong></td><td>settings.json is writable, scripts are executable</td><td>Policy-as-code, no user-writable executable paths</td></tr>
+<tr><td><strong>Audit trail</strong></td><td>DIY logging</td><td>Structured events, queryable log format</td></tr>
+<tr><td><strong>Fail mode</strong></td><td>Script errors fail open</td><td>Policy evaluation fails closed</td></tr>
+<tr><td><strong>Team deployment</strong></td><td>Copy scripts between machines</td><td>Centralized policy, version-controlled</td></tr>
+<tr><td><strong>Exfiltration detection</strong></td><td>Single-step pattern matching</td><td>Multi-step chain detection (file read → network egress)</td></tr>
+</tbody></table>
+
+<p>Neither option is wrong in every context.</p>
+
+<p><strong>DIY hooks make sense when:</strong> You're a single developer. Your rules are simple — maybe 2-3 path restrictions and a command blocklist. Your threat model is low. You enjoy writing shell scripts and can maintain them reliably.</p>
+
+<p><strong>A managed layer makes sense when:</strong> You're on a team. Your policies are complex or need to compose. You need credential detection or exfiltration chain detection. You can't afford silent failures. You don't want <code>.claude/settings.json</code> to be a supply chain attack surface.</p>
+
+<h2>Shoofly: Hooks Done Right</h2>
+
+<p>Shoofly Advanced uses the same pre-execution interception architecture as Claude Code hooks — the same position in the tool call lifecycle, the same decision gate model. The difference is implementation.</p>
+
+<p><strong>Policy-as-code replaces shell scripts.</strong> Rules are defined in YAML, not bash. A credential-sniffing rule doesn't require you to write regex for every API key format — it's built in. An exfiltration detection rule doesn't require you to correlate file reads with network calls — the multi-step pattern matching is part of the rule engine.</p>
+
+<p><strong>20 threat rules across 5 categories ship built in.</strong> Prompt injection detection (8 rules). Tool response injection (2 rules). Out-of-scope write protection (3 rules). Runaway loop detection (4 rules). Data exfiltration blocking (4 rules). These aren't suggestions — they're deterministic rules that evaluate on every tool call.</p>
+
+<p><strong>No user-writable executable paths.</strong> Shoofly's policy is code, not configuration that points to scripts. There's no <code>.claude/settings.json</code> equivalent where an attacker can inject a path to a malicious executable. The attack surface that enabled CVE-2025-59536 doesn't exist in Shoofly's architecture.</p>
+
+<p><strong>The rules are open and auditable.</strong> Every rule Shoofly evaluates is inspectable. You can read the policy, understand what it blocks, and verify that it does what it claims. No black box, no "trust us" — the rules are the rules, and you can read them.</p>
+
+<p>If you're currently writing your own PreToolUse hooks, you're building a version of what Shoofly already provides. That's not a criticism — it means the instinct is right. The question is whether shell scripts or policy-as-code is the better long-term foundation.</p>
+
+<p>For a broader view of Claude Code security practices, see our <a href="/blog/securing-claude-code-best-practices/">securing Claude Code best practices guide</a>.</p>
+
+<hr>
+
+<p><strong>Hooks are the right idea. Shoofly Advanced is the right implementation.</strong></p>
+
+<p>→ <a href="https://shoofly.dev/advanced">Get Shoofly Advanced</a></p>
+
+<hr>
+
+<h2>FAQ</h2>
+
+<p><strong>What are Claude Code hooks?</strong> Claude Code hooks are a built-in mechanism that lets you run custom scripts before (PreToolUse) or after (PostToolUse) tool calls execute. They provide a pre-execution interception point for inspecting and blocking agent actions.</p>
+
+<p><strong>Can Claude Code hooks prevent prompt injection?</strong> Hooks can block specific tool calls, but they don't include prompt injection detection by default. You'd need to write your own detection logic in shell scripts, which is error-prone. <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> includes 8 built-in prompt injection detection rules.</p>
+
+<p><strong>Is CVE-2025-59536 still a risk?</strong> Anthropic patched the specific bypass, but the structural attack surface — configuration-driven code execution via <code>.claude/settings.json</code> — remains inherent to the hooks design. Any project with untrusted contributors should treat <code>.claude/settings.json</code> as a security-sensitive file.</p>
+
+<p><strong>What's the difference between PreToolUse and PostToolUse hooks?</strong> PreToolUse fires before the tool call executes and can block it — this is the security boundary. PostToolUse fires after execution and is useful for logging and alerting but cannot prevent the action. For security, PreToolUse is the only hook that matters.</p>
+
+<p><strong>How does Shoofly compare to writing my own hooks?</strong> Shoofly uses the same pre-execution interception architecture but replaces shell scripts with policy-as-code, adds built-in credential detection and exfiltration chain analysis, and eliminates the supply chain attack surface of user-writable executable paths. See the <a href="#diy-vs-managed-an-honest-comparison">comparison table above</a> for a detailed breakdown.</p>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

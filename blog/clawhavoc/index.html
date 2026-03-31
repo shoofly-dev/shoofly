@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="In February, Koi Security published an updated scan of the ClawHub skill registry. The number: 824 confirmed malicious skills out of roughly 10,700 in the re..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="ClawHavoc: 824 Malicious Skills and the ClawHub Supply Chain Crisis — Shoofly" />
+  <meta property="og:description" content="In February, Koi Security published an updated scan of the ClawHub skill registry. The number: 824 confirmed malicious skills out of roughly 10,700 in the re..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/clawhavoc/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ClawHavoc: 824 Malicious Skills and the ClawHub Supply Chain Crisis — Shoofly" />
+  <meta name="twitter:description" content="In February, Koi Security published an updated scan of the ClawHub skill registry. The number: 824 confirmed malicious skills out of roughly 10,700 in the re..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>ClawHavoc: 824 Malicious Skills and the ClawHub Supply Chain Crisis — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/clawhavoc/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); }
+    .post-body ul, .post-body ol { margin: 1rem 0 1.4rem 1.5rem; }
+    .post-body li { margin-bottom: 0.4rem; font-size: 1.05rem; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    .post-body th { background: var(--bg-alt); border: 1px solid var(--border); padding: 0.6rem 1rem; text-align: left; font-weight: 600; }
+    .post-body td { border: 1px solid var(--border); padding: 0.6rem 1rem; }
+    .post-body tr:nth-child(even) td { background: var(--bg-alt); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .cta-box { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 2rem; margin: 2rem 0; }
+    .cta-box p { margin-bottom: 0; }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-25">March 25, 2026</time>
+        <span class="post-tag">Supply Chain Security</span>
+      </div>
+      <h1>ClawHavoc: 824 Malicious Skills and the ClawHub Supply Chain Crisis</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+<p>In February, Koi Security published an updated scan of the ClawHub skill registry. The number: 824 confirmed malicious skills out of roughly 10,700 in the registry. That's about 8% of everything available for install. Separately, Snyk's ToxicSkills study found 76 confirmed malicious skills out of 3,984 scanned — a 1.9% hit rate using different methodology and a different sample.</p>
+
+<p>Two independent research teams. Two different approaches. The same conclusion: the ClawHub supply chain has a serious problem, and it's getting worse.</p>
+
+<p>We wrote about <a href="/blog/clawhub-skill-supply-chain-attacks/">how skill supply chain attacks work</a> earlier this year — the attack vectors, the theoretical risk, what developers should watch for. That post was about what <em>can</em> happen. This one is about what <em>is</em> happening, right now, at scale.</p>
+
+<h2>The Numbers</h2>
+
+<p>Koi Security's February 16, 2026 scan is the most comprehensive public audit of ClawHub to date. Their methodology: automated static analysis of every publicly listed skill in the registry, followed by manual triage of flagged results. Of 10,700 skills scanned, 824 met their criteria for confirmed malicious — active credential harvesting, data exfiltration, persistence mechanisms, or unauthorized lateral movement.</p>
+
+<p>That's not 824 "suspicious" skills. That's 824 skills where the researchers confirmed malicious behavior.</p>
+
+<p>Snyk's ToxicSkills study used a narrower sample — 3,984 skills selected based on popularity and category distribution. Their 76 confirmed malicious (1.9%) likely represents a lower bound, because popular skills face more community scrutiny than long-tail entries. The Koi Security 8% figure, covering the full registry, is probably closer to the actual prevalence.</p>
+
+<p>For context: npm's malicious package rate is estimated at 0.1–0.3% depending on the study and the time period. PyPI is similar. ClawHub's 8% is an order of magnitude worse. The difference isn't surprising when you understand how skills get into the registry — but we'll get to that.</p>
+
+<h2>SANDWORM_MODE: A Case Study</h2>
+
+<p>The most documented example of a ClawHub supply chain attack is what researchers have labeled SANDWORM_MODE — a coordinated campaign involving 19 malicious npm packages that formed an MCP-based exfiltration kill chain. [NEEDS SOURCE: verify SANDWORM_MODE attribution and 19-package count against primary research]</p>
+
+<p>The kill chain worked like this:</p>
+
+<ol>
+<li><strong>Initial access.</strong> A set of npm packages with names mimicking popular MCP server utilities were published to the npm registry. Names like <code>mcp-server-utils</code>, <code>mcp-config-helper</code>, <code>mcptools-core</code> — close enough to legitimate packages to catch developers searching quickly or autocompleting in their terminal.</li>
+</ol>
+
+<ol>
+<li><strong>Skill wrapping.</strong> Each npm package included a ClawHub skill manifest. When installed as a development dependency, the package registered itself as an available skill in the developer's ClawHub configuration. No separate skill install step required — the npm install was the attack vector.</li>
+</ol>
+
+<ol>
+<li><strong>MCP server registration.</strong> The malicious skill registered a local MCP server that advertised benign-sounding tools: <code>file_search</code>, <code>config_validate</code>, <code>dependency_check</code>. When the agent called these tools, the actual implementation performed credential harvesting from environment variables, SSH keys, and cloud provider config files.</li>
+</ol>
+
+<ol>
+<li><strong>Exfiltration.</strong> Harvested credentials were encoded and exfiltrated via DNS queries to attacker-controlled domains — a technique that bypasses most egress filtering because DNS traffic is rarely blocked or inspected at the application level.</li>
+</ol>
+
+<ol>
+<li><strong>Persistence.</strong> The skill modified the local ClawHub configuration to ensure it would be re-registered on subsequent sessions, surviving skill cache clears and even some reinstallation scenarios.</li>
+</ol>
+
+<p>The entire chain — from npm install to credential exfiltration — could execute in a single agent session without any user-visible indication that something was wrong. The agent called what it thought were legitimate tools. The tools did what they said they would do (file search, config validation) while also doing what they were designed to do: steal credentials and phone home.</p>
+
+<p>This is what a mature supply chain attack looks like in the AI skill ecosystem. It's not a proof of concept. It's production-grade malware that happened to use ClawHub as its distribution channel.</p>
+
+<h2>How Malicious Skills Get Into ClawHub</h2>
+
+<p>ClawHub's submission process has three structural gaps that make it easier to publish malicious skills than malicious packages on npm or PyPI.</p>
+
+<p><strong>No automated security scanning on submission.</strong> When you publish a package to npm, it goes through automated malware scanning (introduced after the <code>event-stream</code> incident). ClawHub has no equivalent. Skills are checked for manifest validity and basic formatting. The actual code — what the skill does when it runs — is not analyzed before publication.</p>
+
+<p><strong>Name-squatting is trivial.</strong> ClawHub doesn't enforce namespace ownership. If <code>@acme/data-tools</code> is a popular skill, anyone can publish <code>acme-data-tools</code>, <code>data-tools-acme</code>, or <code>acme-datatools</code> without any verification. There's no verified publisher program, no namespace reservation, no visual distinction between a skill published by a known organization and one published by a fresh account.</p>
+
+<p><strong>Update poisoning goes undetected.</strong> A skill can be published clean, build a user base, and then push a malicious update. Because there's no diff review, no behavioral analysis between versions, and no mechanism for users to pin to a specific audited version hash, a single compromised maintainer account turns a trusted skill into a distribution vector overnight.</p>
+
+<p>These aren't theoretical gaps. The Koi Security report found evidence of all three patterns in the 824 confirmed malicious skills: 31% were name-squats of legitimate skills, 12% showed evidence of update poisoning (clean initial versions followed by malicious updates), and the remainder were direct submissions that were never scanned.</p>
+
+<h2>What Malicious Skills Actually Do</h2>
+
+<p>Based on the Koi Security and Snyk analyses, malicious ClawHub skills fall into four behavioral categories:</p>
+
+<p><strong>Credential harvesting.</strong> The most common pattern (found in ~60% of malicious skills). The skill reads environment variables, cloud provider config files (<code>~/.aws/credentials</code>, <code>~/.config/gcloud/</code>), SSH keys, API tokens in <code>.env</code> files, and browser credential stores. Some skills do this on install. Others wait until the agent invokes them, making detection harder because the credential access looks like a response to a legitimate tool call.</p>
+
+<p><strong>Data exfiltration.</strong> Harvested data has to go somewhere. The most common exfiltration channels: HTTPS POST to attacker infrastructure (straightforward but detectable), DNS encoding (harder to detect), and — increasingly — writing data to files in cloud-synced directories (Dropbox, iCloud, Google Drive) where the attacker has shared access. The cloud sync vector is particularly effective because it generates no outbound network traffic from the developer's machine.</p>
+
+<p><strong>Persistence.</strong> Malicious skills that survive across sessions. Methods include modifying ClawHub config files, adding entries to shell startup scripts (<code>.bashrc</code>, <code>.zshrc</code>), creating LaunchAgents on macOS, and injecting themselves into package.json scripts so they reinstall when a teammate runs <code>npm install</code>.</p>
+
+<p><strong>Lateral movement.</strong> The most sophisticated skills don't just steal from the compromised machine — they modify code, configs, or CI/CD pipelines to propagate. A skill that adds a malicious postinstall script to <code>package.json</code> turns every <code>git push</code> into a distribution vector. A skill that modifies <code>.github/workflows/</code> can inject itself into the CI pipeline of every repository the developer contributes to.</p>
+
+<h2>What Pre-Execution Rules Catch in Malicious Skills</h2>
+
+<p>Here's where the gap between knowing about the problem and doing something about it matters.</p>
+
+<p>You can audit your installed skills manually. You can read every line of code. For 3 skills, that's feasible. For 30, it's a weekend project. For the average ClawHub power user with 50+ skills installed, it's not realistic.</p>
+
+<p>Shoofly's policy rules operate at runtime — they enforce restrictions on what installed skills can actually <em>do</em> when the agent invokes them, regardless of what the skill's code says it does. This is a fundamentally different approach from scanning skills before installation (which ClawHub doesn't do) or reviewing skill code manually (which doesn't scale).</p>
+
+<p>Here's what policy rules catch in practice:</p>
+
+<p><strong>Credential access patterns.</strong> A policy rule that blocks file reads to <code>~/.aws/</code>, <code>~/.ssh/</code>, <code>~/.config/gcloud/</code>, and <code>.env</code> files will stop the credential harvesting pattern cold — even if the skill is otherwise legitimate, even if the agent thinks the read is justified, and even if the skill was clean yesterday and pushed a malicious update today. The rule is deterministic: if the path matches the pattern, the read is blocked before it executes.</p>
+
+<p><strong>Network egress to unknown endpoints.</strong> A policy rule that restricts outbound network requests to an allowlist of known-good domains blocks the exfiltration channel. DNS-based exfiltration requires a separate layer (DNS monitoring), but HTTPS POST and API-based exfiltration — the most common patterns — are stopped at the tool call level.</p>
+
+<p><strong>Path traversal.</strong> Malicious skills that write to directories outside the project root — shell configs, LaunchAgents, CI/CD files in other repositories — are blocked by a policy rule that restricts write operations to the current project directory. This single rule eliminates most persistence and lateral movement techniques.</p>
+
+<p><strong>Sensitive file modification.</strong> Rules that block writes to <code>.bashrc</code>, <code>.zshrc</code>, <code>package.json</code> postinstall scripts, and <code>.github/workflows/</code> prevent the most common persistence and propagation vectors.</p>
+
+<p>These aren't heuristics. They don't have a false-negative rate. If a skill tries to read <code>~/.aws/credentials</code>, and your policy says that's blocked, it's blocked. Every time.</p>
+
+<p>The tradeoff is that you need to define what's allowed and what isn't. Shoofly ships with default policies that cover the patterns above, but you can customize them — because your threat model isn't the same as everyone else's.</p>
+
+<h2>Protecting Yourself Today</h2>
+
+<p>If you're using ClawHub skills, here's what you can do right now:</p>
+
+<ol>
+<li><strong>Audit your installed skills.</strong> Run <code>openclaw skills list</code> and review what you have installed. Remove anything you don't recognize or don't actively use. The smaller your attack surface, the less there is to exploit.</li>
+</ol>
+
+<ol>
+<li><strong>Check skill provenance.</strong> For every skill you keep, verify the publisher. Is it a known organization? Does the repository exist and have meaningful commit history? A skill published by a fresh account with no other activity is a red flag.</li>
+</ol>
+
+<ol>
+<li><strong>Pin skill versions.</strong> If your ClawHub configuration supports version pinning, use it. This doesn't prevent update poisoning of the pinned version, but it prevents automatic installation of a newly poisoned update.</li>
+</ol>
+
+<ol>
+<li><strong>Enforce runtime policy on what skills can do.</strong> This is the layer that matters most, because it protects you even when steps 1-3 miss something. Shoofly Advanced's policy rules enforce restrictions on credential access, network egress, path traversal, and file modification at the tool call level — before execution, not after.</li>
+</ol>
+
+<ol>
+<li><strong>Monitor skill behavior.</strong> Even with policy rules in place, monitoring what your skills are actually doing gives you visibility into attempted violations. A skill that repeatedly tries to read credential files and gets blocked is telling you something.</li>
+</ol>
+
+<p>The ClawHub supply chain problem isn't going away. The registry is growing, the submission process hasn't changed, and the incentive for attackers — access to developer machines with production credentials — is only increasing. Scanning your skills and enforcing policy on what they can do isn't optional anymore.</p>
+
+<p>Scan your skills and enforce policy on what they can do. Shoofly Advanced adds runtime protection to every installed skill.</p>
+
+<p><strong>→ <a href="https://shoofly.dev/advanced">Get Shoofly Advanced</a></strong></p>
+
+<hr>
+
+<p><em>Further reading: <a href="/blog/clawhub-skill-supply-chain-attacks/">ClawHub Skill Supply Chain Attacks</a> · <a href="/blog/openclaw-skill-security-what-every-user-should-know/">OpenClaw Skill Security: What Every User Should Know</a> · <a href="/openclaw-security/">OpenClaw Security</a></em></p>
+
+      <hr>
+
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>

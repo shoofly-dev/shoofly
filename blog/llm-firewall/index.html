@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The term "LLM firewall" means different things to different vendors, and that ambiguity is a problem. If you're evaluating LLM firewalls for your stack, you ..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="LLM Firewall: Architecture, Comparison, and the Case for Pre-Execution — Shoofly" />
+  <meta property="og:description" content="The term "LLM firewall" means different things to different vendors, and that ambiguity is a problem. If you're evaluating LLM firewalls for your stack, you ..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/llm-firewall/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="LLM Firewall: Architecture, Comparison, and the Case for Pre-Execution — Shoofly" />
+  <meta name="twitter:description" content="The term "LLM firewall" means different things to different vendors, and that ambiguity is a problem. If you're evaluating LLM firewalls for your stack, you ..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>LLM Firewall: Architecture, Comparison, and the Case for Pre-Execution — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/llm-firewall/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); }
+    .post-body ul, .post-body ol { margin: 1rem 0 1.4rem 1.5rem; }
+    .post-body li { margin-bottom: 0.4rem; font-size: 1.05rem; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    .post-body th { background: var(--bg-alt); border: 1px solid var(--border); padding: 0.6rem 1rem; text-align: left; font-weight: 600; }
+    .post-body td { border: 1px solid var(--border); padding: 0.6rem 1rem; }
+    .post-body tr:nth-child(even) td { background: var(--bg-alt); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .cta-box { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 2rem; margin: 2rem 0; }
+    .cta-box p { margin-bottom: 0; }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-28">March 28, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>LLM Firewall: Architecture, Comparison, and the Case for Pre-Execution</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+<p>The term "LLM firewall" means different things to different vendors, and that ambiguity is a problem. If you're evaluating LLM firewalls for your stack, you need to understand what each product actually intercepts, where it sits in the request lifecycle, and what it can and cannot catch. A prompt filter and a tool call interceptor are both marketed as "LLM firewalls," but they protect against fundamentally different threats.</p>
+
+<p>This is a comprehensive, honest comparison. We'll credit competitors fairly, flag where our information might be incomplete, and be clear about what Shoofly does and doesn't do. If a different tool is better for your specific threat model, we'll say so.</p>
+
+<h2>What LLM Firewalls Do</h2>
+
+<p>An LLM firewall inspects traffic at some point in the lifecycle of an LLM interaction and applies rules to allow, modify, or block that traffic. The concept borrows from network firewalls — packet inspection, rule matching, allow/deny decisions — but applied to the AI request/response pipeline instead of network packets.</p>
+
+<p>The lifecycle has three interception points:</p>
+
+<ol>
+<li><strong>Input (prompt).</strong> Before the user's message or system prompt reaches the model.</li>
+<li><strong>Execution (tool calls).</strong> After the model decides to take an action but before that action executes.</li>
+<li><strong>Output (response).</strong> After the model generates a response but before it reaches the user or triggers downstream actions.</li>
+</ol>
+
+<p>Every LLM firewall operates at one or more of these points. The difference between products is <em>which</em> points they cover and <em>how</em> they evaluate what passes through.</p>
+
+<h2>Taxonomy of Approaches</h2>
+
+<h3>Prompt Filtering</h3>
+
+<p>Intercepts and analyzes the input before it reaches the model. Looks for prompt injection attempts, jailbreaks, PII in prompts, off-topic inputs, and policy violations in user messages. The core question it answers: "Is this input safe to send to the model?"</p>
+
+<h3>Tool Call Interception</h3>
+
+<p>Intercepts the model's planned actions before they execute. Evaluates shell commands, file operations, API calls, MCP tool invocations, and other tool uses against a policy. The core question it answers: "Is this action safe to execute?"</p>
+
+<h3>Output Scanning</h3>
+
+<p>Intercepts the model's response before it's returned or acted upon. Checks for hallucinations, PII in outputs, harmful content, insecure code, and policy violations in generated text. The core question it answers: "Is this output safe to use?"</p>
+
+<p>These aren't competing approaches — they're complementary layers. A prompt injection that bypasses the input filter might produce a dangerous tool call that gets caught at the execution layer. An output that looks clean might have been produced by executing a dangerous command that should have been blocked. Full coverage requires all three points, and no single product covers all of them equally well.</p>
+
+<h2>Prompt Filtering: Lakera, Guardrails AI</h2>
+
+<p><strong>Lakera Guard</strong> is the most established prompt-level LLM firewall. [NEEDS SOURCE: verify current Lakera product name and capabilities — product has evolved rapidly] It operates as an API endpoint that sits between your application and the LLM. You send the prompt to Lakera first; it evaluates the prompt against its detection models and returns a risk score. If the score exceeds your threshold, you block the request.</p>
+
+<p>Lakera's strengths:</p>
+
+<ul>
+<li>Purpose-built detection models for prompt injection, jailbreaks, and PII</li>
+<li>Low latency — typically single-digit milliseconds for prompt classification</li>
+<li>Simple integration — API call before your LLM call</li>
+<li>Broad model support — works with any LLM since it only inspects the input</li>
+</ul>
+
+<p>Lakera's coverage:</p>
+
+<ul>
+<li>Strong on prompt injection detection (their primary focus)</li>
+<li>PII detection in inputs</li>
+<li>Content policy enforcement on prompts</li>
+<li>Does not intercept tool calls or execution-layer actions</li>
+<li>Does not scan model outputs</li>
+</ul>
+
+<p><strong>Guardrails AI</strong> takes a different architectural approach — it's a framework rather than a hosted API. You define "guards" (validators) in Python that check inputs and outputs against your criteria. Guards can be LLM-based, regex-based, or custom functions.</p>
+
+<p>Guardrails AI's strengths:</p>
+
+<ul>
+<li>Highly customizable — write arbitrary validation logic</li>
+<li>Covers both input and output (guards run on both sides)</li>
+<li>Self-hosted — your data doesn't leave your infrastructure</li>
+<li>Open and auditable codebase</li>
+</ul>
+
+<p>Guardrails AI's coverage:</p>
+
+<ul>
+<li>Input validation (prompt checks, PII detection, topic filtering)</li>
+<li>Output validation (hallucination detection, format enforcement, content filtering)</li>
+<li>Does not natively intercept tool calls at the execution layer</li>
+<li>Requires custom implementation for execution-layer coverage</li>
+</ul>
+
+<p>Both Lakera and Guardrails AI are good at what they do. If your primary concern is prompt injection — attackers manipulating your chatbot via crafted inputs — Lakera is purpose-built for that. If you need flexible input/output validation with custom business logic, Guardrails AI gives you full control. Neither was designed to intercept tool calls at the execution layer, because their architecture sits in the prompt/response pipeline, not in the agent runtime.</p>
+
+<h2>Output Scanning: Guardrails AI, Custom Solutions</h2>
+
+<p>Output scanning catches problems after the model generates them but before they reach users or downstream systems.</p>
+
+<p><strong>Guardrails AI</strong> (again) is the most flexible option here. Output guards can check for:</p>
+
+<ul>
+<li>Factual consistency against source material</li>
+<li>PII leakage in responses</li>
+<li>Format adherence (JSON schema, specific structure requirements)</li>
+<li>Content policy violations</li>
+<li>Relevance and topicality</li>
+</ul>
+
+<p><strong>Custom solutions</strong> are common at scale. Most teams with production LLM deployments have built some form of output post-processing — toxicity classifiers, regex-based PII scrubbers, schema validators. These range from simple regex checks to full secondary LLM calls that evaluate the primary model's output.</p>
+
+<p>Output scanning is necessary for any production LLM deployment. It catches hallucinations, PII leakage, and content policy violations that input filtering can't predict. But it shares the same architectural limitation as prompt filtering: it operates on <em>text</em>, not on <em>actions</em>. If the model generates a tool call that deletes files or exfiltrates data, the output scanner sees the text of the response — which may or may not describe what the tool call actually does. The dangerous action executes before the output is generated.</p>
+
+<h2>Tool Call Interception: Shoofly, LlamaFirewall</h2>
+
+<p>This is where the architecture diverges most sharply from prompt/output firewalls.</p>
+
+<p><strong>Meta's LlamaFirewall</strong> is the most significant tool call–aware firewall from a major AI lab. [NEEDS SOURCE: verify current LlamaFirewall capabilities, architecture, and tool call interception scope — Meta's documentation has been updated since initial release] LlamaFirewall includes three core scanners:</p>
+
+<ul>
+<li><strong>PromptGuard 2:</strong> A prompt injection classifier that operates on inputs. Comparable to Lakera's prompt-level detection.</li>
+<li><strong>AlignmentCheck:</strong> An LLM-based evaluator that analyzes the model's reasoning to detect goal hijacking — whether the model has been manipulated into pursuing an attacker's objective instead of the user's.</li>
+<li><strong>CodeShield:</strong> A static analysis engine that scans generated code for insecure patterns before execution.</li>
+</ul>
+
+<p>LlamaFirewall's architecture is notable because AlignmentCheck operates on the model's <em>reasoning</em>, not just its inputs or outputs. This gives it partial tool call awareness — if the model has been hijacked via prompt injection and is now generating tool calls to serve the attacker, AlignmentCheck can potentially detect the misalignment in the reasoning chain.</p>
+
+<p>However, LlamaFirewall's tool call interception is reasoning-based, not execution-based. It evaluates whether the model's <em>intent</em> appears compromised, not whether a specific shell command or file operation is dangerous. A tool call that passes AlignmentCheck (the model genuinely believes it's helpful) but violates a security policy (it reads credentials it shouldn't need) would not be caught by reasoning analysis alone.</p>
+
+<p>LlamaFirewall's strengths:</p>
+
+<ul>
+<li>Multi-scanner architecture covering prompt, reasoning, and code layers</li>
+<li>AlignmentCheck provides a unique reasoning-level defense</li>
+<li>Open and auditable codebase</li>
+<li>Designed for integration into agentic pipelines</li>
+</ul>
+
+<p>LlamaFirewall's coverage:</p>
+
+<ul>
+<li>Prompt injection detection (PromptGuard 2)</li>
+<li>Reasoning-level goal hijacking detection (AlignmentCheck)</li>
+<li>Code security scanning (CodeShield)</li>
+<li>Partial tool call awareness through reasoning analysis</li>
+<li>Does not enforce deterministic policies on specific execution-layer actions</li>
+</ul>
+
+<p><strong>Shoofly</strong> operates exclusively at the execution layer. Every tool call — shell commands, file operations, network requests, MCP tool invocations — is intercepted before execution and evaluated against policy rules defined in YAML.</p>
+
+<p>Shoofly's strengths:</p>
+
+<ul>
+<li>Deterministic rule evaluation — no false-negative rate on pattern matches</li>
+<li>Execution-layer specificity — evaluates the actual command/operation, not the reasoning behind it</li>
+<li>Low latency — rule evaluation is sub-millisecond</li>
+<li>Policy-as-code in YAML — open and auditable</li>
+<li>Built specifically for Claude Code and OpenClaw agent runtimes</li>
+</ul>
+
+<p>Shoofly's coverage:</p>
+
+<ul>
+<li>Tool call interception and policy enforcement</li>
+<li>Credential access control (file path patterns)</li>
+<li>Network egress control (domain allowlists)</li>
+<li>Destructive command blocking (rm -rf, chmod, etc.)</li>
+<li>MCP tool call scoping</li>
+<li>Does not analyze prompts or model reasoning</li>
+<li>Does not scan generated code for vulnerabilities</li>
+<li>Does not detect prompt injection at the input level</li>
+</ul>
+
+<p>Shoofly and LlamaFirewall are complementary, not competitive. LlamaFirewall catches reasoning-level compromise — when the model has been tricked into malicious intent. Shoofly catches execution-level violations — when any action, regardless of the reasoning behind it, violates a defined policy. The model can have perfectly aligned intent and still generate a tool call that reads credentials it doesn't need. The model can have compromised intent and still be blocked from executing anything dangerous.</p>
+
+<h2>Comparison Table</h2>
+
+<table>
+<thead><tr><th>Capability</th><th>Lakera Guard</th><th>LlamaFirewall</th><th>Guardrails AI</th><th>Shoofly</th></tr></thead>
+<tbody><tr><td><strong>Prompt injection detection</strong></td><td>Yes (primary)</td><td>Yes (PromptGuard 2)</td><td>Yes (custom guards)</td><td>No</td></tr>
+<tr><td><strong>Reasoning analysis</strong></td><td>No</td><td>Yes (AlignmentCheck)</td><td>No</td><td>No</td></tr>
+<tr><td><strong>Code scanning</strong></td><td>No</td><td>Yes (CodeShield)</td><td>Partial (output guards)</td><td>No</td></tr>
+<tr><td><strong>Output validation</strong></td><td>No</td><td>No</td><td>Yes (primary)</td><td>No</td></tr>
+<tr><td><strong>Tool call interception</strong></td><td>No</td><td>Partial (reasoning-based)</td><td>No</td><td>Yes (primary)</td></tr>
+<tr><td><strong>Deterministic policy rules</strong></td><td>Threshold-based</td><td>No</td><td>Custom (programmatic)</td><td>Yes (YAML)</td></tr>
+<tr><td><strong>Architecture</strong></td><td>Hosted API</td><td>Self-hosted</td><td>Self-hosted/framework</td><td>Hook in agent runtime</td></tr>
+<tr><td><strong>Latency</strong></td><td>~5-15ms</td><td>Varies by scanner</td><td>Varies by guard</td><td><1ms (rule eval)</td></tr>
+<tr><td><strong>Pricing</strong></td><td>Tiered [NEEDS SOURCE: verify current pricing]</td><td>Free</td><td>Free (framework) / Enterprise</td><td>Free (Basic) / $5/mo (Advanced)</td></tr>
+<tr><td><strong>Open/Auditable</strong></td><td>No</td><td>Yes</td><td>Yes</td><td>Yes (rules are YAML)</td></tr>
+</tbody></table>
+
+<p><strong>Important caveats on this table:</strong></p>
+
+<ul>
+<li>Lakera's capabilities may have expanded beyond prompt injection — verify against their current documentation before making purchasing decisions. [NEEDS SOURCE: verify Lakera's current feature set]</li>
+<li>LlamaFirewall's tool call awareness is through reasoning analysis, not direct execution-layer interception. The distinction matters for policy-based enforcement.</li>
+<li>Guardrails AI can theoretically do anything via custom guards, but native out-of-the-box coverage is focused on input/output validation.</li>
+<li>Shoofly's coverage is intentionally narrow — execution layer only. This is a design choice, not a limitation we're planning to address. We think the execution layer should be done by a specialist.</li>
+</ul>
+
+<h2>When Each Approach Is Appropriate</h2>
+
+<p><strong>Use Lakera when:</strong> Your primary threat is prompt injection in a chatbot or customer-facing LLM application. You need low-latency detection in a hosted API with minimal integration work. Your application doesn't use tool calls or agentic execution.</p>
+
+<p><strong>Use LlamaFirewall when:</strong> You're building an agentic system and want defense-in-depth across prompt, reasoning, and code layers. You have the infrastructure to self-host. You want reasoning-level compromise detection (AlignmentCheck) as part of your security stack.</p>
+
+<p><strong>Use Guardrails AI when:</strong> You need custom input/output validation with business-specific logic. You want full control over validation rules and execution. You're building a production LLM application with specific format, content, and safety requirements.</p>
+
+<p><strong>Use Shoofly when:</strong> Your agents execute tool calls — shell commands, file operations, network requests, MCP tool invocations — and you need deterministic policy enforcement on what those actions are allowed to do. You're running Claude Code or OpenClaw. You want execution-layer security that complements (not replaces) prompt-level and output-level defenses.</p>
+
+<p><strong>Use multiple when:</strong> You're serious about security. Prompt filtering protects the input. Output scanning protects the response. Execution-layer enforcement protects the actions. Each layer catches threats the others miss.</p>
+
+<h2>Implementation Guide</h2>
+
+<p>Here's how to assemble a practical LLM firewall stack for an agentic development workflow:</p>
+
+<h3>Layer 1: Prompt Defense</h3>
+
+<p>If your agents accept external inputs (user messages, task descriptions from Dispatch, webhook payloads), add prompt-level filtering.</p>
+
+<pre><code># Option A: Lakera Guard (hosted)
+# Add before your LLM API call
+response = lakera.check(prompt=user_input)
+if response.risk_score &gt; threshold:
+    block()
+
+# Option B: LlamaFirewall PromptGuard 2 (self-hosted)
+# Runs locally, no external API call
+result = prompt_guard.analyze(user_input)
+if result.is_injection:
+    block()</code></pre>
+
+<h3>Layer 2: Execution Defense</h3>
+
+<p>Install Shoofly to intercept tool calls before execution.</p>
+
+<pre><code># Install Shoofly Advanced
+curl -fsSL https://shoofly.dev/advanced | bash
+
+# Default policies cover:
+# - Destructive commands (rm -rf outside project root)
+# - Credential access (~/.aws, ~/.ssh, .env)
+# - Network egress (unknown domains)
+# - Sensitive file modification (.bashrc, CI configs)</code></pre>
+
+<p>Customize policies in YAML:</p>
+
+<pre><code># .shoofly/policy.yaml
+rules:
+  - name: block-credential-reads
+    match:
+      tool: file_read
+      path: ["~/.aws/**", "~/.ssh/**", "**/.env"]
+    action: block
+
+  - name: allow-project-writes
+    match:
+      tool: file_write
+      path: [".//**"]
+    action: allow
+
+  - name: block-external-egress
+    match:
+      tool: network_request
+      domain: ["!*.your-company.com", "!github.com", "!npmjs.org"]
+    action: block</code></pre>
+
+<h3>Layer 3: Output Defense</h3>
+
+<p>For generated code, add SAST scanning. For generated text, add content validation.</p>
+
+<pre><code># Code: Semgrep, CodeQL, or Snyk Code
+semgrep --config auto ./generated/
+
+# Text: Guardrails AI guards or custom validators</code></pre>
+
+<h3>The Complete Stack</h3>
+
+<pre><code>User Input → [Prompt Filter] → LLM → [Tool Call Interceptor] → Execution
+                                  ↓
+                           [Output Scanner] → Response</code></pre>
+
+<p>Each layer is independently valuable. But the combination is where the real security posture lives. A prompt injection that bypasses Lakera still has to generate a tool call that passes Shoofly's policy rules. A tool call that somehow slips through Shoofly (the rules didn't cover that specific pattern) still produces output that gets scanned. Defense in depth isn't just a buzzword here — it's the architecture.</p>
+
+<p>Prompt filtering protects the input. Output scanning protects the code. Shoofly Advanced protects the execution. Complete the stack.</p>
+
+<p><strong>→ <a href="https://shoofly.dev/advanced">Get Shoofly Advanced</a></strong></p>
+
+<hr>
+
+<h2>FAQ</h2>
+
+<p><strong>Q: Do I need all three layers (prompt, execution, output) to be secure?</strong> Each layer is independently valuable, but the combination is significantly stronger than any single layer. If you can only deploy one, start with execution-layer interception (Shoofly) — it catches the highest-impact threats (destructive operations, data exfiltration, credential access) at the last point before damage occurs. Add prompt-level and output-level defenses as your security posture matures.</p>
+
+<p><strong>Q: How does an LLM firewall differ from a traditional web application firewall (WAF)?</strong> A WAF inspects HTTP requests and responses using signature-based rules and operates at the network layer. An LLM firewall operates at the AI application layer — inspecting prompts, model reasoning, tool calls, or outputs depending on its interception point. The threat model is fundamentally different: WAFs protect against attacks on your application's code, while LLM firewalls protect against attacks that flow <em>through</em> the model to reach your tools and infrastructure. They're complementary — a WAF protects the HTTP boundary, an LLM firewall protects the AI execution boundary.</p>
+
+<p><strong>Q: Can I use LlamaFirewall and Shoofly together?</strong> Yes, and this is the recommended architecture for high-security agentic deployments. LlamaFirewall's AlignmentCheck detects reasoning-level compromise — cases where the model has been manipulated into pursuing adversarial goals. Shoofly catches execution-level violations — specific tool calls that violate policy regardless of reasoning. Together, they provide defense in depth across both the reasoning and execution layers.</p>
+
+<p><strong>Q: What's the latency impact of stacking multiple LLM firewall layers?</strong> Minimal in practice. Prompt-level filtering (Lakera) adds ~5–15ms. Shoofly's rule evaluation adds <1ms. Output scanning varies by guard complexity but typically adds 10–50ms. Combined, total overhead is well under 100ms — negligible compared to LLM inference time (typically 1–30 seconds) and tool execution time. The security benefit far outweighs the latency cost.</p>
+
+<hr>
+
+<p><em>Further reading: <a href="/blog/why-we-block-instead-of-detect/">Why We Block Instead of Detect</a> · <a href="/blog/prompt-injection-blocking-pre-execution-security/">Prompt Injection Blocking: Pre-Execution Security</a> · <a href="/blog/runtime-threat-detection-ai-agents/">Runtime Threat Detection for AI Agents</a> · <a href="/agentic-ai-security/">Agentic AI Security</a></em></p>
+
+      <hr>
+
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>

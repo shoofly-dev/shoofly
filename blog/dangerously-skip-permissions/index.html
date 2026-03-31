@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="You've seen the flag. Maybe you typed it yourself after the fifth permission prompt interrupted your flow in ten minutes. Maybe you found it in a tutorial or..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude Code --dangerously-skip-permissions: The Safe Alternative — Shoofly" />
+  <meta property="og:description" content="You've seen the flag. Maybe you typed it yourself after the fifth permission prompt interrupted your flow in ten minutes. Maybe you found it in a tutorial or..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/dangerously-skip-permissions/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Code --dangerously-skip-permissions: The Safe Alternative — Shoofly" />
+  <meta name="twitter:description" content="You've seen the flag. Maybe you typed it yourself after the fifth permission prompt interrupted your flow in ten minutes. Maybe you found it in a tutorial or..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude Code --dangerously-skip-permissions: The Safe Alternative — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/dangerously-skip-permissions/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-06">March 6, 2026</time>
+        <span class="post-tag">Claude Code Security</span>
+      </div>
+      <h1>Claude Code --dangerously-skip-permissions: The Safe Alternative</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<p>You've seen the flag. Maybe you typed it yourself after the fifth permission prompt interrupted your flow in ten minutes. Maybe you found it in a tutorial or a CI/CD config someone shared on GitHub. Either way, you're here because you want to know: is there a way to get the speed of <code>--dangerously-skip-permissions</code> without the part where Claude has unrestricted access to your entire machine?</p>
+
+<p>Yes. Policy-as-code. And it takes about five minutes to set up.</p>
+
+<p>But first, let's be honest about what the flag does, why developers use it, and what actually goes wrong when they do.</p>
+
+<h2>What --dangerously-skip-permissions Actually Does</h2>
+
+<p>Claude Code has a built-in permission system. Every time the agent wants to do something potentially risky, it pauses and asks you to confirm. The <code>--dangerously-skip-permissions</code> flag turns all of that off. Every prompt. Every check. Gone.</p>
+
+<p>Specifically, the flag bypasses permission prompts for:</p>
+
+<ul>
+<li><strong>File reads and writes</strong> — Claude can read any file on your system and write to any path, including outside your project directory. Your <code>.ssh</code> keys, your <code>.env</code> files, your shell configs. All accessible without a prompt.</li>
+<li><strong>Bash command execution</strong> — Every shell command runs without confirmation. <code>rm -rf</code>, <code>curl</code> to arbitrary endpoints, <code>chmod</code>, package installs, process kills. Whatever Claude decides to run, it runs.</li>
+<li><strong>MCP tool calls</strong> — If you have MCP servers connected, Claude can call any tool on any server without asking. Database queries, API calls, file operations through external tooling — all auto-approved.</li>
+<li><strong>Browser actions</strong> — Web fetches, page interactions, form submissions. No confirmation required.</li>
+<li><strong>Notebook editing</strong> — Jupyter notebook cells execute without review.</li>
+</ul>
+
+<p>In short: the flag converts Claude Code from a supervised tool into an unsupervised agent with your full user permissions. No selective bypass. All or nothing.</p>
+
+<h2>Why Developers Use It</h2>
+
+<p>The honest answer: because the alternative is slow. A refactoring session can hit 30-50 permission prompts. Each one breaks your flow for a decision you already made when you wrote the prompt.</p>
+
+<p>Developers reach for the flag for legitimate reasons:</p>
+
+<ul>
+<li><strong>Iterative speed.</strong> Permission prompts turn a 30-second build-test-fix cycle into a 3-minute one. Over an afternoon, that's hours lost.</li>
+<li><strong>CI/CD and automation.</strong> There's no human at the terminal in a CI pipeline. Non-interactive execution requires either the flag or an alternative.</li>
+<li><strong>Batch operations.</strong> Renaming 200 files or updating import paths across a monorepo. Per-action approval on low-risk, high-volume tasks is pure overhead.</li>
+<li><strong>Context switching costs.</strong> Every prompt pulls you out of whatever architectural thinking you were holding in your head.</li>
+</ul>
+
+<p>These are real problems. The flag solves them. The issue is what it trades away.</p>
+
+<h2>What Goes Wrong</h2>
+
+<p>The flag is called <code>--dangerously-skip-permissions</code> for a reason. Anthropic named it that on purpose — as a warning built into the syntax. Here's what happens when that warning gets ignored.</p>
+
+<h3>Scenario 1: The Recursive Delete</h3>
+
+<p>A developer is using Claude Code with <code>--dangerously-skip-permissions</code> to clean up a project directory. The prompt is something like "remove all the build artifacts and temporary files." Claude interprets "temporary files" more broadly than intended and runs <code>rm -rf</code> on directories that contain source files matching patterns it associates with generated code. No prompt appears to confirm the deletion scope. The files are gone. If there's no recent git commit, some of that work is unrecoverable.</p>
+
+<p>Variations of this show up in developer forums and GitHub issues regularly. The common thread: a vague instruction, an agent that interpreted it broadly, and no checkpoint to catch the mismatch. [NEEDS SOURCE: specific public incident report or GitHub issue documenting rm -rf data loss with --dangerously-skip-permissions]</p>
+
+<h3>Scenario 2: Credential Exposure</h3>
+
+<p>Claude is setting up a deployment pipeline. With permissions skipped, it reads <code>.env</code> to understand the project config — reasonable — then includes those values in a generated file that gets committed to version control. Or it passes API keys as <code>curl</code> arguments that land in shell history. Or it writes a debug log containing database connection strings.</p>
+
+<p>Claude isn't being malicious. But without a permission prompt, there's no checkpoint where you'd see "Claude wants to read .env" and ask "why does it need that?" The risk compounds with MCP servers: if Claude has database access via MCP, it can query any table and include that data in files it writes — all auto-approved. [NEEDS SOURCE: documented credential exposure incident via skipped permissions]</p>
+
+<h3>Scenario 3: The Runaway Loop</h3>
+
+<p>Claude hits an error. Tries to fix it. The fix creates a new error. With permissions enabled, you'd notice the loop after two or three retries. With the flag set, Claude burns through dozens of iterations — rewriting files, re-running failing commands, hammering external services — before you realize anything is wrong.</p>
+
+<p>These scenarios share a pattern: the flag removes the human checkpoint at exactly the moment when one would have caught the problem.</p>
+
+<h2>The Policy-as-Code Alternative</h2>
+
+<p>Here's the thing: the permission prompt model and the skip-permissions flag represent two extremes. Approve everything manually, or approve everything automatically. Neither is what most developers actually want.</p>
+
+<p>What you want is: approve the stuff that's obviously fine automatically, and block the stuff that's obviously dangerous automatically, and only interrupt me for the stuff in between.</p>
+
+<p>That's policy-as-code. You define rules — in plain, auditable YAML — that specify what the agent is allowed to do. Everything matching an allow rule executes without a prompt. Everything matching a block rule gets stopped before execution. The ambiguous middle ground can be configured to notify you or block, depending on your risk tolerance.</p>
+
+<p>Shoofly Advanced implements this with two components:</p>
+
+<p><strong>The daemon</strong> — a background sidecar process that maintains state. It tracks tool call frequency, detects repeated patterns, and enforces rate-based rules (like "no more than 20 tool calls in 30 seconds"). It runs locally on your machine. No data is sent externally. Ever.</p>
+
+<p><strong>The hook</strong> — a plugin that intercepts every tool call before it executes. Before Claude writes a file, runs a command, or calls an MCP tool, the hook evaluates the action against your policy rules. If the action matches a block rule, it exits with code 1 and the action never executes. If it matches a notify rule, it logs the event and lets it proceed. This happens in milliseconds — the developer experience is the same as <code>--dangerously-skip-permissions</code>. No prompts, no waiting. But with boundaries.</p>
+
+<p>The key insight: <strong>policy enforcement is non-interactive, just like skip-permissions.</strong> No human bottleneck. The rules evaluate programmatically. You get the speed of the flag with explicit, version-controlled guardrails that you wrote and can audit anytime. The rules are YAML — open and auditable by design.</p>
+
+<h2>What Shoofly Catches That the Flag Bypasses</h2>
+
+<p>Shoofly Advanced ships with 20 rules across 5 threat categories. Here's what they cover and how they map to the permissions that <code>--dangerously-skip-permissions</code> skips:</p>
+
+<p><strong>Prompt Injection (PI)</strong> — 8 rules. When Claude reads files or fetches web content, that content can contain instructions designed to hijack the agent's behavior. With the flag set, Claude acts on injected instructions without any checkpoint. Shoofly scans tool outputs and arguments for injection patterns — including base64-encoded payloads — and blocks known jailbreak patterns before they reach the agent's context. (See: <a href="/blog/prompt-injection-blocking-pre-execution-security/">Prompt Injection Blocking: Pre-Execution Security</a>)</p>
+
+<p><strong>Tool Response Injection (TRI)</strong> — 2 rules. MCP servers and external tools can return payloads with hidden instructions embedded in HTML comments or unexpected JSON keys. The flag lets these flow straight through. Shoofly detects and blocks instruction content hidden in tool responses.</p>
+
+<p><strong>Out-of-Scope Write (OSW)</strong> — 3 rules. This is the big one for <code>--dangerously-skip-permissions</code> users. Shoofly blocks writes to sensitive paths: <code>/etc/</code>, <code>/usr/bin/</code>, <code>~/.ssh/</code>, <code>~/.aws/</code>, shell config files, LaunchAgents, credential files (<code>.key</code>, <code>.pem</code>, <code>.env</code>). With the flag set, Claude can write anywhere your user account can write. With Shoofly, writes outside your project scope are blocked at the hook level, before the file operation executes.</p>
+
+<p><strong>Runaway Loop (RL)</strong> — 4 rules. The daemon tracks call frequency and detects patterns: same tool called 5+ times in 60 seconds, more than 20 total calls in 30 seconds, same file read-write cycle repeated 3+ times, same URL fetched 10+ times in a minute. When Claude enters a retry loop — the scenario where the flag is most dangerous — Shoofly kills the loop before it burns through your context window and your token budget.</p>
+
+<p><strong>Data Exfiltration (DE)</strong> — 4 rules. Credential patterns (API keys, private keys, AWS access keys) in outbound HTTP bodies. Sensitive file content piped to <code>curl</code> or <code>wget</code>. Credential data in messaging tool calls. Sensitive file reads followed immediately by network requests. These are the scenarios where <code>--dangerously-skip-permissions</code> turns a confused agent into a data leak. Shoofly catches the exfiltration chain at the tool call level.</p>
+
+<p>Here's the comparison in plain terms:</p>
+
+<table>
+<thead><tr><th>Permission</th><th>With <code>--dangerously-skip-permissions</code></th><th>With Shoofly Advanced</th></tr></thead>
+<tbody><tr><td>File write to <code>~/.ssh/</code></td><td>Auto-approved, executes</td><td>Blocked (OSW-001), never executes</td></tr>
+<tr><td><code>rm -rf /</code> in bash</td><td>Auto-approved, executes</td><td>Blocked (OSW-001), never executes</td></tr>
+<tr><td>Read <code>.env</code>, then <code>curl</code> to external URL</td><td>Auto-approved, executes</td><td>Blocked (DE-004), never executes</td></tr>
+<tr><td>MCP tool call with injected instructions</td><td>Auto-approved, executes</td><td>Blocked (TRI-001/002), never executes</td></tr>
+<tr><td>Same failing command retried 10 times</td><td>Auto-approved, keeps looping</td><td>Blocked (RL-001) after 5th attempt</td></tr>
+<tr><td>Normal file write in project directory</td><td>Auto-approved, executes</td><td>Auto-approved, executes</td></tr>
+<tr><td>Normal test command</td><td>Auto-approved, executes</td><td>Auto-approved, executes</td></tr>
+</tbody></table>
+
+<p>The last two rows matter. Shoofly doesn't slow down legitimate work. It only intervenes on actions that match threat patterns. Everything else flows through at full speed.</p>
+
+<p>For a deeper look at how pre-execution interception fits into a broader Claude Code security strategy, see our <a href="/blog/securing-claude-code-best-practices/">Securing Claude Code: Best Practices</a> guide and the <a href="/claude-code-security/">Claude Code Security</a> overview.</p>
+
+<h2>Setup Guide</h2>
+
+<p>Switching from <code>--dangerously-skip-permissions</code> to Shoofly Advanced takes about five minutes.</p>
+
+<p><strong>Step 1: Install Shoofly Advanced.</strong></p>
+
+<pre><code>curl -fsSL https://shoofly.dev/install-advanced.sh | bash</code></pre>
+
+<p>Everything installs to <code>~/.openclaw/</code> — no system-level changes, no <code>sudo</code> required.</p>
+
+<p><strong>Step 2: Review the default policy.</strong></p>
+
+<p>The policy file lives at <code>~/.openclaw/policy/threats.yaml</code>. Open it. Read it. Every rule has an <code>id</code>, <code>description</code>, <code>severity</code>, and <code>patterns</code> block showing exactly what it matches. HIGH and MEDIUM severity rules block. LOW severity rules notify only.</p>
+
+<pre><code>- id: OSW-001
+  name: sensitive_path_write
+  category: out_of_scope_write
+  severity: HIGH
+  description: "Write operation targeting sensitive system or credential paths"
+  patterns:
+    - type: path_match
+      value: ["/etc/", "/usr/bin/", "~/.ssh/", "~/.aws/", "~/.bashrc"]
+      context: [tool_args]
+  action_advanced: block</code></pre>
+
+<p>If a rule doesn't fit your workflow, you can adjust the severity or modify the patterns. The rules are yours to own.</p>
+
+<p><strong>Step 3: Remove the flag.</strong></p>
+
+<p>In your Claude Code launch command, your alias, or your CI config, replace:</p>
+
+<pre><code>claude --dangerously-skip-permissions</code></pre>
+
+<p>with:</p>
+
+<pre><code>claude</code></pre>
+
+<p>That's it. The hook intercepts tool calls automatically once installed. No flag needed. Claude Code runs at full speed, and the policy rules enforce your boundaries in the background.</p>
+
+<p><strong>Step 4: Check the logs.</strong></p>
+
+<p>After your first session, check what Shoofly caught: <code>cat ~/.openclaw/logs/blocked.log</code>. Every intercepted action shows which rule matched and what it would have done. This is your audit trail and your feedback loop for tuning the policy.</p>
+
+<p><strong>Step 5 (optional): Customize.</strong> Need Claude to write to specific paths, or trust certain MCP servers? Add allow rules in the same YAML format. Fork the policy, version-control it, share it with your team.</p>
+
+<hr>
+
+<p>The <code>--dangerously-skip-permissions</code> flag exists because Claude Code's default permission model creates real friction for real workflows. That friction is a problem worth solving. But solving it by removing all guardrails is like fixing a slow door by removing the door.</p>
+
+<p>Policy-as-code keeps the door. It just makes it fast — fast enough that you don't notice it's there until it stops something that would have ruined your afternoon.</p>
+
+<p><strong>Stop choosing between fast and safe. <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> gives you both.</strong> Pre-execution interception, 20 deterministic policy rules, 100% local enforcement. $5/mo. No data sent anywhere. Just rules you can read, running on your machine.</p>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

