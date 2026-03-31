@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Shoofly Blog</title>
+    <link>https://shoofly.dev/blog/</link>
+    <description>Pre-execution security for AI agents. Threat research, CVEs, and engineering insights from the Shoofly team.</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 30 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://shoofly.dev/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>https://shoofly.dev/social-card.png</url>
+      <title>Shoofly Blog</title>
+      <link>https://shoofly.dev/blog/</link>
+    </image>
+    <item>
+      <title>Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need)</title>
+      <link>https://shoofly.dev/blog/is-claude-code-dispatch-safe/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/is-claude-code-dispatch-safe/</guid>
+      <pubDate>Mon, 30 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Anthropic just shipped Claude Code Dispatch, /loop, remote control, and computer use. Here's what their own documentation says about the security model — and where the gaps are.</description>
+    </item>
+    <item>
+      <title>Securing Claude Code: Best Practices for Developers</title>
+      <link>https://shoofly.dev/blog/securing-claude-code-best-practices/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/securing-claude-code-best-practices/</guid>
+      <pubDate>Sun, 29 Mar 2026 00:00:00 +0000</pubDate>
+      <description>CVE-2025-59536 proved that securing Claude Code is a real engineering concern. Here's a practical checklist developers can apply today.</description>
+    </item>
+    <item>
+      <title>Malicious ClawHub Skills: How Supply Chain Attacks Work in Practice</title>
+      <link>https://shoofly.dev/blog/clawhub-skill-supply-chain-attacks/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/clawhub-skill-supply-chain-attacks/</guid>
+      <pubDate>Fri, 27 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Snyk found 76 intentionally malicious skills on ClawHub. Here's how supply chain attacks work against OpenClaw users — and what actually stops them.</description>
+    </item>
+    <item>
+      <title>AI Computer Use Security: Attack Vectors and How to Stop Them</title>
+      <link>https://shoofly.dev/blog/ai-computer-use-security-attack-vectors/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/ai-computer-use-security-attack-vectors/</guid>
+      <pubDate>Tue, 24 Mar 2026 00:00:00 +0000</pubDate>
+      <description>CVE-2025-47241, invisible text injection, click hijacking, screen exfiltration — the full attack surface for browser and computer-use agents, and how to defend it.</description>
+    </item>
+    <item>
+      <title>AI Coding Agent Security for Developers: The Full Stack</title>
+      <link>https://shoofly.dev/blog/ai-coding-agent-security-full-stack/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/ai-coding-agent-security-full-stack/</guid>
+      <pubDate>Sat, 21 Mar 2026 00:00:00 +0000</pubDate>
+      <description>A full-stack breakdown of AI coding agent security: prompt injection, supply chain risks, runtime tool call monitoring, and how to pick the right layer of defense for your stack.</description>
+    </item>
+    <item>
+      <title>Prompt Injection Blocking: How Pre-Execution Security Stops the Attack</title>
+      <link>https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/prompt-injection-blocking-pre-execution-security/</guid>
+      <pubDate>Wed, 18 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Prompt injection in agentic systems doesn't just produce bad text — it produces malicious tool calls. Here's how the attack chain works, and why pre-execution blocking is the only defense that matters.</description>
+    </item>
+    <item>
+      <title>Runtime Threat Detection for AI Agents</title>
+      <link>https://shoofly.dev/blog/runtime-threat-detection-ai-agents/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/runtime-threat-detection-ai-agents/</guid>
+      <pubDate>Sun, 15 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Every tool call is a runtime event. Static analysis can't see it coming. Here's what runtime threat detection actually means for AI agents — and why it's the minimum bar for production.</description>
+    </item>
+    <item>
+      <title>OpenClaw Skill Security: What Every User Should Know</title>
+      <link>https://shoofly.dev/blog/openclaw-skill-security-what-every-user-should-know/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/openclaw-skill-security-what-every-user-should-know/</guid>
+      <pubDate>Thu, 12 Mar 2026 00:00:00 +0000</pubDate>
+      <description>OpenClaw skills run with your agent's full permissions. ClawHub has automated scanning — but no code signing and no human review. Here's what that means for OpenClaw security and how to protect yourself.</description>
+    </item>
+    <item>
+      <title>CVE-2025-59536: The Claude Code Config File Exploit and What It Means for Claude Code Security</title>
+      <link>https://shoofly.dev/blog/cve-2025-59536-claude-code-config-file-exploit/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/cve-2025-59536-claude-code-config-file-exploit/</guid>
+      <pubDate>Sun, 08 Mar 2026 00:00:00 +0000</pubDate>
+      <description>CVE-2025-59536 is a Claude Code security vulnerability: a malicious .claude/settings.json in a cloned repo bypasses the trust dialog and achieves RCE. Here's what it means for your setup and what to do.</description>
+    </item>
+    <item>
+      <title>MCP Tool Poisoning: What It Is and How to Stop It</title>
+      <link>https://shoofly.dev/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/</guid>
+      <pubDate>Thu, 05 Mar 2026 00:00:00 +0000</pubDate>
+      <description>MCP tool poisoning embeds malicious instructions in tool descriptions — invisible to users, processed silently by the LLM. Here's how it works and how to stop it.</description>
+    </item>
+    <item>
+      <title>AI Agent Security: Pre-Execution Blocking vs. Post-Execution Detection</title>
+      <link>https://shoofly.dev/blog/why-we-block-instead-of-detect/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/why-we-block-instead-of-detect/</guid>
+      <pubDate>Mon, 02 Mar 2026 00:00:00 +0000</pubDate>
+      <description>Detection tells you what happened after your agent was exploited — pre-execution blocking stops it before the tool call fires. Why Shoofly bets on the gate.</description>
+    </item>
+  </channel>
+</rss>
