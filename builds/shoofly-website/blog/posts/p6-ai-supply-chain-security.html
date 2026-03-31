@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Supply Chain Security - Shoofly Blog</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .blog-post { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .blog-meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+        .blog-post h1 { margin-top: 0; }
+        .blog-post a { color: #0066cc; }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <a href="/" class="nav-logo">🪰 Shoofly</a>
+        <ul class="nav-links">
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="https://github.com/shoofly-dev" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    
+    <article class="blog-post">
+        <h1>AI Supply Chain Security: From npm to MCP to ClawHub</h1>
+<em>Published: May 25, 2026 · By Signal @ Shoofly</em>
+<p>The software supply chain has layers. You've heard that before — probably in the context of SolarWinds, Log4Shell, or the npm <code>event-stream</code> incident. The standard model is well understood: your code depends on packages, packages depend on other packages, and a compromise anywhere in the chain propagates to everything downstream.</p>
+<p>AI development adds new layers on top of that stack. Models, skills, MCP servers, and tool calls create dependency relationships that traditional supply chain tools weren't designed to track, scan, or secure. Snyk finds vulnerable npm packages. Dependabot patches outdated dependencies. Neither one has anything to say about a malicious ClawHub skill that registers an MCP server to exfiltrate your credentials through DNS queries.</p>
+<p>This is the first comprehensive treatment of the full AI supply chain — every layer, every attack vector, and what's actually covered today versus what isn't.</p>
+<h2>The AI Supply Chain</h2>
+<p>Traditional software has a roughly linear supply chain: source code → packages → build artifacts → deployment. You trust (or verify) each link. AI-assisted development extends this into a layered model where each layer introduces new trust relationships:</p>
+<strong>Layer 1: Packages.</strong> npm, PyPI, Go modules, crates.io. The traditional dependency tree. You import a library, it imports its dependencies, and the transitive closure of all of that runs in your project. This layer is well understood, well tooled, and still regularly compromised.
+<strong>Layer 2: Models.</strong> The LLM itself. You trust Anthropic, OpenAI, or whoever hosts the model to not embed malicious behavior in the model weights. For most developers, this is a binary trust decision — you either use Claude or you don't. The attack surface here is model poisoning during training, which is a real but relatively exotic threat compared to the layers above.
+<strong>Layer 3: Skills.</strong> ClawHub skills, Claude Desktop Extensions (DXT), OpenAI plugins. These are code packages specifically designed to extend an AI agent's capabilities. Unlike traditional packages, skills don't just provide library functions — they provide <em>tools</em> that the agent actively invokes during execution. A compromised skill doesn't wait to be called by your code; it gets called by an autonomous agent that decides when and how to use it.
+<strong>Layer 4: MCP Servers.</strong> Model Context Protocol servers expose tools, resources, and prompts to AI agents. Your agent connects to an MCP server and trusts that the tools it advertises do what they claim. An MCP server that advertises a <code>search_files</code> tool but actually exfiltrates data is exploiting a trust relationship that exists nowhere in the traditional supply chain.
+<strong>Layer 5: Tool Calls.</strong> The actual execution — when the agent invokes a tool provided by a skill or MCP server. This is where trust becomes action. Every tool call is a moment where the agent acts on your behalf, with your permissions, based on trust relationships established in layers 1-4. A single malicious tool call can read credentials, delete files, or exfiltrate data.
+<p>Each layer depends on the layers below it, but each also introduces <em>independent</em> trust relationships. You can have perfectly audited npm packages (Layer 1) and still get compromised by a malicious ClawHub skill (Layer 3) that happens to use those packages. The layers are additive, not substitutive.</p>
+<h2>Traditional Layers: Packages and Models</h2>
+<p>Credit where it's due: the package layer is the best-secured part of the supply chain, and it's been that way because the industry has been investing in it for years.</p>
+<strong>Snyk</strong> scans your dependency tree for known vulnerabilities, monitors for new CVEs, and provides upgrade paths. It covers npm, PyPI, Maven, Go, Rust, and most other major ecosystems. For the package layer, Snyk is best-in-class.
+<strong>Dependabot</strong> (GitHub) and <strong>Renovate</strong> automatically open PRs to update vulnerable dependencies. The automation reduces the window between CVE disclosure and patch application from days to hours.
+<strong>npm audit</strong>, <strong>pip-audit</strong>, and ecosystem-specific tools provide baseline vulnerability scanning built into the package managers themselves.
+<strong>Socket.dev</strong> goes further than vulnerability databases — it analyzes package behavior, looking for install scripts, network access, filesystem access, and other signals of potentially malicious packages. This behavioral analysis approach is closer to what the AI-native layers need.
+<p>For the model layer, the tooling is sparser. <strong>Model cards</strong> and <strong>safety benchmarks</strong> provide some transparency into model behavior, but there's no equivalent of a CVE database for model vulnerabilities. In practice, most developers treat the model as a trusted black box and focus their security effort on the layers they can inspect and control.</p>
+<p>These tools are good at what they do. The problem isn't that they're inadequate — it's that they stop at Layer 2. Everything above that is uncharted territory.</p>
+<h2>The AI-Native Layers: Skills and MCP Servers</h2>
+<p>Layers 3-5 are where the supply chain gets AI-specific, and where the tooling gap is widest.</p>
+<strong>Skills are packages that act autonomously.</strong> A traditional npm package exports functions. A ClawHub skill exports <em>tools</em> that an AI agent decides when to invoke. This distinction matters because the attack surface is fundamentally different. A malicious npm package needs to be imported and called by your code — you can audit the call sites. A malicious skill gets called by an agent whose decision-making you don't fully control. The agent decides the tool looks relevant, calls it, and the skill executes with the agent's permissions.
+<strong>MCP servers are trust boundaries that don't look like trust boundaries.</strong> When you connect an MCP server, you're telling your agent: "trust every tool this server advertises." There's no per-tool approval. There's no capability scoping. If the server advertises 20 tools, your agent can call any of them at any time. A compromised MCP server — or one that was malicious from the start — has a blank check.
+<p>As of early 2026, <a href="https://dev.to/kai_security_ai/i-scanned-every-server-in-the-official-mcp-registry-heres-what-i-found-4p4m" target="_blank">Kai Security scanned all 518 servers in the Official MCP Registry</a>; after correction, ~38% had no authentication at any level (Kai Security, February 2026). That means anyone who discovers the server endpoint can connect to it, call its tools, and impersonate a legitimate client. But even authenticated MCP servers present a trust problem: authentication proves who's connecting, not what the server will do with the connection.</p>
+<strong>Tool calls are the execution layer where everything converges.</strong> A tool call originating from a malicious skill, routed through a compromised MCP server, executing with the agent's permissions on the developer's machine — that's a five-layer supply chain attack compressed into a single API call. Traditional tools don't see it because they're looking at packages and known CVEs, not at runtime behavior.
+<h2>Attack Vectors at Each Layer</h2>
+<p>Each layer has distinct attack vectors, and some attacks span multiple layers.</p>
+<h3>Layer 1: Package Attacks</h3>
+- <strong>Dependency confusion.</strong> Publishing a malicious package with the same name as an internal package, exploiting package manager resolution order. Well-documented, still effective.
+- <strong>Typosquatting.</strong> Publishing <code>loadsh</code> when the target is <code>lodash</code>. Automated detection exists but isn't foolproof.
+- <strong>Maintainer compromise.</strong> Gaining access to a legitimate maintainer's account and pushing malicious updates. The <code>event-stream</code> incident remains the canonical example.
+<h3>Layer 2: Model Attacks</h3>
+- <strong>Training data poisoning.</strong> Injecting malicious examples into training data to influence model behavior. Requires access to the training pipeline — high effort, high impact.
+- <strong>Fine-tuning attacks.</strong> Compromising fine-tuned models or LoRA adapters distributed through model hubs like Hugging Face.
+<h3>Layer 3: Skill Attacks</h3>
+- <strong>Name-squatting.</strong> Publishing skills with names similar to popular legitimate skills. ClawHub lacks namespace verification, making this trivial.
+- <strong>Update poisoning.</strong> Publishing a clean skill, building a user base, then pushing a malicious update. No behavioral diff analysis between versions.
+- <strong>Skill bundling.</strong> Packaging a malicious skill as a dependency of a legitimate one, so it installs silently.
+<h3>Layer 4: MCP Server Attacks</h3>
+- <strong>Server impersonation.</strong> Standing up a malicious MCP server that mimics the API of a trusted one. Without server identity verification, the agent connects and trusts it.
+- <strong>Tool shadowing.</strong> An MCP server advertises tools with the same names as trusted tools from other servers, intercepting calls meant for the legitimate tools.
+- <strong>Response injection.</strong> Returning malicious content in tool responses that exploits the agent's context to influence subsequent behavior — indirect prompt injection via MCP.
+<h3>Layer 5: Tool Call Attacks</h3>
+- <strong>Argument injection.</strong> Crafting tool call arguments that exploit the tool's implementation — SQL injection via a database query tool, command injection via a shell execution tool, path traversal via a file access tool.
+- <strong>Cross-tool exploitation.</strong> Using the output of one tool call (potentially from a trusted server) to construct a malicious input to another tool call. The attack isn't in any single tool — it's in the chain.
+<h3>Cross-Layer: SANDWORM_MODE</h3>
+<p>The SANDWORM_MODE campaign is the clearest documented example of a cross-layer supply chain attack. It spanned Layer 1 (malicious npm packages), Layer 3 (ClawHub skill registration via package install), Layer 4 (local MCP server registration by the malicious skill), and Layer 5 (credential exfiltration via seemingly legitimate tool calls). Each layer's compromise enabled the next, and no single-layer security tool would have caught the full chain. [NEEDS SOURCE: verify SANDWORM_MODE campaign details against primary research]</p>
+<h2>The ClawHub and MCP Threat Surface</h2>
+<p>ClawHub and MCP servers represent the largest unprotected attack surface in the AI development stack.</p>
+<strong>ClawHub's submission process has no security review.</strong> Unlike npm (which added automated malware scanning post-<code>event-stream</code>), ClawHub checks manifest validity but not behavioral safety. Of the 10,700 skills in the registry, 824 (approximately 8%) are confirmed malicious per Koi Security's February 2026 scan. Snyk's ToxicSkills study found a 1.9% rate in a smaller sample. Either number is an order of magnitude worse than traditional package registries.
+<strong>MCP's trust model is binary.</strong> You connect to a server, or you don't. Once connected, every tool is available. There's no tool-level permissions, no capability-based access control, no way to say "I trust this server for file search but not for network access." The MCP spec's OAuth 2.1 additions improve authentication but don't address authorization — they prove who you are, not what you're allowed to do.
+<strong>The velocity is accelerating.</strong> The MCP ecosystem has seen 30+ CVEs in 60 days. ClawHub's skill count is growing faster than any manual review process can track. The window between when a malicious skill or server appears and when it's discovered and removed is measured in weeks to months — more than enough time for widespread installation.
+<h2>Detection and Prevention</h2>
+<p>The AI supply chain requires a layered security approach — because the supply chain itself is layered. No single tool covers everything, and any vendor (including us) who claims otherwise is selling you something.</p>
+<h3>What Traditional Tools Cover</h3>
+<strong>Packages (Layer 1):</strong> Snyk, Dependabot, Socket.dev, npm audit, pip-audit. Use them. They're mature, well-maintained, and cover the best-understood attack surface. If you're not running dependency scanning, start there before worrying about AI-specific layers.
+<strong>Models (Layer 2):</strong> Model cards, safety benchmarks, and provider trust. For most developers, this is a vendor selection decision, not a security tooling decision. If you're fine-tuning or hosting your own models, tools like Garak provide adversarial testing.
+<h3>What Needs AI-Native Coverage</h3>
+<strong>Skills (Layer 3):</strong> Runtime policy enforcement intercepts skills at execution time — it doesn't care what the code looks like, it cares what the code <em>does</em>. Shoofly's policy rules enforce restrictions on credential access, network egress, file system access, and privilege escalation at the tool call level, before execution. This approach catches malicious skills regardless of whether they were detected at submission time or became malicious through update poisoning. Static analysis before installation is necessary but insufficient; runtime policy rules provide the layer that protects you when detection fails.
+<strong>MCP Servers (Layer 4):</strong> Server identity verification, tool-level authorization, and response validation. The MCP spec is evolving, but current tooling is sparse. Policy rules that restrict which MCP servers the agent can connect to, and which tools it can call on each server, provide a practical trust boundary today.
+<strong>Tool Calls (Layer 5):</strong> Pre-execution interception is the last line of defense. Every tool call — whether it originates from a skill, an MCP server, or the agent's own reasoning — passes through the execution layer. Policy rules that evaluate tool calls against deterministic criteria (path patterns, command patterns, network destinations) catch attacks that slipped through every layer above.
+<h3>The Full Stack</h3>
+<p>| Layer | Attack Surface | Traditional Tools | AI-Native Tools |
+|-------|---------------|-------------------|-----------------|
+| Packages | Dependencies | Snyk, Dependabot, Socket.dev | — |
+| Models | Training data, weights | Safety benchmarks, Garak | — |
+| Skills | ClawHub, DXT, plugins | — | Shoofly policy rules (runtime) |
+| MCP Servers | Tool exposure, trust | — | Shoofly policy rules (runtime) |
+| Tool Calls | Execution | — | Shoofly policy rules (runtime) |</p>
+<p>The gap is clear. Traditional supply chain tools stop at Layer 2. Layers 3-5 are where the AI-specific attacks live, and they're where the tooling needs to catch up.</p>
+<p>Traditional supply chain tools stop at the package layer. Shoofly Advanced secures the AI-native layers above it.</p>
+<strong>→ <a href="https://shoofly.dev/advanced" target="_blank">Get Shoofly Advanced</a></strong>
+<p>---</p>
+<em>Further reading: <a href="/blog/clawhub-skill-supply-chain-attacks/" target="_blank">ClawHub Skill Supply Chain Attacks</a> · <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/" target="_blank">MCP Tool Poisoning: What It Is and How to Stop It</a> · <a href="/mcp-security/" target="_blank">MCP Security</a> · <a href="/openclaw-security/" target="_blank">OpenClaw Security</a></em>
+
+        <hr style="margin-top: 3rem;">
+        <p class="blog-meta"><em>Published: March 23, 2026</em></p>
+        <p><a href="/blog">← Back to blog</a></p>
+    </article>
+    
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span class="footer-copy">&copy; 2026 Shoofly</span>
+            <div class="footer-links">
+                <a href="/terms.html">Terms</a>
+                <a href="/privacy.html">Privacy</a>
+                <a href="/license.html">License</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

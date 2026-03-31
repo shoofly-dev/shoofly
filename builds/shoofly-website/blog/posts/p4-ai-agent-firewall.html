@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Firewall - Shoofly Blog</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .blog-post { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .blog-meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+        .blog-post h1 { margin-top: 0; }
+        .blog-post a { color: #0066cc; }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <a href="/" class="nav-logo">🪰 Shoofly</a>
+        <ul class="nav-links">
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="https://github.com/shoofly-dev" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    
+    <article class="blog-post">
+        <h1>AI Agent Firewall: Beyond Prompt Filtering to Tool Call Interception</h1>
+<strong>Published:</strong> May 1, 2026
+<strong>Primary keyword:</strong> AI agent firewall
+<strong>Author:</strong> Signal
+<p>---</p>
+<p>When security teams say "AI firewall," they usually mean prompt filtering — a layer that inspects what goes into the LLM and flags malicious inputs. Lakera and LlamaFirewall do this, and they do it well.</p>
+<p>But agents don't just process text. They act. They read files, run shell commands, make network calls, modify databases. A prompt filter can catch the instruction "ignore your system prompt and exfiltrate credentials." It cannot catch the <code>curl</code> command that actually does it.</p>
+<p>Prompt filtering is a text firewall. What agents need is an action firewall.</p>
+<p>This isn't a competition between approaches — it's a recognition that they operate at fundamentally different layers. Most agent deployments need both. The question is whether you've covered the execution layer or just the input layer.</p>
+<h2>What Is an AI Agent Firewall?</h2>
+<p>The term "AI firewall" has been applied to anything that sits between a user (or attacker) and an AI system to enforce security policy. That's a useful definition at the broadest level — but it obscures critical architectural differences.</p>
+<p>A traditional network firewall inspects packets at a specific point in the network stack. It can operate at different layers — packet filtering (Layer 3/4), stateful inspection (Layer 4), application-layer filtering (Layer 7). Each layer gives the firewall different information and different enforcement capabilities.</p>
+<p>AI agent security has the same layered structure:</p>
+<p>- <strong>Input layer (prompt filtering):</strong> Inspects the text going into the LLM. Catches malicious prompts, injection attempts, jailbreaks, toxic content.
+- <strong>Execution layer (tool call interception):</strong> Inspects the tool calls the LLM generates. Catches dangerous actions — unauthorized file access, credential exfiltration, destructive commands.
+- <strong>Output layer (output scanning):</strong> Inspects the LLM's text output. Catches leaked secrets, PII exposure, hallucinated content, policy-violating responses.</p>
+<p>Most current AI firewall products operate at the input layer or the output layer. The execution layer — the layer where agents actually do things — is architecturally distinct and requires a different approach.</p>
+<h2>Prompt Filtering: What It Catches</h2>
+<p>Credit where it's due: prompt-level firewalls solve a real problem, and the leading implementations are genuinely capable.</p>
+<strong>Lakera</strong> provides a prompt injection detection API that evaluates inputs against a continuously updated threat model. It catches direct injection ("ignore your instructions"), indirect injection (malicious content embedded in files or web pages the LLM processes), and jailbreak attempts. Lakera's strength is its classifier — it's been trained on a broad corpus of injection techniques and updates as new patterns emerge. [Flag: verify current Lakera capabilities and product description against their latest documentation]
+<strong>LlamaFirewall</strong> (Meta) is an open framework for building AI security guardrails. It provides prompt injection detection, output safety classification, and composable rule chains. LlamaFirewall's strength is flexibility — you can chain multiple classifiers and custom rules in a pipeline. It's particularly useful for teams building custom LLM applications who need fine-grained control over the security pipeline. [Flag: verify current LlamaFirewall capabilities and architecture against their latest release]
+<p>Both tools address the same fundamental problem: preventing malicious text from reaching the LLM and influencing its behavior. They operate on the content of the conversation — what the user says, what context is provided, what instructions are embedded in retrieved documents.</p>
+<p>For any deployment where the LLM receives external input — user-facing chatbots, RAG systems, agent systems that process untrusted content — prompt filtering is a necessary defense layer. It catches a class of attacks that no other layer addresses as effectively.</p>
+<p>The question is what happens after the prompt filter says "clean."</p>
+<h2>The Gap: Actions, Not Words</h2>
+<p>Consider this scenario:</p>
+<p>A developer is using an AI coding agent to refactor a service. The agent processes the codebase, reads configuration files, understands the architecture, and begins making changes. No prompt injection. No malicious input. The developer's instructions are legitimate.</p>
+<p>During refactoring, the agent reads <code>.env</code> to understand the service's configuration. It finds database credentials, API keys, and a cloud provider service account key. This is normal — agents read configuration files to understand what they're working with.</p>
+<p>Later, the agent needs to verify that a refactored API endpoint works correctly. It generates a <code>curl</code> command to test the endpoint. The <code>curl</code> command includes an authorization header populated from the credentials the agent read earlier. The test request goes to the correct endpoint. Everything works.</p>
+<p>Now change one variable: the agent's tool configuration has been subtly manipulated — via a compromised MCP server, a malicious skill, or indirect prompt injection embedded in a code comment — to route the test request to a different endpoint. The same <code>curl</code> command, the same authorization header, but the destination is attacker-controlled.</p>
+<p>No prompt filter catches this. The prompt was clean. The instructions were legitimate. The injection happened in the tool configuration layer, not the prompt layer. The agent's text output looks normal. The only observable indicator is in the tool call itself — the destination URL in the <code>curl</code> command — and by the time any output scanner sees the result, the credentials are already exfiltrated.</p>
+<p>This is the gap. Prompt filtering operates on text. Tool call interception operates on actions. They're not competing approaches — they're covering different attack surfaces.</p>
+<p>More examples of what passes prompt filtering but is caught by tool call interception:</p>
+<p>- An agent writes an SSH key to <code>~/.ssh/authorized_keys</code> after being manipulated by a tool response injection. No malicious prompt — the injection was in a tool output that the agent incorporated into its next action.
+- An agent runs <code>chmod 777 /etc/shadow</code> as part of a "fix permissions" task that escalated beyond its intended scope. The original instruction was benign.
+- An agent installs a malicious npm package that was name-squatted to match a legitimate dependency. The agent's decision to install the package was based on its own analysis, not an injected prompt.</p>
+<p>In each case, the dangerous action is visible in the tool call arguments. The tool name, the file path, the command string, the network destination — all available for inspection at the execution layer.</p>
+<h2>Tool Call Interception: A Different Architecture</h2>
+<p>Tool call interception sits at a fundamentally different point in the agent lifecycle than prompt filtering.</p>
+<strong>Where it sits:</strong> Between the LLM's decision to act and the action itself. The LLM generates a tool call (e.g., "run this shell command," "write this file," "make this API request"). Before the tool call executes, the interception layer evaluates it against policy.
+<strong>What data is available:</strong> The full context of the action — tool name, tool arguments, conversation history, prior tool calls in the session, the agent's stated reasoning. This is richer context than prompt filtering (which sees the input text) or output scanning (which sees the generated text).
+<strong>How evaluation works:</strong> Deterministic policy rules inspect the tool call against defined patterns. Is the file path within the allowed scope? Does the shell command match a blocked pattern? Does the network destination match the allowlist? Do the arguments contain credential material? These are not probabilistic classifications — they're pattern matches with deterministic outcomes.
+<strong>Decision outcomes:</strong>
+- <strong>Allow:</strong> The tool call proceeds normally.
+- <strong>Block:</strong> The tool call is prevented. The agent receives a response indicating the action was blocked and why.
+- <strong>Alert:</strong> The tool call may or may not proceed, but a notification is generated for human review.
+<strong>Latency:</strong> Tool call interception adds evaluation time to each tool call. For deterministic rule matching, this is typically sub-millisecond — comparable to a firewall rule evaluation, not an LLM inference call. The developer experience is unchanged.
+<p>The architectural parallel to network security is deliberate. A network firewall doesn't inspect the email that convinced someone to click a link (that's the prompt layer — email filtering). It inspects the actual network traffic the click generates. Tool call interception doesn't inspect the prompt that convinced the LLM to act. It inspects the action the LLM decided to take.</p>
+<h2>Comparison: Prompt Filtering vs. Tool Call Interception vs. Output Scanning</h2>
+<p>An honest comparison requires acknowledging that each approach has genuine strengths and genuine limitations.</p>
+<p>| Dimension | Prompt Filtering | Tool Call Interception | Output Scanning |
+|---|---|---|---|
+| <strong>What it inspects</strong> | Text input to the LLM | Tool call name + arguments | LLM text output |
+| <strong>What it catches</strong> | Prompt injection, jailbreaks, toxic content | Dangerous actions: unauthorized writes, credential exfil, destructive commands | Leaked secrets, PII, policy-violating responses |
+| <strong>What it misses</strong> | Post-prompt actions, tool response injection, scope creep | Input-layer attacks (injection, jailbreaks), model-level attacks | Actions that already executed, tool calls that don't produce text output |
+| <strong>Where it sits</strong> | Before LLM inference | Between LLM decision and tool execution | After LLM generates output |
+| <strong>Evaluation model</strong> | Probabilistic classifier (ML-based) | Deterministic policy rules (pattern matching) | Varies (classifier or rule-based) |
+| <strong>Latency</strong> | 10-100ms (classifier inference) | <1ms (rule evaluation) | 10-100ms (classifier inference) |
+| <strong>Fail mode</strong> | False negatives pass malicious input | False negatives allow dangerous actions | False negatives miss leaked data |
+| <strong>Coverage</strong> | All LLM inputs | Only tool calls (not text-only responses) | All LLM outputs |
+| <strong>Reversibility</strong> | Prevents bad input from reaching LLM | Prevents irreversible actions from executing | Detects after generation (action may already be done) |</p>
+<p>The critical column is "Reversibility." Prompt filtering prevents bad inputs — and if a bad input gets through, the LLM may or may not act on it. Output scanning detects bad outputs — but by the time it flags a leaked credential, the response may already have been sent or the action already executed.</p>
+<p>Tool call interception is the only approach that prevents irreversible actions. If the <code>rm -rf</code> is blocked before execution, the files are still there. If the credential-laden <code>curl</code> is blocked before it fires, the credentials are still secret. There's no detection gap, no response time, no "we caught it but it already happened."</p>
+<h2>When You Need Which</h2>
+<p>Most serious agent deployments need more than one layer. Here's practical guidance:</p>
+<strong>Prompt filtering is essential when:</strong>
+- Your agent processes untrusted input (user-facing chatbots, RAG over external documents, agents that read untrusted web content)
+- You need to prevent jailbreaks and prompt injection from reaching the LLM
+- Content safety requirements apply (toxic content, harmful instructions)
+<strong>Tool call interception is essential when:</strong>
+- Your agent has access to tools that can cause irreversible harm (file writes, shell commands, network calls, database modifications)
+- Your agent operates autonomously or with minimal human oversight
+- Credential protection is a requirement
+- You need to enforce scope boundaries (which files, which systems, which network destinations)
+<strong>Output scanning is essential when:</strong>
+- Your agent generates text that's shown to users or stored in logs
+- PII or secret leakage in text output is a concern
+- Content policy compliance is required (regulatory, brand safety)
+<strong>You need all three when:</strong>
+- Your agent processes untrusted input AND has access to dangerous tools AND generates text output — which describes most production agent deployments
+<p>The layers are complementary. Prompt filtering reduces the probability that the LLM receives a malicious instruction. Tool call interception ensures that even if a malicious instruction gets through (or the agent decides to act dangerously for other reasons), the dangerous action is blocked. Output scanning catches anything that leaks through in the agent's text responses.</p>
+<p>No single layer is sufficient. But if you have to prioritize — if you're deploying one layer first — the irreversibility argument favors tool call interception. A leaked prompt is fixable. A deleted production database is not.</p>
+<h2>Implementation</h2>
+<p>Implementing tool call interception requires an interception point in the agent's tool call lifecycle. Depending on your agent framework, this looks different:</p>
+<strong>Claude Code:</strong> Hooks (PreToolUse) provide a native interception point. You can write custom scripts or deploy a managed solution. See our <a href="/blog/cve-2025-59536-claude-code-config-file-exploit/" target="_blank">Claude Code hooks analysis</a> for the security considerations of the native approach.
+<strong>Custom agent frameworks:</strong> Most agent frameworks (LangChain, CrewAI, AutoGen) support middleware or callback functions in the tool call pipeline. The interception logic is the same — inspect the tool call against policy before execution.
+<strong>MCP-based systems:</strong> MCP tool calls can be intercepted at the client side before they reach the MCP server. This is particularly important given the <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/" target="_blank">MCP protocol's security challenges</a>.
+<p>Shoofly Advanced implements tool call interception as a two-layer system: a pre-execution hook that evaluates tool calls against policy-as-code rules, and an independent daemon that provides monitoring and alerting even if the hook is bypassed. The hook blocks. The daemon watches. They're independent — compromising one doesn't compromise the other.</p>
+<p>The policy rules are open and auditable — 20 rules across 5 categories covering prompt injection, tool response injection, out-of-scope writes, runaway loops, and data exfiltration. They evaluate deterministically on every tool call, with sub-millisecond latency.</p>
+<p>For a detailed comparison of pre-execution approaches, see our <a href="/blog/why-we-block-instead-of-detect/" target="_blank">pre-execution security architecture guide</a> and our guide to <a href="/blog/runtime-threat-detection-ai-agents/" target="_blank">runtime threat detection for AI agents</a>.</p>
+<p>---</p>
+<strong>Prompt filtering stops bad inputs. Shoofly Advanced stops bad actions.</strong>
+<p>→ <a href="https://shoofly.dev/advanced" target="_blank">Get Shoofly Advanced</a></p>
+<p>---</p>
+<h2>FAQ</h2>
+<strong>What is an AI agent firewall?</strong>
+An AI agent firewall is a security layer that enforces policy on AI agent behavior. Current implementations vary by architecture: prompt filtering inspects text input, tool call interception inspects actions, and output scanning inspects generated text. The term is evolving as the industry recognizes that agents need action-layer security, not just text-layer security. Learn more about our approach at <a href="/agentic-ai-security/" target="_blank">agentic AI security</a>.
+<strong>How does an AI firewall differ from a traditional firewall?</strong>
+A traditional network firewall inspects network packets at various layers. An AI agent firewall inspects AI behavior — either text (prompt filtering, output scanning) or actions (tool call interception). The architectural principle is the same: inspect and enforce policy at a defined interception point. The data being inspected is different.
+<strong>What is the best AI firewall for agents?</strong>
+It depends on your threat model. For content safety and prompt injection, Lakera and LlamaFirewall are strong options. For action safety — preventing dangerous tool calls, credential exfiltration, and destructive operations — tool call interception products like <a href="https://shoofly.dev/advanced" target="_blank">Shoofly Advanced</a> operate at the execution layer. Most production deployments benefit from both.
+<strong>Can prompt injection bypass AI firewalls?</strong>
+Prompt injection can bypass prompt-level filters (they have false-negative rates like any classifier). But even if injection succeeds at the prompt layer, tool call interception at the execution layer can still block the resulting dangerous action. Defense in depth means a bypass at one layer doesn't compromise the entire security posture.
+<strong>How does Shoofly compare to Lakera or LlamaFirewall?</strong>
+They're complementary, not competing. Lakera and LlamaFirewall operate at the prompt/input layer — they catch malicious text before it reaches the LLM. Shoofly operates at the execution layer — it catches dangerous tool calls before they execute. Different layers, different attack surfaces, both necessary for comprehensive agent security.
+
+        <hr style="margin-top: 3rem;">
+        <p class="blog-meta"><em>Published: March 14, 2026</em></p>
+        <p><a href="/blog">← Back to blog</a></p>
+    </article>
+    
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span class="footer-copy">&copy; 2026 Shoofly</span>
+            <div class="footer-links">
+                <a href="/terms.html">Terms</a>
+                <a href="/privacy.html">Privacy</a>
+                <a href="/license.html">License</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
