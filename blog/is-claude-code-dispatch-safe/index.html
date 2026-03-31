@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Anthropic just shipped Claude Code Dispatch, /loop, remote control, and computer use. Here's what their own documentation says about the security model — and where the gaps are." />
+  <meta name="color-scheme" content="dark" />
+  <!-- Social card -->
+  <meta property="og:title" content="Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need) — Shoofly" />
+  <meta property="og:description" content="Anthropic's safeguards are real. Their 17% false-negative rate is honest. Here's what that means for unattended Claude Code sessions." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/is-claude-code-dispatch-safe/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need) — Shoofly" />
+  <meta name="twitter:description" content="Anthropic's safeguards are real. Their 17% false-negative rate is honest. Here's what that means for unattended Claude Code sessions." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need) — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/is-claude-code-dispatch-safe/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-alt: #161b22;
+      --bg-card: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #16a34a;
+      --accent-dim: #16a34a33;
+      --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      height: 56px; padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo { font-size: 1.1rem; font-weight: 700; color: var(--accent); text-decoration: none; letter-spacing: -0.01em; white-space: nowrap; }
+    .nav-logo:hover { text-decoration: none; }
+    .nav-hamburger { display: none; flex-direction: column; justify-content: space-between; width: 24px; height: 18px; background: none; border: none; cursor: pointer; padding: 0; }
+    .nav-hamburger span { display: block; height: 2px; background: var(--text); border-radius: 2px; }
+    .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+    .nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
+    @media (max-width: 768px) {
+      .nav-hamburger { display: flex; }
+      .nav-links { display: none; position: absolute; top: 56px; left: 0; right: 0; background: var(--bg-alt); border-bottom: 1px solid var(--border); flex-direction: column; padding: 1rem 1.5rem; gap: 1rem; }
+      .nav-links.open { display: flex; }
+    }
+    .container { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .post-header { padding: 3.5rem 0 2rem; border-bottom: 1px solid var(--border); }
+    .post-meta { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    .post-date { font-size: 0.85rem; color: var(--text-muted); }
+    .post-byline { font-size: 0.85rem; color: var(--text-muted); }
+    .post-tag { background: var(--accent-dim); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .post-header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .post-body { padding: 2.5rem 0 4rem; }
+    .post-body p { margin-bottom: 1.4rem; color: var(--text); font-size: 1.05rem; }
+    .post-body h2 { font-size: 1.3rem; font-weight: 700; margin: 2.5rem 0 1rem; color: var(--text); letter-spacing: -0.01em; }
+    .post-body h3 { font-size: 1.05rem; font-weight: 700; margin: 1.75rem 0 0.6rem; color: var(--text); }
+    .post-body code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-alt); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 3px; }
+    .post-body pre { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; overflow-x: auto; }
+    .post-body pre code { background: none; border: none; padding: 0; font-size: 0.9rem; }
+    .post-body hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+    .post-body strong { color: var(--text); font-weight: 600; }
+    .post-body a { color: var(--accent); font-weight: 600; text-decoration: none; }
+    .post-body a:hover { text-decoration: underline; }
+    .back-link { display: inline-block; margin-bottom: 2rem; font-size: 0.9rem; color: var(--text-muted); font-weight: 400; }
+    .back-link:hover { color: var(--accent); }
+    .cta-block { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2.5rem 0; }
+    .cta-block p { margin-bottom: 0.75rem; }
+    .cta-block p:last-child { margin-bottom: 0; }
+    .cta-link { display: inline-block; background: var(--accent); color: #fff !important; padding: 0.6rem 1.25rem; border-radius: 5px; font-weight: 700; font-size: 0.95rem; text-decoration: none !important; }
+    .cta-link:hover { opacity: 0.9; text-decoration: none !important; }
+    .faq-item { margin-bottom: 1.75rem; }
+    .faq-item h3 { margin-bottom: 0.5rem; }
+    .related { border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 1rem; }
+    .related p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .related ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; }
+    .related ul li a { font-size: 0.9rem; font-weight: 500; }
+    .footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 2rem; }
+    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
+    .footer-copy { color: var(--text-muted); font-size: 0.875rem; }
+    .footer-link { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; }
+    .footer-link:hover { color: var(--accent); }
+    .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <a href="/" class="nav-logo">🪰 Shoofly</a>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/#pricing">Shoofly Basic</a></li>
+      <li><a href="/#pricing-advanced">Shoofly Advanced</a></li>
+      <li><a href="/claude-code-security/">Claude Code Security</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-03-30">March 30, 2026</time>
+        <span class="post-byline">by Shoofly Team</span>
+        <span class="post-tag">Security</span>
+        <span class="post-tag">Claude Code</span>
+      </div>
+      <h1>Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need)</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">← Back to Blog</a>
+
+      <p>
+        You got the email. Maybe you saw it on Hacker News first. Anthropic just shipped Dispatch, /loop,
+        remote control, and computer use — and suddenly your Claude Code session can run tasks while you sleep,
+        respond to messages from your phone, and click around your actual desktop. If you're a developer,
+        this is genuinely exciting. Background agents that handle the tedious stuff while you focus on
+        architecture decisions? Yes please.
+      </p>
+
+      <p>
+        But before you fire up <code>/loop</code> on a Friday afternoon and close your laptop for the weekend,
+        it's worth understanding what Anthropic's own documentation says about
+        <strong>Claude Code Dispatch security</strong> — both what's covered and what isn't. Not because
+        these features are bad. They're not. But because the security model was designed for interactive
+        sessions where a human is watching, and these features deliberately remove that human from the loop.
+      </p>
+
+      <p>Here's the honest breakdown.</p>
+
+      <h2>What Dispatch, /loop, Remote Control, and Computer Use Actually Do</h2>
+
+      <p>
+        These four features turn Claude Code from an interactive pair programmer into an autonomous agent
+        platform. Here's what each one does:
+      </p>
+
+      <p>
+        <strong>Dispatch</strong> lets you assign tasks to Claude from anywhere — your phone, a browser,
+        another device. Claude picks them up and runs them as background sessions on your dev machine.
+        As Anthropic's docs put it, "a task can end up as a Code session in two ways: you ask for one
+        directly... or Dispatch decides the task is development work and spawns one on its own."
+      </p>
+
+      <p>
+        <strong><code>/loop</code></strong> (and scheduled tasks) lets Claude re-run a prompt automatically
+        on an interval — monitoring a build, checking test results, running recurring maintenance. Cloud
+        scheduled tasks run fully autonomously with no permission prompts. Desktop scheduled tasks are
+        configurable. The <code>/loop</code> command inherits your session's permission mode.
+      </p>
+
+      <p>
+        <strong>Remote control</strong> connects a web interface to your local Claude Code process. Your
+        session URL is the single authentication factor — anyone with the URL controls the session with
+        your full local permissions.
+      </p>
+
+      <p>
+        <strong>Computer use</strong> lets Claude open apps and control your screen — clicking, typing,
+        navigating your actual macOS desktop. It runs outside any sandbox, on your real desktop, with your
+        real credentials visible on screen.
+      </p>
+
+      <p>
+        Each feature runs under whatever permission mode you've configured. There is no separate security
+        tier for unattended execution.
+      </p>
+
+      <h2>What Anthropic's Safeguards Actually Cover</h2>
+
+      <p>
+        Credit where it's due — Anthropic has built real security infrastructure, and they've been more
+        transparent about its limitations than most AI companies.
+      </p>
+
+      <p>
+        <strong>Two-stage auto mode classifier.</strong> Claude Code's auto mode uses a transcript classifier
+        that operates in two stages. Stage 1 is a fast single-token filter, intentionally biased toward
+        blocking, with an 8.5% false positive rate. Stage 2 applies chain-of-thought reasoning only when
+        Stage 1 flags something, reducing false positives to 0.4%. The classifier sees only user messages
+        and tool calls — Claude's own reasoning is stripped out to prevent the agent from persuading the
+        classifier. (Anthropic Engineering Blog)
+      </p>
+
+      <p>
+        <strong>OS-level sandboxing.</strong> When enabled, Claude Code uses macOS Seatbelt or Linux
+        bubblewrap for process isolation. Anthropic reports that sandboxing reduces permission prompts by
+        84% in internal usage.
+      </p>
+
+      <p>
+        <strong>Isolated context windows.</strong> Web fetch operations use a separate context window to
+        prevent injected content from entering the agent's primary context — a meaningful architectural
+        defense against indirect prompt injection via fetched content.
+      </p>
+
+      <p>
+        <strong>Computer use safeguards.</strong> Dispatch-spawned sessions get a 30-minute approval expiry
+        on computer use permissions, versus session-length approval for regular sessions. There's per-app
+        permission tiering, terminal exclusion from screenshots, and a global Esc key abort.
+      </p>
+
+      <p>
+        <strong>Prompt injection scanning.</strong> A server-side probe scans tool outputs before they enter
+        the agent's context. A command blocklist blocks risky commands like <code>curl</code> and
+        <code>wget</code> by default. Unmatched commands default to requiring manual approval.
+      </p>
+
+      <p>
+        These are real engineering investments. The two-stage classifier is architecturally sound.
+        Anthropic's own caveat — "no system is completely immune to all attacks" — is honest and appropriate.
+      </p>
+
+      <h2>Where the Gaps Are — Anthropic's Own Numbers</h2>
+
+      <p>
+        Every gap below is documented by Anthropic themselves or by security researchers with published
+        proof-of-concept exploits.
+      </p>
+
+      <p>
+        <strong>The classifier misses 17% of dangerous commands.</strong> Anthropic's engineering blog
+        reports that against 52 real-world overeager actions, the auto mode classifier has a 17%
+        false-negative rate — it misses dangerous commands in roughly 1 out of 6 risky scenarios. Against
+        synthetic exfiltration attempts, the false-negative rate is 5.7%. Anthropic's own assessment:
+        auto mode is "not a drop-in replacement for careful human review on high-stakes infrastructure."
+      </p>
+
+      <p>
+        <strong>Sandboxing is off by default.</strong> The OS-level sandbox is not enabled by default.
+        And even when enabled, Claude Code includes a <code>dangerouslyDisableSandbox</code> escape hatch
+        that is <em>also</em> enabled by default. When a command fails due to sandbox restrictions, Claude
+        is prompted to analyze the failure and may retry with sandboxing disabled. The network sandbox can
+        additionally be bypassed via domain fronting.
+      </p>
+
+      <p>
+        <strong>Computer use is completely unsandboxed.</strong> Anthropic's own documentation states it
+        plainly: "Computer use: when Claude opens apps and controls your screen on macOS, it runs on your
+        actual desktop rather than in an isolated environment." Their prompt injection scanning for computer
+        use is, in their words, "still early, and attacks are constantly evolving."
+      </p>
+
+      <p>
+        <strong>Cloud scheduled tasks run with zero permission prompts.</strong> Anthropic's docs list it
+        explicitly — cloud scheduled tasks: "Permission prompts: No (runs autonomously)." No additional
+        security layer is documented for these fully autonomous execution paths.
+      </p>
+
+      <p>
+        <strong>File exfiltration PoC shipped unfixed.</strong> PromptArmor demonstrated that hidden prompt
+        injection (white-on-white text in a file) could direct Claude to upload files to an attacker's
+        account via <code>curl</code> — without requiring any human approval. Both Haiku and Opus 4.5
+        executed the exfiltration. Reported October 2025. Anthropic shipped Cowork in January 2026 with the
+        vulnerability known. (PromptArmor, Simon Willison)
+      </p>
+
+      <p>
+        <strong>The rm -rf incidents are real.</strong> Claude Code has deleted entire home directories,
+        wiped 2.5 years of production course submissions via Terraform destroy (Tom's Hardware), and
+        destroyed iCloud-synced files during "reorganization" (GitHub Issue #32637). Multiple GitHub issues
+        document these incidents (#29082, #10077, #24196, #15951). Someone built a dedicated recovery tool
+        just to extract files from <code>.claude</code> session data.
+      </p>
+
+      <p>
+        <strong>Two CVEs target Claude Code directly.</strong> CVE-2025-59536 (CVSS 8.7) enables RCE via
+        malicious hooks in <code>.claude/settings.json</code> — executes before the trust dialog appears.
+        CVE-2026-21852 (CVSS 5.3) allows API key exfiltration via <code>ANTHROPIC_BASE_URL</code> redirect
+        before the trust prompt. Both discovered by Check Point Research.
+      </p>
+
+      <h2>The Unattended Session Problem</h2>
+
+      <p>
+        Everything above matters more when nobody is watching — and that's exactly what Dispatch,
+        <code>/loop</code>, and cloud scheduled tasks are designed for.
+      </p>
+
+      <p>
+        When Claude runs tasks while you're away, the security model changes fundamentally. A prompt
+        injection in a scheduled task doesn't just execute once — as Harmonic Security warns, "a prompt
+        injection loop in a scheduled task could run for hours." Each agent operates with your full
+        credentials and file system access.
+      </p>
+
+      <p>
+        Security researchers describe this as the "lethal trifecta" — agents that simultaneously read
+        private data (files, credentials, environment variables), encounter attacker-controlled content
+        (repos, web pages, MCP responses, task descriptions), and take actions on behalf of users (shell
+        commands, file writes, API calls). This isn't a bug in any specific feature. It's inherent to
+        agentic tool design. Natural language processing fundamentally conflates instructions and data.
+        Every mitigation reduces but cannot eliminate this risk. (arXiv 2601.17548)
+      </p>
+
+      <p>
+        The 17% false-negative rate in interactive sessions becomes a much bigger problem when there's no
+        human to catch what the classifier misses. A dangerous command that slips through at 2 AM during
+        a <code>/loop</code> cycle runs unchallenged until you check in the morning.
+      </p>
+
+      <h2>What Shoofly Advanced Adds</h2>
+
+      <p>
+        Shoofly Advanced is designed specifically for this gap — the space between Anthropic's built-in
+        safeguards and what unattended sessions actually need.
+      </p>
+
+      <p>
+        <strong>Before-execution interception.</strong> Shoofly hooks into Claude Code's tool call pipeline
+        and intercepts commands <em>before</em> they execute — not after. When the auto mode classifier
+        misses a dangerous command (that 17% window), Shoofly's policy engine evaluates it independently.
+        Two classifiers are better than one, especially when they use different evaluation approaches.
+      </p>
+
+      <p>
+        <strong>Policy-as-code.</strong> Instead of relying solely on a language model's judgment, you
+        define explicit rules: no <code>rm -rf</code> with home directory paths, no writes outside the
+        project directory, no network requests to unauthorized domains, no credential access during
+        scheduled tasks. These rules are deterministic — they don't have a false-negative rate.
+      </p>
+
+      <p>
+        <strong>Real-time alerting for unattended sessions.</strong> When Shoofly blocks a command during
+        a Dispatch task or <code>/loop</code> cycle, you get notified immediately. You find out about the
+        blocked <code>rm -rf</code> at 2 AM when it happens, not when you check your terminal at 9 AM.
+      </p>
+
+      <p>
+        <strong>Additive, not replacement.</strong> The auto mode classifier, the sandbox, the prompt
+        injection scanner — all of those still run. Shoofly adds a second layer of policy enforcement
+        specifically tuned for unattended sessions. Works with both OpenClaw and Claude Code.
+      </p>
+
+      <p>
+        We're not claiming bulletproof. We're claiming that deterministic policy rules catch things
+        probabilistic classifiers miss, and that real-time alerting matters when nobody's watching
+        the terminal.
+      </p>
+
+      <div class="cta-block">
+        <p>Running unattended Claude Code sessions? Add a second layer before your next <code>/loop</code>.</p>
+        <a href="/#pricing-advanced" class="cta-link">→ Get Shoofly Advanced</a>
+      </div>
+
+      <h2>The Bottom Line</h2>
+
+      <p>
+        Dispatch is genuinely useful. Anthropic's safeguards are real, and their transparency about
+        limitations is better than the industry norm. The 17% number is honest — most companies wouldn't
+        publish it.
+      </p>
+
+      <p>
+        But the gaps matter most when you're not watching. And Dispatch, <code>/loop</code>, and cloud
+        scheduled tasks are explicitly designed for when you're not watching. If you're running unattended
+        Claude Code sessions on anything with production data, credentials, or infrastructure access,
+        the built-in safeguards alone leave a measurable gap.
+      </p>
+
+      <p>
+        Add a second layer. Your future self — the one who didn't lose a weekend to a 2 AM
+        <code>rm -rf</code> — will thank you.
+      </p>
+
+      <hr>
+
+      <h2>FAQ</h2>
+
+      <div class="faq-item">
+        <h3>Is Claude Code Dispatch safe?</h3>
+        <p>
+          Dispatch inherits whatever permission mode you configure. Anthropic provides real safeguards —
+          a two-stage auto mode classifier, optional OS-level sandboxing, and 30-minute computer use
+          approval expiry for Dispatch sessions. However, the classifier has a documented 17%
+          false-negative rate on dangerous commands. For sensitive workloads, adding before-execution
+          policy enforcement fills the gap.
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>What are the security risks of Claude Code /loop?</h3>
+        <p>
+          Cloud scheduled tasks run with no permission prompts — fully autonomous. The primary risks are
+          drift accumulation (a prompt injection early in a loop compromises all subsequent iterations)
+          and the inability to monitor in real time. Harmonic Security warns that "a prompt injection
+          loop in a scheduled task could run for hours."
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>Does Anthropic protect against prompt injection in Dispatch?</h3>
+        <p>
+          Yes, with a server-side probe, command blocklist, and isolated context windows for web fetch.
+          However, PromptArmor demonstrated file exfiltration via hidden prompt injection that bypassed
+          these protections without requiring human approval. Anthropic's computer use prompt injection
+          detection is, in their own words, "still early."
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>What is the false negative rate of Claude Code auto mode?</h3>
+        <p>
+          Anthropic's engineering blog reports 17% against real-world overeager actions (1 in 6 risky
+          scenarios), and 5.7% against synthetic exfiltration attempts. Anthropic states auto mode is
+          "not a drop-in replacement for careful human review on high-stakes infrastructure."
+        </p>
+      </div>
+
+      <div class="faq-item">
+        <h3>How do I secure unattended Claude Code sessions?</h3>
+        <p>
+          Enable sandboxing, use the most restrictive permission mode that works for your task, and
+          avoid <code>--dangerously-skip-permissions</code>. For Dispatch and <code>/loop</code> sessions
+          handling sensitive work, add before-execution policy enforcement with deterministic rules and
+          real-time alerting. <a href="/#pricing-advanced">Shoofly Advanced</a> is built for this use case.
+        </p>
+      </div>
+
+      <hr>
+
+      <div class="related">
+        <p><strong>Related reading</strong></p>
+        <ul>
+          <li><a href="/blog/why-we-block-instead-of-detect/">Why We Block Instead of Detect</a></li>
+          <li><a href="/claude-code-security/">Claude Code Security Guide</a></li>
+          <li><a href="/blog/ai-computer-use-security-attack-vectors/">AI Computer Use Security</a></li>
+        </ul>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">© 2026 Shoofly. Drop-in security for AI agents.</span>
+      <nav class="footer-links">
+        <a href="/privacy" class="footer-link">Privacy</a>
+        <a href="/terms" class="footer-link">Terms</a>
+        <a href="/security" class="footer-link">Security</a>
+        <a href="https://github.com/shoofly-dev/shoofly" class="footer-link" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    const btn = document.getElementById('navHamburger');
+    const links = document.getElementById('navLinks');
+    btn.addEventListener('click', () => links.classList.toggle('open'));
+  </script>
+</body>
+</html>
