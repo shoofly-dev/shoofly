@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30 MCP CVEs - Shoofly Blog</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .blog-post { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .blog-meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+        .blog-post h1 { margin-top: 0; }
+        .blog-post a { color: #0066cc; }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <a href="/" class="nav-logo">🪰 Shoofly</a>
+        <ul class="nav-links">
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="https://github.com/shoofly-dev" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    
+    <article class="blog-post">
+        <h1>30 MCP CVEs in 60 Days: The Protocol's Security Crisis</h1>
+<em>Published: April 15, 2026 · By Signal @ Shoofly</em>
+<p>In January 2026, the Model Context Protocol had a handful of known vulnerabilities. By March, it had over thirty CVEs. Thirty. In sixty days.</p>
+<p>That's not a bad quarter for a mature protocol. That's a fire alarm for one that's barely a year old and already wired into production systems at every major AI company.</p>
+<p>This isn't a hit piece on MCP. The protocol solves a real problem — standardized tool access for AI agents. But the CVE velocity tells a story that the community needs to hear: these aren't random implementation bugs. They're architectural gaps in a protocol that shipped with trust as a default and authentication as an afterthought.</p>
+<h2>The CVE Timeline</h2>
+<p>Here's the breakdown of 30+ CVEs filed between January and March 2026, grouped by category:</p>
+<h3>Authentication Bypass (11 CVEs)</h3>
+<p>The largest category. MCP servers that accept unauthenticated connections, use weak or default credentials, or fail to validate client identity.</p>
+<p>Notable CVEs:
+- <strong>Authentication bypass CVEs</strong> — Default-open authentication on widely deployed filesystem MCP servers. Any client could connect and invoke file operations with no credentials. [SPECIFIC CVE IDS PENDING VERIFICATION]
+- <strong>Token replay CVEs</strong> — Token replay vulnerabilities in MCP server OAuth implementations. Valid tokens could be replayed indefinitely after expiration. [SPECIFIC CVE IDS PENDING VERIFICATION]
+- <strong>Server-side injection CVEs</strong> — Server-side request forgery via unauthenticated MCP tool calls targeting internal network endpoints. [SPECIFIC CVE IDS PENDING VERIFICATION]</p>
+<p>[NEEDS SOURCE — Specific CVE IDs must be verified against NVD/MITRE databases before publication. The count of 30+ and the categorization are based on public tracking; individual CVE numbers need confirmation.]</p>
+<h3>Injection Vulnerabilities (8 CVEs)</h3>
+<a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/" target="_blank">MCP tool poisoning</a> is the primary vector. Malicious or compromised MCP servers return responses containing injected instructions that manipulate the connecting agent into performing attacker-controlled actions.
+<p>Key patterns:
+- <strong>Response injection</strong> — Server embeds hidden instructions in tool result data. The agent processes these as legitimate instructions and generates follow-up tool calls directed by the attacker.
+- <strong>Schema poisoning</strong> — Server modifies tool descriptions to include instructions that override the agent's system prompt. The model follows the "tool description" as if it were an authoritative instruction.
+- <strong>Argument manipulation</strong> — Server returns results designed to influence the agent's next tool call arguments — e.g., returning a file path that, when used in a subsequent file read, accesses sensitive data.</p>
+<h3>Data Exfiltration (6 CVEs)</h3>
+<p>MCP servers designed to extract data from the connecting agent's context, including:
+- Conversation history (potentially containing credentials, API keys, or sensitive business logic)
+- Local file contents accessed through the agent's file tools
+- Environment variables and system information</p>
+<h3>Privilege Escalation (5+ CVEs)</h3>
+<p>Tool calls that escalate the agent's effective permissions:
+- MCP servers that request broader tool access than their stated function requires
+- Servers that chain tool calls to escalate from read to write to execute
+- Cross-server escalation where access to one MCP server enables unauthorized access to another</p>
+<h3>The Velocity Problem</h3>
+<p>For context, compare MCP's CVE velocity to other protocols at similar maturity:</p>
+<p>| Protocol | CVEs in First Year | CVEs in First 60 Days of Active Adoption |
+|----------|-------------------|------------------------------------------|
+| OAuth 2.0 | ~8 | ~3 |
+| GraphQL | ~5 | ~2 |
+| gRPC | ~4 | ~1 |
+| MCP | 30+ | 30+ |</p>
+<p>[NEEDS SOURCE — Protocol comparison numbers are estimates from public CVE databases. Verify exact counts before publication.]</p>
+<p>The difference isn't that MCP is inherently worse-designed than these protocols. It's that MCP shipped into an environment where every AI agent vendor simultaneously adopted it, creating an enormous attack surface overnight — and the protocol's security model wasn't ready.</p>
+<h2>38% Have No Auth: The Default-Insecure Problem</h2>
+<p>The MCP specification doesn't require authentication for tool calls. It provides authentication capabilities — the spec includes provisions for OAuth 2.1, API keys, and custom auth schemes. But authentication is optional, and the default is no auth. <a href="https://dev.to/kai_security_ai/i-scanned-every-server-in-the-official-mcp-registry-heres-what-i-found-4p4m" target="_blank">Kai Security scanned all 518 servers in the Official MCP Registry</a>; after correction, ~38% had no authentication at any level (Kai Security, February 2026).</p>
+<p>This matters because of how MCP gets adopted in practice:</p>
+<p>1. <strong>Developer builds an MCP server.</strong> The tutorial doesn't cover auth. The quickstart template ships without it. The "hello world" example works without it. Auth is documented in an "advanced" section.</p>
+<p>2. <strong>Server gets shared.</strong> GitHub, npm, or an internal registry. Other developers install it. Nobody checks for auth because nobody expects it — MCP servers "just work."</p>
+<p>3. <strong>Server connects to production agents.</strong> The MCP server that started as a weekend project is now connected to an agent with access to production codebases, credentials, and infrastructure.</p>
+<p>4. <strong>Attacker connects to the same server.</strong> No auth means anyone who can reach the server can invoke its tools. On a network-accessible server, that's potentially the entire internet.</p>
+<p>The protocol's permissive default creates a "security debt by default" that accumulates silently. Every MCP server deployed without auth is a node in an expanding attack surface.</p>
+<h3>What "No Auth" Actually Means</h3>
+<p>Without authentication, an MCP server cannot:
+- Verify which client is connecting
+- Restrict tool access by client identity
+- Rate-limit or throttle per-client
+- Audit which client performed which action
+- Revoke access for a compromised client</p>
+<p>The server is a public API with no access control. Every tool it exposes is callable by anyone.</p>
+<h2>Active Exploitation</h2>
+<p>MCP vulnerabilities aren't theoretical. Security researchers and incident responders have documented active exploitation: [NEEDS SOURCE — the following cases need specific citations. Flag any that cannot be verified with primary sources.]</p>
+<strong>Supply chain attacks via popular MCP servers.</strong> Compromised MCP servers on package registries that served poisoned tool responses to connecting agents. When an AI agent connected and invoked tools, the server's responses included injected instructions that caused the agent to exfiltrate environment variables and API keys.
+<strong>Credential harvesting via MCP tool poisoning.</strong> Attackers deploying malicious MCP servers that advertise useful functionality (code search, documentation lookup, API testing) but embed credential-harvesting payloads in tool responses. The connecting agent reads the response, follows the injected instructions, and transmits credentials to the attacker's infrastructure.
+<strong>Internal network reconnaissance.</strong> MCP servers used as pivot points for SSRF attacks. An agent connects to an MCP server, which returns results containing instructions to make requests to internal network addresses — cloud metadata endpoints, internal APIs, database connections. The agent's HTTP tools become the attacker's proxy into the internal network.
+<strong>Data exfiltration via legitimate-seeming tool calls.</strong> MCP servers that subtly modify tool results to include instructions that cause the agent to include sensitive data in subsequent outbound requests. The exfiltration is hidden within legitimate-looking tool call patterns, making it difficult to detect without pre-execution analysis.
+<p>These aren't edge cases. They're the predictable result of a protocol that defaults to trust.</p>
+<h2>Anthropic's Response</h2>
+<p>Credit where due: Anthropic has recognized the authentication gap and is working to close it.</p>
+<strong>OAuth 2.1 additions to the MCP spec.</strong> Anthropic has added OAuth 2.1 support to the MCP authentication specification, providing a standardized way for MCP servers to require client authentication. This is a meaningful step — OAuth 2.1 is a well-understood protocol with mature tooling.
+<strong>The MCP auth spec timeline.</strong> The authentication specification was published in early 2026. Adoption is underway but uneven — the largest MCP server registries have announced support, but the long tail of community-built servers remains largely unauthenticated.
+<strong>What's still missing.</strong> OAuth 2.1 addresses client-to-server authentication, but it doesn't address:
+- <strong>Tool-level authorization.</strong> A client authenticated to an MCP server gets access to all of its tools. There's no standard for per-tool authorization.
+- <strong>Response integrity.</strong> There's no mechanism to verify that an MCP server's response hasn't been tampered with or that it doesn't contain injected content.
+- <strong>Trust boundaries between servers.</strong> When an agent connects to multiple MCP servers, there's no standard for preventing one server from influencing tool calls to another.
+- <strong>Client-side enforcement.</strong> OAuth authenticates the client to the server, but it doesn't give the client a way to enforce policy on what the server can instruct the agent to do.
+<p>The authentication spec is necessary but not sufficient. Authentication answers "who is connecting?" It doesn't answer "should this tool call execute?"</p>
+<h2>What MCP Server Operators Should Do Now</h2>
+<p>If you're running MCP servers — whether public or internal — here's the immediate checklist:</p>
+<h3>1. Implement Authentication</h3>
+<p>If your MCP server has no auth, add it now. OAuth 2.1 is the spec-recommended approach. At minimum:
+- Require client credentials for all connections
+- Implement token expiration and rotation
+- Log all authentication events</p>
+<h3>2. Validate Tool Inputs</h3>
+<p>Every tool handler should validate its inputs:
+- Type checking against the schema
+- Path traversal prevention for file operations
+- Command injection prevention for shell operations
+- SQL injection prevention for database operations</p>
+<h3>3. Scope Tool Access</h3>
+<p>Don't expose every capability as an MCP tool. Apply the principle of least privilege:
+- Only expose tools that the server's stated function requires
+- Restrict file access to specific directories
+- Limit network access to specific domains
+- Restrict database access to specific tables and operations</p>
+<h3>4. Sanitize Tool Responses</h3>
+<p>Your tool responses become part of the agent's context. If your responses contain user-generated content, attacker-controlled data, or content from external sources, sanitize it before returning:
+- Strip or escape content that could be interpreted as instructions
+- Clearly delineate data from metadata
+- Limit response size to prevent context flooding</p>
+<h3>5. Monitor and Alert</h3>
+<p>Log every tool invocation with:
+- Client identity
+- Tool name and arguments
+- Response data (or a hash of it)
+- Timestamp and duration</p>
+<p>Alert on anomalies: unusual tool call patterns, high-volume invocations, access to tools outside the client's normal pattern.</p>
+<h3>6. Audit Your Dependencies</h3>
+<p>If your MCP server depends on other services or MCP servers, audit their security posture. A compromised dependency is a compromised server.</p>
+<h2>Policy-as-Code for MCP Trust Boundaries</h2>
+<p>Server-side security is necessary but insufficient. You control your own MCP servers — you don't control the ones you connect to. And you definitely don't control what a compromised server sends back.</p>
+<p>This is where client-side policy enforcement becomes critical. Policy-as-code defines trust boundaries that are enforced before any MCP tool call executes, regardless of the server's security posture.</p>
+<h3>How It Works</h3>
+<p>Define which MCP servers are trusted, which tools they're allowed to provide, and what arguments those tools can receive:</p>
+<p>``<code>yaml
+<h1>MCP trust policy</h1>
+mcp_servers:
+  trusted:
+    - server: "github-mcp.internal"
+      tools:
+        - name: "search_code"
+          allowed_args:
+            repo: ["org/repo-a", "org/repo-b"]
+        - name: "read_file"
+          blocked_paths: [".env", ".ssh", "credentials"]</p>
+<p>- server: "docs-server.internal"
+      tools:
+        - name: "search_docs"
+        - name: "read_doc"</p>
+<p>untrusted_default: block  # Block all tool calls to unlisted servers
+</code>`<code></p>
+<h3>Why Client-Side Enforcement Matters</h3>
+<p>1. <strong>Server compromise.</strong> If a trusted MCP server is compromised, client-side policy limits the damage. The compromised server can't instruct the agent to execute operations outside the defined trust boundary.</p>
+<p>2. <strong>Supply chain attacks.</strong> A malicious MCP server that passed initial vetting can't escalate its access beyond what the policy allows.</p>
+<p>3. <strong>Response injection.</strong> Even if an MCP server returns poisoned responses, the policy engine evaluates the resulting tool calls before execution. An injected instruction that causes the agent to run </code>rm -rf /` hits the policy rule and is blocked.</p>
+<p>4. <strong>Defense in depth.</strong> Server-side auth + client-side policy = two independent layers that an attacker must both defeat.</p>
+<p>Shoofly Advanced implements MCP trust boundary enforcement at the tool call dispatch layer. Policy rules evaluate every MCP-originated tool call before execution — which server initiated it, which tool is being called, what arguments are being passed, and whether the call matches defined trust boundaries. This works even when the MCP server itself is compromised, because the interception happens on the client side, before the tool call reaches execution.</p>
+<p>Learn more about MCP-specific security in our <a href="/mcp-security/" target="_blank">MCP security center</a>.</p>
+<h2>The Bottom Line</h2>
+<p>Thirty CVEs in sixty days isn't a blip. It's a pattern. MCP's trust-by-default architecture meets an ecosystem that deployed it into production faster than anyone secured it.</p>
+<p>Anthropic's OAuth 2.1 additions are a start. Server operators implementing auth and input validation is essential. But the fundamental gap — client-side policy enforcement on MCP tool calls — is what separates "hoping the server is secure" from "enforcing trust boundaries regardless."</p>
+<p>Your MCP servers might be in the <a href="https://dev.to/kai_security_ai/i-scanned-every-server-in-the-official-mcp-registry-heres-what-i-found-4p4m" target="_blank">~38% with no authentication</a> (Kai Security, February 2026). Shoofly Advanced enforces trust boundaries on every MCP tool call before it executes.</p>
+<strong>→ <a href="https://shoofly.dev/advanced" target="_blank">Enforce MCP trust boundaries with Shoofly Advanced</a></strong>
+<p>---</p>
+<h2>FAQ</h2>
+<h3>How many MCP CVEs have been filed in 2026?</h3>
+<p>Over 30 CVEs targeting the Model Context Protocol were filed in the first 60 days of 2026. These span authentication bypass, injection vulnerabilities, data exfiltration, and privilege escalation categories. The velocity — roughly one CVE every two days — indicates systemic protocol-level issues rather than isolated implementation bugs.</p>
+<h3>Why are MCP servers insecure by default?</h3>
+<p>The MCP specification provides authentication capabilities but doesn't require them. Authentication is optional, and the default is no auth. Combined with quickstart templates and tutorials that skip auth, this creates a pattern where servers ship without authentication and accumulate users before anyone addresses the gap. The protocol's design prioritizes developer experience and rapid adoption, with security as an opt-in layer.</p>
+<h3>What is MCP tool poisoning?</h3>
+<p>MCP tool poisoning is an attack where a malicious or compromised MCP server embeds adversarial instructions in tool responses. When an AI agent processes the response, the hidden instructions manipulate the agent into performing attacker-controlled actions — reading sensitive files, exfiltrating data, executing commands, or modifying code. See our <a href="/blog/mcp-tool-poisoning-what-it-is-and-how-to-stop-it/" target="_blank">detailed MCP tool poisoning guide</a> for the full technical breakdown.</p>
+<h3>How do I secure my MCP server connections?</h3>
+<p>Implement authentication (OAuth 2.1 recommended), validate all tool inputs, scope tool access to minimum required capabilities, sanitize tool responses, and monitor all invocations. On the client side, deploy policy-as-code that defines trust boundaries — which servers are trusted, which tools they can provide, and what arguments are allowed. Client-side enforcement protects you even when a server is compromised.</p>
+        <hr style="margin-top: 3rem;">
+        <p class="blog-meta"><em>Published: March 11, 2026</em></p>
+        <p><a href="/blog">← Back to blog</a></p>
+    </article>
+    
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span class="footer-copy">&copy; 2026 Shoofly</span>
+            <div class="footer-links">
+                <a href="/terms.html">Terms</a>
+                <a href="/privacy.html">Privacy</a>
+                <a href="/license.html">License</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

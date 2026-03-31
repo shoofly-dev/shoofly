@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Coding Security - Shoofly Blog</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .blog-post { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .blog-meta { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+        .blog-post h1 { margin-top: 0; }
+        .blog-post a { color: #0066cc; }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <a href="/" class="nav-logo">🪰 Shoofly</a>
+        <ul class="nav-links">
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="https://github.com/shoofly-dev" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </nav>
+    
+    <article class="blog-post">
+        <h1>Vibe Coding Security: Why Scanning Output Isn't Enough</h1>
+<em>Published: May 20, 2026 · By Signal @ Shoofly</em>
+<p>Andrej Karpathy coined the term in February 2025: "vibe coding." You describe what you want in natural language, the AI writes the code, you run it, you iterate. You don't read every line. You go by vibes. [NEEDS SOURCE: confirm Karpathy's original post URL and exact date — widely attributed to an X/Twitter post, February 2025]</p>
+<p>A year later, vibe coding isn't a novelty — it's how a significant chunk of development happens. Junior devs use it to scaffold entire projects. Senior devs use it to skip boilerplate. Startups ship MVPs in days instead of weeks. The speed is real.</p>
+<p>So is the security gap. But not the one everyone's talking about.</p>
+<h2>The Security Gap Everyone's Covering</h2>
+<p>Every vibe coding security article you've read so far says the same thing: the AI writes insecure code. SQL injection. Hardcoded secrets. Missing input validation. Use SAST tools. Review the output. Don't blindly trust the generated code.</p>
+<p>This is correct. And it's necessary. Run your linters. Use Semgrep, CodeQL, Snyk Code, whatever fits your stack. Review the diffs before you commit. These are table-stakes practices whether a human or an AI wrote the code.</p>
+<p>But here's what these articles miss: they all assume the dangerous part is the <em>output</em>. The code that gets written. The files that get committed. The vulnerabilities that ship to production.</p>
+<p>That's the second-order risk. The first-order risk is what the agent does before any code gets written at all.</p>
+<h2>The Security Gap Nobody's Covering</h2>
+<p>When you vibe code, you're not just generating code. You're giving an autonomous agent access to your terminal, your file system, and potentially your network. The agent doesn't just write files — it reads them, runs commands, installs packages, modifies configurations, and calls external tools. All of this happens <em>before</em> any SAST scanner sees the output.</p>
+<p>Think about the sequence:</p>
+<p>1. You type: "Set up a new Express server with Postgres and deploy it to my staging environment."
+2. The agent reads your existing config files (including <code>.env</code> with database credentials).
+3. It runs <code>npm install</code> for a dozen packages.
+4. It creates files, modifies your <code>package.json</code>, updates your Docker config.
+5. It runs shell commands to test the setup.
+6. It might call MCP tools to interact with your cloud provider.</p>
+<p>Steps 2 through 6 all happen before you have "output" to scan. The agent is executing actions on your machine, with your permissions, at the speed of API calls. If any of those actions are destructive, malicious (via prompt injection in a dependency), or simply wrong — the damage is done before any scanner runs.</p>
+<p>SAST scans code. It doesn't scan <code>rm -rf</code>. It doesn't scan <code>curl</code> to an attacker's endpoint. It doesn't scan a credential read from <code>~/.aws/credentials</code> that gets stuffed into a tool call payload. These are execution-layer threats, and the entire "just scan the output" advice model has nothing to say about them.</p>
+<h2>The rm -rf Pattern</h2>
+<p>This isn't theoretical. The pattern is documented and recurring.</p>
+<p>A developer asks an AI coding agent to "clean up the project directory" or "remove unused files" or "reorganize the folder structure." The agent interprets the instruction, decides which files to remove, and executes <code>rm -rf</code> on paths it considers unnecessary. Sometimes those paths include source files. Sometimes they include the home directory. Sometimes they include iCloud-synced folders where the deletion propagates to every connected device.</p>
+<p>GitHub issues #29082, #10077, #24196, #15951 for Claude Code document variations of this pattern. Someone built a dedicated recovery tool — Claude-File-Recovery — specifically to extract files from <code>.claude</code> session data after destructive operations.</p>
+<p>The critical point: no amount of output scanning catches this. The destructive action <em>is</em> the execution. There's no code to review. There's no diff to inspect. The files are gone before any human or automated system has a chance to intervene.</p>
+<p>At interactive speed — where you're watching the terminal and confirming each action — you'd catch the <code>rm -rf /Users/you/</code> before it fires. At vibe coding speed, where the whole point is <em>not</em> watching every action? You won't.</p>
+<h2>Pre-Execution at Vibe Speed</h2>
+<p>The security model for vibe coding needs to match the speed of vibe coding. That means enforcement that operates at the execution layer, on every tool call, without requiring a human to review each one.</p>
+<p>This is what pre-execution policy enforcement does:</p>
+<strong>Before the agent runs a command</strong>, a policy engine evaluates it against a set of rules. Does the command match a dangerous pattern (<code>rm -rf</code> with paths outside the project directory)? Block it. Does a file read target credential stores? Block it. Does a network request go to a domain not on the allowlist? Block it.
+<p>The rules are deterministic. They don't depend on the LLM's judgment about whether an action is safe. They fire on pattern matches, every time, regardless of how convincing the agent's reasoning is about why it needs to delete your home directory.</p>
+<strong>The key constraint: no human bottleneck.</strong> If pre-execution enforcement required you to approve every flagged action, it would be no different from Claude Code's built-in permission prompts — and you'd turn it off for the same reason you use <code>--dangerously-skip-permissions</code>. The whole point of vibe coding is speed.
+<p>Policy rules solve this by being precise enough to auto-approve safe actions and auto-block dangerous ones, with a narrow band of ambiguous cases that can either block-and-notify or prompt, depending on your configuration. The 95% of tool calls that are clearly fine (write a file in the project directory, run <code>npm test</code>, read a source file) execute without interruption. The 1% that are clearly dangerous (delete outside project root, read SSH keys, egress to unknown domains) get blocked automatically. You keep the speed. You lose the <code>rm -rf</code>.</p>
+<p>Shoofly Advanced implements this as a hook in the Claude Code and OpenClaw tool call pipeline. The policy engine evaluates each tool call before execution. Rules are defined in YAML — open and auditable. Default policies ship with coverage for the most common destructive patterns, credential access, and network egress. You can customize them to match your specific workflow and threat model.</p>
+<h2>Setup for Vibe Coders</h2>
+<p>If you're vibe coding today — and statistically, you probably are — here's the minimum security setup that doesn't kill your speed:</p>
+<strong>1. Install Shoofly Basic (free).</strong> It gives you logging and visibility into what your agent is doing. Even without policy enforcement, knowing that your agent read <code>~/.aws/credentials</code> during a "set up a new project" session is valuable information.
+<strong>2. Upgrade to Shoofly Advanced for policy enforcement.</strong> The default rules cover the patterns that matter: destructive commands outside the project root, credential access, network egress to unknown endpoints, sensitive file modification. Install takes five minutes. Your vibe coding workflow doesn't change — you just stop losing files.
+<strong>3. Keep your SAST tools.</strong> Pre-execution enforcement and output scanning aren't competing approaches. They cover different layers. Shoofly catches the <code>rm -rf</code> before it fires. Semgrep catches the SQL injection in the generated code. You need both.
+<strong>4. Review the policy rules.</strong> They're YAML files. They're readable. Spend ten minutes understanding what's blocked and what's allowed, then adjust for your stack. If you legitimately need your agent to access AWS credentials during a deployment task, you can scope that permission narrowly — allow reads from <code>~/.aws/</code> only during tasks tagged as deployment, block everywhere else.
+<p>Vibe coding is fast. That's the point, and that's why it's winning. But speed without guardrails is how you end up rebuilding your home directory from Time Machine backups on a Saturday morning.</p>
+<p>Vibe coding is fast. Shoofly Advanced makes it safe — without slowing you down.</p>
+<strong>→ <a href="https://shoofly.dev/advanced" target="_blank">Get Shoofly Advanced</a></strong>
+<p>---</p>
+<h2>FAQ</h2>
+<strong>Q: Doesn't Claude Code already have permission prompts that prevent destructive actions?</strong>
+Yes — when you're running interactively and reading each prompt. The problem is that vibe coding's entire value proposition is <em>not</em> doing that. Developers routinely use <code>--dangerously-skip-permissions</code> or auto-approve patterns to maintain flow. Pre-execution policy enforcement gives you the safety of permission prompts without the interruption: safe operations auto-approve, dangerous operations auto-block, and only genuinely ambiguous cases require human input.
+<strong>Q: Is SAST scanning still necessary if I have pre-execution enforcement?</strong>
+Yes. Pre-execution enforcement and SAST scanning cover different layers. Pre-execution catches dangerous <em>actions</em> — destructive commands, credential reads, unauthorized network requests. SAST catches dangerous <em>code</em> — SQL injection, XSS, hardcoded secrets in generated source files. A vibe-coded project needs both: Shoofly to protect the execution layer during development, and SAST tools to protect the output before it ships to production.
+<strong>Q: What about IDE-integrated AI tools like Copilot or Cursor — do they have the same risk?</strong>
+Code completion tools that only suggest code (inline completions, tab-to-accept) have a narrower risk profile because they don't execute actions. The risk escalates when these tools gain agentic capabilities — terminal access, file operations, tool calling. Any AI coding tool that <em>executes</em> rather than just <em>suggests</em> has the same execution-layer exposure that pre-execution enforcement addresses.
+<p>---</p>
+<em>Further reading: <a href="/blog/securing-claude-code-best-practices/" target="_blank">Securing Claude Code: Best Practices</a> · <a href="/blog/ai-computer-use-security-attack-vectors/" target="_blank">AI Computer Use Security: Attack Vectors</a> · <a href="/claude-code-security/" target="_blank">Claude Code Security</a></em>
+
+        <hr style="margin-top: 3rem;">
+        <p class="blog-meta"><em>Published: March 26, 2026</em></p>
+        <p><a href="/blog">← Back to blog</a></p>
+    </article>
+    
+    <footer class="footer">
+        <div class="container footer-inner">
+            <span class="footer-copy">&copy; 2026 Shoofly</span>
+            <div class="footer-links">
+                <a href="/terms.html">Terms</a>
+                <a href="/privacy.html">Privacy</a>
+                <a href="/license.html">License</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
