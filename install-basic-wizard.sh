@@ -52,6 +52,7 @@ fi
 
 # 5. Get agent name
 AGENT_NAME=$(openclaw status 2>/dev/null | jq -r '.agentName // "shoofly-basic"' 2>/dev/null || echo "shoofly-basic")
+AGENT_NAME=$(echo "$AGENT_NAME" | tr -d '\\')
 read -r -p "Agent name [$AGENT_NAME]: " INPUT_NAME < /dev/tty
 AGENT_NAME=${INPUT_NAME:-$AGENT_NAME}
 
