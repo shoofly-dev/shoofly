@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="On April 4, 2026, Anthropic ended third-party Claude subscription billing. Here's what it costs now and your four options: stay on OpenClaw, move to Claude Code + Cowork, switch models, or go local." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="OpenClaw + Claude Is Now Pay-Per-Token: What It Costs and What to Do Next (April 2026) — Shoofly" />
+  <meta property="og:description" content="On April 4, 2026, Anthropic ended third-party Claude subscription billing. Here's what it costs now and your four options." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/openclaw-claude-billing-change/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="OpenClaw + Claude Is Now Pay-Per-Token: What It Costs and What to Do Next (April 2026)" />
+  <meta name="twitter:description" content="On April 4, 2026, Anthropic ended third-party Claude subscription billing. Here's what it costs now and your four options." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>OpenClaw + Claude Is Now Pay-Per-Token: What It Costs and What to Do Next (April 2026) — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/openclaw-claude-billing-change/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .toc{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1.5rem;margin:0 0 2rem;}
+    .toc p{font-size:0.85rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.75rem;}
+    .toc ol{margin:0 0 0 1.25rem;}
+    .toc li{margin-bottom:0.3rem;font-size:0.95rem;}
+    .toc a{color:var(--text-muted);}
+    .toc a:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .cta-box p{margin-bottom:0.75rem;}
+    .cta-box p:last-child{margin-bottom:0;}
+    .callout{background:var(--bg-alt);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:1rem 1.25rem;margin:1.5rem 0;}
+    .callout p{margin-bottom:0;font-size:0.95rem;}
+    dt{font-weight:700;color:var(--text);margin-top:1.5rem;}
+    dd{margin:0.4rem 0 0 0;color:var(--text);}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-04">April 4, 2026</time>
+        <span class="post-tag">OpenClaw · Billing</span>
+      </div>
+      <h1>OpenClaw + Claude Is Now Pay-Per-Token: What It Costs and What to Do Next (April 2026)</h1>
+    </div>
+
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+      <div class="toc">
+        <p>Table of Contents</p>
+        <ol>
+          <li><a href="#what-happened">What happened</a></li>
+          <li><a href="#what-it-costs">What it actually costs now</a></li>
+          <li>Your alternatives
+            <ol style="list-style-type:upper-alpha;margin:0.3rem 0 0 1.25rem;">
+              <li><a href="#alt-a">Stay with OpenClaw + Claude (pay-per-token)</a></li>
+              <li><a href="#alt-b">Move to Claude Code + Cowork (what we did)</a></li>
+              <li><a href="#alt-c">Stay with OpenClaw, switch models</a></li>
+            </ol>
+          </li>
+          <li><a href="#faq">FAQ</a></li>
+        </ol>
+      </div>
+
+      <h2 id="what-happened">What Happened</h2>
+
+      <p>On April 4, 2026, Anthropic enforced a billing change that affects every OpenClaw user running Claude: your Claude subscription — Pro, Max, or Claude Code — no longer covers usage from third-party harnesses. If you're running OpenClaw cron jobs, heartbeats, subagents, or Dispatch sessions against Claude, those calls now draw from <strong>extra usage</strong> billing, not your subscription pool.</p>
+
+      <p>The change didn't come out of nowhere. Anthropic quietly blocked subscription OAuth tokens for third-party use back in January 2026, then formally updated their Terms of Service in February. April 4 was full enforcement — no more grace period.</p>
+
+      <p>Boris Cherny, Head of Claude Code at Anthropic, announced it via X:</p>
+
+      <blockquote style="border-left:3px solid var(--border);padding:0.75rem 1.25rem;margin:1.5rem 0;color:var(--text-muted);font-style:italic;">
+        "We've been working hard to meet the increase in demand for Claude, and our subscriptions weren't built for the usage patterns of these third-party tools. Capacity is a resource we manage thoughtfully and we are prioritizing our customers using our products and API."
+      </blockquote>
+
+      <h3>The Email</h3>
+
+      <p>Many Claude subscribers received this email on April 3:</p>
+
+      <blockquote style="border-left:3px solid var(--border);padding:0.75rem 1.25rem;margin:1.5rem 0;color:var(--text-muted);font-style:normal;">
+        <p style="margin-bottom:0.5rem;font-size:0.85rem;"><strong style="color:var(--text-muted);">From:</strong> Claude Team &lt;no-reply@email.claude.com&gt;<br>
+        <strong style="color:var(--text-muted);">Subject:</strong> "Using third-party harnesses with your Claude subscription"</p>
+        <hr style="border-color:var(--border);margin:0.75rem 0;">
+        <p style="margin-bottom:1rem;">Hi,</p>
+        <p style="margin-bottom:1rem;">Starting April 4 at 12pm PT / 8pm BST, you'll no longer be able to use your Claude subscription limits for third-party harnesses including OpenClaw. You can still use them with your Claude account, but they will require extra usage, a pay-as-you-go option billed separately from your subscription.</p>
+        <p style="margin-bottom:1rem;">Your subscription still covers all Claude products, including Claude Code and Claude Cowork. To keep using third-party harnesses with your Claude login, turn on extra usage for your account. This will be enforced April 4 starting with OpenClaw, but this policy applies to all third-party harnesses and will be rolled out to more shortly.</p>
+        <p style="margin-bottom:1rem;">To make the transition easier, we're offering a one-time credit for extra usage equal to your monthly subscription price. Redeem your credit by April 17. We're also introducing discounts when you pre-purchase bundles of extra usage (up to 30%).</p>
+        <p>We've been working to manage demand across the board, but these tools put an outsized strain on our systems. Capacity is a resource we manage carefully and we need to prioritize our customers using our core products. You will receive another email from us tomorrow where you'll have the ability to refund your subscription if you prefer.</p>
+      </blockquote>
+
+      <p><strong>One important clarification making the rounds:</strong> your Claude account is not blocked. Authentication still works. You can still connect OpenClaw to Claude. What changed is where the usage costs land — it now draws from the extra usage pool, which is pay-per-token, not from your flat subscription.</p>
+
+      <p>If you're seeing the error <code>"This credential is only authorized for use with Claude Code"</code> — that's the enforcement message. It's not an account issue. It means your session tried to bill against subscription capacity that's no longer available to third-party harnesses.</p>
+
+      <p>The community reaction has been strong. The sentiment is real — a lot of OpenClaw users built workflows around the all-you-can-eat model, and the cost math changed overnight.</p>
+
+      <hr>
+
+      <h2 id="what-it-costs">What It Actually Costs Now</h2>
+
+      <p>Here's an honest breakdown at different usage levels:</p>
+
+      <table>
+        <thead>
+          <tr><th>Plan</th><th>Usage level</th><th>Extra usage added</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claude Pro ($20/mo)</td><td>Light (a few daily crons, occasional Dispatch)</td><td>+$9–$20/mo</td></tr>
+          <tr><td>Claude Pro ($20/mo)</td><td>Moderate (hourly heartbeats, active subagents)</td><td>+$20–$50/mo</td></tr>
+          <tr><td>Claude Max ($200/mo)</td><td>Moderate</td><td>+$30–$80/mo</td></tr>
+          <tr><td>Claude Max ($200/mo)</td><td>Heavy Opus (long-running agents)</td><td>+$100–$360/mo</td></tr>
+          <tr><td>API key only (Sonnet 4.6)</td><td>~50M input + 10M output/mo</td><td>~$300/mo ($3/M in · $15/M out)</td></tr>
+          <tr><td>API key only (Opus 4.6)</td><td>~50M input + 10M output/mo</td><td>~$500/mo ($5/M in · $25/M out)</td></tr>
+        </tbody>
+      </table>
+
+      <p>The "50x cost increase" figures circulating online apply to the heaviest Opus users who were running production workloads on a $20 flat rate. For lighter OpenClaw users, the real number is more like 1.5x–3x. Still a meaningful change, but not catastrophic for everyone.</p>
+
+      <p>For pure agentic workloads with no direct claude.ai usage, an API key alone may be simpler math than carrying a subscription alongside extra usage.</p>
+
+      <hr>
+
+      <h2 id="your-options">Your Alternatives</h2>
+
+      <h3 id="alt-a">Alternative A: Stay with OpenClaw + Claude (pay-per-token)</h3>
+
+      <p>This is the right call for some users — particularly if your Claude usage is low-to-moderate, you're already on API billing, or you just need continuity without a migration.</p>
+
+      <p><strong>How to set it up:</strong></p>
+      <ul>
+        <li>In OpenClaw settings, switch your auth from OAuth/subscription to an API key</li>
+        <li>Generate an API key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></li>
+        <li>Set up extra usage at <a href="https://claude.ai/settings/usage" target="_blank" rel="noopener">claude.ai/settings/usage</a> if you want a spending cap and balance top-ups</li>
+        <li>Your existing OpenClaw config stays the same — just the auth layer changes</li>
+      </ul>
+
+      <p><strong>Who this makes sense for:</strong> Users running light cron schedules, people who use Claude for a specific project and don't need the full stack, anyone whose monthly API cost comes out cheaper than carrying a subscription.</p>
+
+      <h3 id="alt-b">Alternative B: Move to Claude Code + Cowork (what we did)</h3>
+
+      <p>This is the path we took. We migrated our entire OpenClaw setup to Claude Code + Cowork in one day — heartbeats, cron jobs, Telegram channel, project board, subagents, Dispatch from phone. Everything moved.</p>
+
+      <p>We're not going to publish the full playbook here — some of it is specific to how our stack is wired — but if you want migration tips, email us at <strong><a href="mailto:support@shoofly.dev">support@shoofly.dev</a></strong> and we'll share what worked.</p>
+
+      <p>The upside of first-party tooling: this situation doesn't repeat. Anthropic isn't going to block Claude Code from using Claude. If you're building on Cowork and Dispatch, you're inside the walled garden, not outside it.</p>
+
+      <div class="cta-box">
+        <p><strong>One thing that sharpened our thinking on this migration:</strong> when every tool call costs real money, a runaway agent isn't just a security incident — it's a billing incident. An agent stuck in a loop, hammering tool calls, escalating token spend — that's a problem whether your threat model is security or cost.</p>
+        <p>That's exactly what <a href="https://shoofly.dev">Shoofly</a> was built for. Shoofly sits in front of your agent's tool calls and blocks runaway behavior, prompt injection, and credential theft before they execute. It works with Claude Code, Cowork, and Dispatch. <a href="https://shoofly.dev/#pricing">Free to start.</a></p>
+      </div>
+
+      <p><strong>Rough edges to know about:</strong> Cowork is newer than OpenClaw and has fewer community plugins. Some OpenClaw-specific workflows need rethinking rather than direct porting. But for core agentic tasks — crons, subagents, scheduled tasks, phone Dispatch — it's solid.</p>
+
+      <h3 id="alt-c">Alternative C: Stay with OpenClaw, Switch Models</h3>
+
+      <p>If you're staying on OpenClaw but want off Claude, the model ecosystem has genuinely good options:</p>
+
+      <p><strong>OpenAI / GPT-5.x</strong><br>
+      The most straightforward alternative for Claude Code-style agentic workflows. Strong tool use, active support for third-party harnesses. OpenAI has been explicit that ChatGPT Plus and Pro subscriptions <em>can</em> be used for external integrations — a direct contrast to Anthropic's move. The current flagship is GPT-5.4 ($2.50/$15.00 per 1M tokens); GPT-5.2 ($1.75/$14.00) is a cheaper previous-gen option still widely used.</p>
+
+      <p><strong>Gemini 3 Flash (Google)</strong><br>
+      The budget pick. Roughly $0.50/M input tokens — among the cheapest capable models available. Good throughput for high-volume agentic tasks where you don't need frontier reasoning on every call. Worth benchmarking if cost is the primary driver.</p>
+
+      <p><strong>DeepSeek-V3.2</strong><br>
+      Running at roughly 1/9th the cost of GPT-5.4 per input token. Serious coding and reasoning capability for the price. Several developers in the community have reported rebuilding their entire OpenClaw setup for under $20/month using DeepSeek for bulk tasks and reserving GPT-5.x for complex reasoning.</p>
+
+      <p><strong>Grok (xAI)</strong><br>
+      Two tiers: Grok 4.1 Fast ($0.20/M in · $0.50/M out) is the budget default and genuinely cheap. Grok 4 ($3.00/M in · $15.00/M out) is the premium reasoning tier and costs about the same as Claude Sonnet. Integration with OpenClaw is functional for both.</p>
+
+      <h3>Cost comparison: what heavy agentic usage actually costs per model</h3>
+
+      <p>Benchmark: ~50M input tokens + 10M output tokens per month — a heavy OpenClaw setup with active crons, subagents, and Dispatch. This is roughly what a Claude Max 20x subscriber was running under the flat-rate model.</p>
+
+      <table>
+        <thead>
+          <tr><th>Model</th><th>Input price</th><th>Output price</th><th>Monthly cost (50M in + 10M out)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claude Sonnet 4.6 (API)</td><td>$3.00/M</td><td>$15.00/M</td><td><strong>$300</strong></td></tr>
+          <tr><td>Claude Opus 4.6 (API)</td><td>$5.00/M</td><td>$25.00/M</td><td><strong>$500</strong></td></tr>
+          <tr><td>GPT-5.2 (OpenAI)</td><td>$1.75/M</td><td>$14.00/M</td><td><strong>$228</strong></td></tr>
+          <tr><td>GPT-5.4 (OpenAI, current flagship)</td><td>$2.50/M</td><td>$15.00/M</td><td><strong>$275</strong></td></tr>
+          <tr><td>Gemini 3 Flash (Google)</td><td>$0.50/M</td><td>$3.00/M</td><td><strong>$55</strong></td></tr>
+          <tr><td>DeepSeek-V3.2</td><td>$0.28/M</td><td>$0.42/M</td><td><strong>$18</strong></td></tr>
+          <tr><td>Grok 4.1 Fast (xAI)</td><td>$0.20/M</td><td>$0.50/M</td><td><strong>$15</strong></td></tr>
+          <tr><td>Grok 4 / grok-4-0709 (xAI)</td><td>$3.00/M</td><td>$15.00/M</td><td><strong>$300</strong></td></tr>
+          <tr><td>Grok 4.20 / grok-4.20-0309 (xAI, newer)</td><td>$2.00/M</td><td>$6.00/M</td><td><strong>$160</strong></td></tr>
+          <tr><td>Ollama / local</td><td>$0</td><td>$0</td><td><strong>$0</strong> (hardware cost, see below)</td></tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-top:-0.75rem;">Pricing from official API docs, April 2026. DeepSeek price shown at cache-miss rate; cache-hit rate is ~10x cheaper. GPT-5.4 Pro ($30/$180/M) omitted — it's enterprise-tier and not a practical default for most OpenClaw workloads.</p>
+
+      <h3>Going local: Ollama</h3>
+
+      <p>If you want zero marginal cost and full data sovereignty, running local models via Ollama is viable — with honest caveats.</p>
+
+      <p><strong>What you need:</strong> An M2/M3 Mac or a dedicated GPU machine. 8B parameter models are usable on base M2; 70B+ models (where quality gets competitive) need 64GB+ RAM or a serious GPU. On underpowered hardware, inference speed becomes the bottleneck for agentic loops.</p>
+
+      <p><strong>Best use cases:</strong> Bulk processing, privacy-sensitive workloads, development and testing where you don't want token costs, tasks where speed matters less than cost. Gemma 4, Llama variants, and Qwen models are current community favorites.</p>
+
+      <p><strong>Honest limitation:</strong> For complex coding, multi-step reasoning, and tool use chains that are the core of OpenClaw agent workflows, local models at 8B–13B still lag frontier models meaningfully. Use local for what local does well and route complex tasks to API-backed models.</p>
+
+      <p>Multi-model routing — local for bulk tasks, API-backed for complex tasks — is the architecture a lot of the community is landing on post-change.</p>
+
+      <hr>
+
+      <h2 id="faq">FAQ</h2>
+
+      <dl>
+        <dt>Can I still use my Claude Pro or Max subscription with OpenClaw at all?</dt>
+        <dd>Yes. OpenClaw can still connect to Claude using your credentials. The change is about billing: usage now draws from your extra usage pool (pay-per-token) instead of your subscription's included capacity. Your subscription is not blocked or cancelled.</dd>
+
+        <dt>What does "This credential is only authorized for use with Claude Code" mean?</dt>
+        <dd>It means the session tried to bill usage against your Claude subscription capacity, which is now reserved for Anthropic's own products (Claude Code, claude.ai). It's not an account problem. Switch your OpenClaw auth to an API key to resolve it.</dd>
+
+        <dt>Is there a way around the extra usage billing?</dt>
+        <dd>Not a reliable one. The enforcement operates at the token and transport level. The cleaner path is one of the alternatives above.</dd>
+
+        <dt>How much will extra usage actually cost me?</dt>
+        <dd>Depends heavily on usage. See the breakdown in the <a href="#what-it-costs">What It Actually Costs Now</a> section. Light users will see $10–$30/mo added. Heavy Opus users may see $100+ added.</dd>
+
+        <dt>Should I cancel my Claude subscription entirely?</dt>
+        <dd>Only if you were using it exclusively for OpenClaw and have no direct claude.ai or Claude Code use. If you're staying on Claude Code or Cowork, your subscription still covers those directly. If you're switching to API keys only for OpenClaw, do the math — API-only may be cheaper than subscription + extra usage.</dd>
+
+        <dt>Can I use Claude Code and OpenClaw at the same time?</dt>
+        <dd>Yes. Claude Code and OpenClaw are separate tools and can run concurrently. Your Claude Code usage (including Cowork, Dispatch, and Claude Code crons) draws from your subscription as before. OpenClaw sessions running against Claude draw from extra usage. They don't interfere with each other — they just bill differently.</dd>
+
+        <dt>Why did Anthropic do this?</dt>
+        <dd>Anthropic's stated reason is capacity management — third-party harnesses were consuming subscription capacity at usage patterns subscriptions weren't priced for. Whether you read that as reasonable infrastructure management or a competitive move to push users toward first-party tools is a matter of perspective.</dd>
+
+        <dt>Will this happen with other AI providers?</dt>
+        <dd>Google has been tightening Gemini API access rules, so worth watching. OpenAI has so far been explicit in the opposite direction — they've confirmed third-party integrations are explicitly supported. No guarantees, but the current posture is permissive.</dd>
+
+        <dt>What's the best cheap Claude alternative for OpenClaw?</dt>
+        <dd>For cost: Gemini 3 Flash or DeepSeek-V3.2. For capability closest to Claude: GPT-5.x. For zero marginal cost with decent quality: Ollama + Gemma 4 or Llama on capable hardware. Most developers are landing on multi-model routing — cheap/local for bulk, frontier API for complex.</dd>
+      </dl>
+
+      <hr>
+
+      <div class="cta-box">
+        <p>🪰 <strong>Shoofly</strong> is a free runtime security layer for Claude Code, Cowork, and OpenClaw agents. It blocks prompt injection, credential theft, malware in tool results, and runaway token spend before they execute.</p>
+        <p><a href="https://shoofly.dev/#pricing">Install free →</a></p>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">&copy; 2026 Shoofly<sup style="font-size:0.6em;vertical-align:super;">TM</sup></span>
+        <div class="footer-links">
+          <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+          <a href="/blog" class="footer-link">Blog</a>
+          <a href="/docs/advanced" class="footer-link">Docs</a>
+          <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const ham = document.getElementById('navHamburger');
+    const nav = document.getElementById('navLinks');
+    if (ham) ham.addEventListener('click', () => nav.classList.toggle('open'));
+  </script>
+</body>
+</html>
