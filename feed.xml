@@ -5,13 +5,20 @@
     <link>https://shoofly.dev/blog/</link>
     <description>Pre-execution security for AI agents. Threat research, CVEs, and engineering insights from the Shoofly team.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 30 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 10 Apr 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://shoofly.dev/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
       <url>https://shoofly.dev/social-card.png</url>
       <title>Shoofly Blog</title>
       <link>https://shoofly.dev/blog/</link>
     </image>
+    <item>
+      <title>Claude Managed Agents: What You Actually Get</title>
+      <link>https://shoofly.dev/blog/claude-managed-agents/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/claude-managed-agents/</guid>
+      <pubDate>Thu, 10 Apr 2026 00:00:00 +0000</pubDate>
+      <description>Claude Managed Agents launched April 2026. Here's what the infrastructure handles, what's still gated, how the pricing works, and who should try it now.</description>
+    </item>
     <item>
       <title>Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need)</title>
       <link>https://shoofly.dev/blog/is-claude-code-dispatch-safe/</link>

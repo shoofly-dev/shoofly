@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Claude Managed Agents launched April 2026. Here's what the infrastructure handles, what's still gated, how the pricing works, and who should try it now." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude Managed Agents: What You Actually Get — Shoofly" />
+  <meta property="og:description" content="Claude Managed Agents launched April 2026. Here's what the infrastructure handles, what's still gated, how the pricing works, and who should try it now." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/claude-managed-agents/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Managed Agents: What You Actually Get — Shoofly" />
+  <meta name="twitter:description" content="Claude Managed Agents launched April 2026. Here's what the infrastructure handles, what's still gated, how the pricing works, and who should try it now." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude Managed Agents: What You Actually Get — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/claude-managed-agents/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-10">April 10, 2026</time>
+        <span class="post-tag">AI Agents</span>
+      </div>
+      <h1>Claude Managed Agents: What You Actually Get</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>Building an agent that works in a demo is straightforward. Building one that runs reliably in production — for weeks, across real user sessions, with secrets handled safely, in an environment you can actually debug when something goes wrong — is a different problem. It takes months, and most of it has nothing to do with the model.</p>
+
+<p>That infrastructure work is what Anthropic is selling with Claude Managed Agents. It launched April 8, 2026 in public beta. Here's what it actually handles, what's still gated, and who should use it now versus wait.</p>
+
+<h2>What the infrastructure actually handles</h2>
+
+<p>Five things that kill agent projects in production, and how Managed Agents addresses each:</p>
+
+<p><strong>Sandboxed execution.</strong> Tool calls run in an isolated environment. A bad shell command or a file write that goes sideways doesn't bring down your application. This is one of those things teams skip in development and regret in production.</p>
+
+<p><strong>Long-running sessions.</strong> Agents can run for hours. Managed Agents handles session continuity, context checkpointing, and reconnection without you writing that logic. If you've ever had an agent die mid-task because a connection timed out or a context window filled, this is the fix.</p>
+
+<p><strong>Credential management.</strong> Connect to third-party services through MCP servers. The agent gets access to what it needs without your application managing secrets directly. Scoped at the environment level, not in the system prompt where credentials have a habit of leaking into logs.</p>
+
+<p><strong>Scoped permissions.</strong> Define what the agent can and cannot touch when you configure the environment, not as instructions you hope the model follows. There's a difference between telling an agent "don't delete files" and structurally preventing it from doing so.</p>
+
+<p><strong>End-to-end tracing.</strong> Every tool call, every decision step, logged and queryable in the console. This is the capability teams feel most acutely when they don't have it. Debugging a broken agent with print statements is not a sustainable workflow.</p>
+
+<p>Notion, Sentry, and Asana are already running production workloads on Managed Agents. Notion uses it for parallel task execution in coding and presentation workflows. Sentry uses it for bug detection and patch generation integrated into developer review. These aren't demos.</p>
+
+<h2>What's not in public beta yet</h2>
+
+<p>This is where most coverage glosses over the details. Two capabilities that make Managed Agents sound most powerful in the announcement are not in general access:</p>
+
+<p><strong>Multi-agent coordination</strong> — where an orchestrator agent directs specialist agents for parallel work — is available by request only, not to everyone who signs up.</p>
+
+<p><strong>Self-evaluation</strong> — where Claude iterates against its own success criteria before returning a result — is in research preview.</p>
+
+<p>These are real features. They're just not what you're getting if you sign up today.</p>
+
+<p>One more thing to calibrate: the announcement cites a 10-point improvement in outcome task success over standard prompting loops. That measurement was from internal testing on structured file generation, which is a specific task type. It's a real finding, not fiction, but don't assume it maps directly to your use case without benchmarking.</p>
+
+<h2>The pricing, in plain math</h2>
+
+<p>The runtime fee is $0.08 per session-hour of active execution, plus standard Claude Platform token costs on top of that.</p>
+
+<p>Active means the agent is running — executing tools, processing results, generating responses. Idle time (waiting for your next message, sitting between sessions) doesn't count.</p>
+
+<p>What that looks like in practice:</p>
+
+<ul>
+  <li>An agent running continuously 24/7 costs about $58/month in runtime overhead, before token costs</li>
+  <li>A customer support agent that runs actively for 20 minutes per ticket costs roughly $0.027 per ticket in runtime</li>
+  <li>A research agent doing a 2-hour deep-dive task costs $0.16 in runtime for that session</li>
+</ul>
+
+<p>The token costs on top depend entirely on which model you use and how much context your tasks require. A complex task on Sonnet can cost more in tokens than in runtime. Model it for your specific workload before making decisions.</p>
+
+<p>For teams that would otherwise spend engineering time building and maintaining agent infrastructure, the math is usually easy. For high-volume automation where you're running hundreds of sessions per day, run the numbers before committing.</p>
+
+<h2>The vendor lock-in question</h2>
+
+<p>It's worth addressing directly because it's the loudest concern in the developer community, and it's legitimate.</p>
+
+<p>Managed Agents runs Claude models only. There's no path to run GPT, Gemini, or any other model inside the harness. Your agent definitions, environment configurations, and session management are all on Anthropic's platform. If you want to migrate later — because Anthropic changes pricing, because a different model gets meaningfully better for your use case, or because you need to self-host — that migration is not a weekend project. We've been on the receiving end of a platform change with zero notice. It's manageable if you planned for it; painful if you didn't.</p>
+
+<p><strong>When this is a real problem:</strong><br>
+You're still evaluating models and haven't committed to Claude as the right choice for your task. You have data residency requirements that require your workloads to run in specific infrastructure. You're building something where multi-model flexibility is architecturally important.</p>
+
+<p><strong>When it probably isn't:</strong><br>
+You've already determined Claude is the right model for what you're building and you're not planning to switch. You're at an early stage where shipping fast matters more than long-term optionality. You're building internal tooling where switching models later is a genuine option, not a theoretical one.</p>
+
+<p>The honest version: if you're Claude-committed, the lock-in cost is low. If you're not sure yet, don't architect around a managed platform until you are.</p>
+
+<h2>Agent architecture patterns: one agent vs. a team</h2>
+
+<p>This is a design question that Managed Agents makes more concrete. Two patterns have emerged in production systems:</p>
+
+<p><strong>Single agent with role-switching.</strong> One agent, loaded with different contexts or instructions depending on the task at hand. At any given moment it's acting as a researcher, then a writer, then a reviewer — wearing different hats, using a shared context window. The advantages are token efficiency (no coordination overhead, no passing outputs between agents) and context discipline (the full task history lives in one place). The tradeoff is that complex parallelism gets awkward, and you can't isolate tool access cleanly between roles.</p>
+
+<p><strong>Multi-agent teams with named specialists.</strong> A coordinator delegates to specialist agents, each with a narrow scope and specific tool access. A research agent, a build agent, a review agent — running concurrently where the work allows, isolated where the tools require it. The advantages are real concurrency on parallel subtasks and genuine tool isolation per specialist. The tradeoff is orchestration overhead, latency from coordination, and a debugging surface that multiplies with each agent you add.</p>
+
+<p>Both patterns work. Which one fits depends on your task structure: how parallel the work actually is, how important tool isolation is, and how much overhead you can absorb.</p>
+
+<p>We've run both patterns in production. What we landed on takes the best of each. That's a longer conversation — but the short version is that the choice isn't binary, and the right answer usually isn't at either extreme.</p>
+
+<h2>Who should try it now</h2>
+
+<p><strong>Try it now if:</strong></p>
+<ul>
+  <li>You're building on Claude and the model choice is settled, not still under evaluation</li>
+  <li>You've shipped an agent and discovered the production infrastructure problem firsthand</li>
+  <li>Your team doesn't want to maintain an agent harness and would rather pay for someone else to run it</li>
+  <li>The observability story matters to you — the tracing console alone is worth it for teams shipping agents to real users</li>
+</ul>
+
+<p><strong>Wait if:</strong></p>
+<ul>
+  <li>You need to orchestrate multiple models in the same workflow</li>
+  <li>Multi-agent coordination is core to your use case and you can't get request access quickly enough</li>
+  <li>Your use case involves regulated data and you haven't verified the infrastructure meets your requirements</li>
+  <li>You're still in the "does this approach even work" phase — start with the standard API, not a managed platform</li>
+</ul>
+
+<h2>Getting started</h2>
+
+<p>The official quickstart at platform.claude.com walks through the four steps: define your agent (model, system prompt, tools), configure an environment, start a session, stream responses. The one non-obvious requirement is the <code>managed-agents-2026-04-01</code> beta header on all API requests — easy to miss, breaks everything if you skip it.</p>
+
+<p><a href="https://platform.claude.com/docs/en/managed-agents/quickstart">Claude Managed Agents quickstart &rarr;</a></p>
+
+<hr>
+
+<p>The infrastructure problem Managed Agents solves is real, and it's the kind of problem that's invisible until you've hit it. If you're past the prototype stage and the agent harness is becoming the thing you spend time on instead of the thing you're actually building, it's worth a serious look. The limitations — model lock-in, gated features, token costs on top of runtime — are real too, and worth knowing before you architect around it.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>
