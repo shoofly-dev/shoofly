@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Claude Code hooks fire before and after every tool call. Here's what they actually do, how to write your first hook, and the production patterns worth building." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude Code Hooks Explained: What You Can Actually Automate — Shoofly" />
+  <meta property="og:description" content="Claude Code hooks fire before and after every tool call. Here's what they actually do, how to write your first hook, and the production patterns worth building." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/claude-code-hooks-explained/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Code Hooks Explained: What You Can Actually Automate — Shoofly" />
+  <meta name="twitter:description" content="Claude Code hooks fire before and after every tool call. Here's what they actually do, how to write your first hook, and the production patterns worth building." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude Code Hooks Explained: What You Can Actually Automate — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/claude-code-hooks-explained/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-10">April 10, 2026</time>
+        <span class="post-tag">Claude Code</span>
+      </div>
+      <h1>Claude Code Hooks Explained: What You Can Actually Automate</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>Hooks are the most underrated feature in Claude Code. Most people discover them when they want to do something specific — block a dangerous command, log tool calls, send a notification — and find that the feature handles it cleanly. What they don't realize is that hooks are the foundation for building a real production layer on top of Claude Code.</p>
+
+<p>This is what hooks actually do, how they work, and what's worth building with them.</p>
+
+<hr>
+
+<h2>What hooks do</h2>
+
+<p>A Claude Code hook is a shell command (or script) that runs in response to an event in Claude Code's tool execution lifecycle. Before Claude runs a tool, after it runs, before it reads a file — you can intercept these moments and do something: log it, block it, modify the environment, send a notification.</p>
+
+<p>The key thing to understand is that hooks run in your shell, with your permissions, with access to the full tool call context as JSON via stdin. They're not constrained to Claude Code's sandbox. They can do anything your shell can do.</p>
+
+<p>This is what makes them powerful. Your hook can call an external API, write to a database, check a policy file, send a Telegram message, or run a Python script. Claude Code just executes it and waits for the result.</p>
+
+<hr>
+
+<h2>The four hook events</h2>
+
+<p>Claude Code exposes four hook points:</p>
+
+<p><strong>PreToolUse.</strong> Fires before Claude executes a tool call. The hook receives the tool name and its arguments. If the hook exits with a non-zero code, Claude Code blocks the tool call. This is the enforcement layer — the place where you say "Claude can't do this."</p>
+
+<p><strong>PostToolUse.</strong> Fires after a tool call completes. The hook receives the tool name, arguments, and the result. This is the logging and notification layer — you can record what happened, send alerts, update external systems.</p>
+
+<p><strong>Notification.</strong> Fires when Claude Code wants to surface a message. Useful for routing notifications to systems other than the terminal — Slack, Telegram, a dashboard.</p>
+
+<p><strong>Stop.</strong> Fires when Claude Code's session ends. Useful for cleanup, final logging, session summary.</p>
+
+<p>Most production use cases involve PreToolUse and PostToolUse. The other two are important but narrower.</p>
+
+<hr>
+
+<h2>What you can automate</h2>
+
+<p><strong>Security enforcement.</strong> PreToolUse is how you build a real security layer. Check whether the file path being written to is in an allowed directory. Check whether the bash command contains patterns you've banned. Block writes to production config files. Reject tool calls that target sensitive paths. This isn't a hint to Claude — it's an enforced boundary that runs before the tool executes, regardless of what Claude decided to do.</p>
+
+<p><strong>Audit logging.</strong> PostToolUse lets you build a complete record of what Claude did in a session. Every file write, every bash command, every API call — logged to a file or a database with timestamp, arguments, and result. When something goes wrong in production, you have a log to inspect.</p>
+
+<p><strong>Cost tracking.</strong> Every tool call has a cost. PostToolUse lets you track cumulative usage per session, flag when a session is running long, or stop a session that's exceeded a budget. This is especially useful when you're running Claude Code autonomously from a queue runner.</p>
+
+<p><strong>Notifications.</strong> When Claude Code finishes a long task, fires a notification hook that sends a Telegram message, updates a dashboard, or pings a webhook. You don't have to watch the terminal.</p>
+
+<p><strong>Context injection.</strong> PreToolUse can modify the execution environment before a tool runs. Want Claude Code to have access to the current git branch when it reads a file? Inject it. Want to add a timestamp to every bash command's output? Wrap it in a hook.</p>
+
+<p><strong>Automatic formatting.</strong> PostToolUse on file writes can run a linter or formatter automatically, so every file Claude Code touches is clean.</p>
+
+<hr>
+
+<h2>Writing your first hook</h2>
+
+<p>Hooks are configured in Claude Code's settings file at <code>~/.claude/settings.json</code>. A hook entry looks like this:</p>
+
+<pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/check-write-policy.py"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+<p>The hook script receives the full tool call as JSON on stdin. In Python:</p>
+
+<pre><code>import json, sys
+payload = json.load(sys.stdin)
+tool_name = payload["tool_name"]
+tool_input = payload["tool_input"]
+
+# Check the file path
+if "/Library/LaunchAgents/" in tool_input.get("path", ""):
+    print(json.dumps({"decision": "block", "reason": "LaunchAgents path is restricted"}))
+    sys.exit(1)
+
+sys.exit(0)</code></pre>
+
+<p>Exit 0 allows the tool call to proceed. Exit non-zero blocks it. The response body can include a <code>reason</code> that Claude Code surfaces in the session.</p>
+
+<hr>
+
+<h2>Production patterns</h2>
+
+<p><strong>Sensitive path enforcement.</strong> A PreToolUse hook on Write and Edit that checks the target path against a list of protected directories. Simple to implement, genuinely useful — it catches cases where Claude Code makes a reasonable decision that would have bad consequences in your specific environment.</p>
+
+<p><strong>Session activity logging.</strong> A PostToolUse hook that appends a JSONL entry to a session log for every tool call. You end up with a complete machine-readable record of everything Claude did. Pair this with a dashboard that reads the log and you have real-time visibility into active sessions.</p>
+
+<p><strong>Tier-based notifications.</strong> Different tool calls warrant different notification levels. A bash command that runs tests: log it. A write to a production config file: Telegram notification immediately. A hook system that routes notifications based on tool type and path pattern gives you the right signal at the right time.</p>
+
+<hr>
+
+<h2>The gotchas</h2>
+
+<p><strong>Hooks run synchronously.</strong> A slow hook blocks Claude Code. Keep hooks fast. If you need to do something slow (API call, database write), do it async — fire and forget — and don't make Claude Code wait.</p>
+
+<p><strong>Hook failures are noisy.</strong> If your hook script has a bug and exits with an error, Claude Code surfaces that as a blocked tool call. Test hooks in isolation before deploying them. A broken hook in a production setup can stop Claude Code from doing anything useful.</p>
+
+<p><strong>The matcher matters.</strong> <code>PreToolUse</code> hooks can match on specific tool names. A hook that runs on every single tool call adds latency to everything. Be specific in your matchers.</p>
+
+<p><strong>JSON parsing is your responsibility.</strong> Claude Code passes a JSON payload, but it's your script that parses it. Malformed payloads, unexpected fields, tool calls with unusual argument shapes — your hook needs to handle these gracefully or it will block legitimate work.</p>
+
+<hr>
+
+<p>The hook system is what turns Claude Code from a powerful assistant into a production-grade agent with enforceable policies. Building on top of it — security layers, logging infrastructure, notification routing — is where the real leverage is.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

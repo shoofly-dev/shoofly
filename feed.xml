@@ -13,6 +13,13 @@
       <link>https://shoofly.dev/blog/</link>
     </image>
     <item>
+      <title>Claude Code Hooks Explained: What You Can Actually Automate</title>
+      <link>https://shoofly.dev/blog/claude-code-hooks-explained/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/claude-code-hooks-explained/</guid>
+      <pubDate>Fri, 10 Apr 2026 00:00:00 +0000</pubDate>
+      <description>Claude Code hooks fire before and after every tool call. Here's what they actually do, how to write your first hook, and the production patterns worth building.</description>
+    </item>
+    <item>
       <title>AI Agent Security: What Can Go Wrong and How to Prevent It</title>
       <link>https://shoofly.dev/blog/ai-agent-security/</link>
       <guid isPermaLink="true">https://shoofly.dev/blog/ai-agent-security/</guid>
