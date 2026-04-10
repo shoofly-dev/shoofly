@@ -76,6 +76,12 @@ Rules are open and auditable: https://github.com/shoofly-dev/shoofly
 
 ## Blog
 
+- [AI Agent Security: What Can Go Wrong and How to Prevent It](https://shoofly.dev/blog/ai-agent-security/) — AI agents that can execute code, write files, and call APIs create a new security surface. Here's the honest threat model and what actually reduces risk in production.
+- [Claude Managed Agents: What You Actually Get](https://shoofly.dev/blog/claude-managed-agents/) — Claude Managed Agents launched April 2026. Here's what the infrastructure handles, what's still gated, how the pricing works, and who should try it now.
+- [OpenClaw + Claude Is Now Pay-Per-Token: What It Costs and What to Do Next](https://shoofly.dev/blog/openclaw-claude-billing-change/) — Anthropic ended third-party Claude subscription billing on April 4, 2026. Here's what it actually costs now and your four options.
+- [LLM Firewall: Architecture, Comparison, and the Case for Pre-Execution](https://shoofly.dev/blog/llm-firewall/) — Comparing LLM firewalls across prompt filtering, tool call interception, and output scanning — and when each layer applies to your threat model.
+- [Vibe Coding Security: Why Scanning Output Isn't Enough](https://shoofly.dev/blog/vibe-coding-security/) — Everyone covers the code vibe coding generates. Nobody covers what the agent does before any code is written — file reads, shell commands, network calls.
+- [ClawHavoc: 824 Malicious Skills and the ClawHub Supply Chain Crisis](https://shoofly.dev/blog/clawhavoc/) — Koi Security found 824 confirmed malicious skills in ClawHub — roughly 8% of the registry. Here's the attack patterns, the kill chains, and what runtime policy enforcement catches.
 - [Is Claude Code Dispatch Safe? Here's What Anthropic Says (And What You Still Need)](https://shoofly.dev/blog/is-claude-code-dispatch-safe/) — Anthropic's own security numbers for Dispatch, /loop, and computer use. Where the gaps are and what fills them.
 - [Claude Code Security Best Practices](https://shoofly.dev/blog/securing-claude-code-best-practices/) — Practical hardening guide for Claude Code deployments.
 - [AI Computer Use Security: Attack Vectors and How to Stop Them](https://shoofly.dev/blog/ai-computer-use-security-attack-vectors/) — Unsandboxed computer use, DOM injection, clipboard attacks, proven PoCs.
