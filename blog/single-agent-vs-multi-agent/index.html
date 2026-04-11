@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="One agent or a team of specialists? Both patterns work. The difference is in what you're building and how much complexity you're willing to manage." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Single Agent vs Multi-Agent: When Each Pattern Actually Wins — Shoofly" />
+  <meta property="og:description" content="One agent or a team of specialists? Both patterns work. The difference is in what you're building and how much complexity you're willing to manage." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/single-agent-vs-multi-agent/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Single Agent vs Multi-Agent: When Each Pattern Actually Wins — Shoofly" />
+  <meta name="twitter:description" content="One agent or a team of specialists? Both patterns work. The difference is in what you're building and how much complexity you're willing to manage." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Single Agent vs Multi-Agent: When Each Pattern Actually Wins — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/single-agent-vs-multi-agent/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-10">April 10, 2026</time>
+        <span class="post-tag">AI Agents</span>
+      </div>
+      <h1>Single Agent vs Multi-Agent: When Each Pattern Actually Wins</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>The agent architecture question comes up fast when you start building anything real. One agent that handles everything, or a team of specialized agents coordinated by an orchestrator? Both patterns have strong advocates. Both work. The difference is in what you're building and how much complexity you're willing to manage.</p>
+
+<p>Here's what I've learned running both in production.</p>
+
+<hr>
+
+<h2>The single agent pattern</h2>
+
+<p>One agent. Loaded with whatever context and instructions the task requires. At any given moment it might be doing research, writing code, reviewing output, or sending a notification — wearing different hats, drawing on a shared context window.</p>
+
+<p>The appeal is straightforward: everything the agent knows is in one place. The researcher and the builder are the same agent, so there's no handoff problem, no context loss when you pass a document from one agent to another, no coordination overhead. If the task requires reading something you found in step 1 to inform step 4, that's automatic — it's all in context.</p>
+
+<p><strong>Where single agent wins:</strong></p>
+<ul>
+  <li>Tasks with strong interdependencies between steps, where earlier findings constantly inform later work</li>
+  <li>Work that doesn't benefit from true parallelism — the next step can't start until the previous one is done</li>
+  <li>Systems where debugging needs to be simple — one agent means one log stream, one context to inspect</li>
+  <li>Resource-constrained environments where running multiple full agent sessions is expensive</li>
+</ul>
+
+<p><strong>Where it struggles:</strong></p>
+<ul>
+  <li>Tasks with genuinely parallel subtasks — if step 3 and step 4 are independent, you're leaving time on the table</li>
+  <li>Situations where tool access should be isolated — if your research agent and your deployment agent share the same permissions, you're accepting more risk than necessary</li>
+  <li>Very long tasks that exceed a single context window</li>
+</ul>
+
+<hr>
+
+<h2>The multi-agent pattern</h2>
+
+<p>Multiple agents, each with a defined scope, coordinated by an orchestrator that delegates work and assembles results.</p>
+
+<p>A research agent that can access the web. A build agent that can write and execute code. A review agent that can read output and flag issues. The orchestrator — which might be another Claude session, a queue runner, or application code — assigns work, waits for results, and decides what happens next.</p>
+
+<p><strong>Where multi-agent wins:</strong></p>
+<ul>
+  <li>Tasks with genuinely parallel subtasks — research multiple topics simultaneously, run multiple tests at once</li>
+  <li>Work that benefits from tool isolation — the research agent has web access, the build agent has file system access, neither has the other's permissions</li>
+  <li>Long-running systems where you want to run agents on demand rather than keeping one large context alive</li>
+  <li>Complex pipelines where different stages require different models or different system prompts</li>
+</ul>
+
+<p><strong>Where it struggles:</strong></p>
+<ul>
+  <li>Coordination overhead is real. Every handoff costs tokens, latency, and an opportunity for information to get lost.</li>
+  <li>Debugging is harder. When something goes wrong in a multi-agent system, it's often in the gap between agents — the orchestrator misread an output, the specialist agent returned something in an unexpected format. You now have multiple log streams to correlate.</li>
+  <li>More moving parts means more failure modes. An agent that fails silently in a single-agent system is annoying. In a multi-agent system, it can cascade.</li>
+</ul>
+
+<hr>
+
+<h2>The hidden costs of multi-agent</h2>
+
+<p>The seductive thing about multi-agent architectures is that they sound efficient. Parallel execution, specialized tools, clean separation of concerns. All of that is real. But there's a cost side that doesn't get discussed as much.</p>
+
+<p><strong>Orchestration overhead.</strong> The orchestrator needs to understand the state of all running agents, parse their outputs, handle errors, and make decisions about what to delegate next. If your orchestrator is itself a Claude session, you're spending tokens on coordination that a single agent would spend on actual work.</p>
+
+<p><strong>Format brittleness.</strong> Single agents can handle ambiguity — they understand their own output. When agent A passes output to agent B, agent B has to parse it. Structured output formats help, but every handoff is a place where the format can drift or the contract can break.</p>
+
+<p><strong>Debugging surface.</strong> A bug in a single-agent system has one context window to inspect. A bug in a multi-agent system might live in any of several agent contexts, or in the handoffs between them. The observability investment required scales with the number of agents.</p>
+
+<hr>
+
+<h2>The decision framework</h2>
+
+<p>A few questions that actually help:</p>
+
+<p><strong>Are the subtasks genuinely parallel, or just decomposable?</strong> If you can do research and writing in parallel, multi-agent saves time. If the writing depends on the research, you're not gaining true parallelism — you're just adding coordination.</p>
+
+<p><strong>Does tool isolation matter for your security model?</strong> If you need to guarantee that your research agent can't write to the file system, a separate agent with different permissions is the right call. If tool overlap is acceptable, the isolation benefit disappears.</p>
+
+<p><strong>How much debugging time are you willing to invest?</strong> Multi-agent systems need investment in observability, structured output contracts, and error handling. If you don't make that investment, you'll pay for it when something breaks.</p>
+
+<p><strong>What's the task duration?</strong> Long-running background tasks often benefit from multi-agent decomposition because you can run components on demand rather than keeping a single long context alive. Short interactive tasks rarely do.</p>
+
+<hr>
+
+<h2>What actually works</h2>
+
+<p>The pattern I've found most useful isn't at either extreme. One primary agent that handles the majority of a task, with occasional parallel delegation for subtasks that are genuinely independent and time-sensitive. The primary agent maintains context and continuity; specialists run on demand for bounded, well-defined work.</p>
+
+<p>The orchestration layer is thin — a queue runner that picks up cards, tracks state in files, and sends notifications when things complete. Not a complex coordination system, just enough structure to run tasks reliably without you watching.</p>
+
+<p>This isn't elegant architecture. It's the minimum that works reliably, built up from what actually failed in simpler setups.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

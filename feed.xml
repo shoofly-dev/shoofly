@@ -13,6 +13,13 @@
       <link>https://shoofly.dev/blog/</link>
     </image>
     <item>
+      <title>Single Agent vs Multi-Agent: When Each Pattern Actually Wins</title>
+      <link>https://shoofly.dev/blog/single-agent-vs-multi-agent/</link>
+      <guid isPermaLink="true">https://shoofly.dev/blog/single-agent-vs-multi-agent/</guid>
+      <pubDate>Fri, 10 Apr 2026 00:00:00 +0000</pubDate>
+      <description>One agent or a team of specialists? Both patterns work. The difference is in what you're building and how much complexity you're willing to manage.</description>
+    </item>
+    <item>
       <title>Claude Code Subagents: How They Work in Practice</title>
       <link>https://shoofly.dev/blog/claude-code-subagents/</link>
       <guid isPermaLink="true">https://shoofly.dev/blog/claude-code-subagents/</guid>
