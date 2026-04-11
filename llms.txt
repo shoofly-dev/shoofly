@@ -76,6 +76,7 @@ Rules are open and auditable: https://github.com/shoofly-dev/shoofly
 
 ## Blog
 
+- [Claude Code Subagents: How They Work in Practice](https://shoofly.dev/blog/claude-code-subagents/) — Subagents run in their own context window with their own tool access. Here's when they're the right tool, how to define custom subagents, and the gotchas that matter.
 - [Claude Code Hooks Explained: What You Can Actually Automate](https://shoofly.dev/blog/claude-code-hooks-explained/) — Claude Code hooks fire before and after every tool call. Here's what they actually do, how to write your first hook, and the production patterns worth building.
 - [AI Agent Security: What Can Go Wrong and How to Prevent It](https://shoofly.dev/blog/ai-agent-security/) — AI agents that can execute code, write files, and call APIs create a new security surface. Here's the honest threat model and what actually reduces risk in production.
 - [Claude Managed Agents: What You Actually Get](https://shoofly.dev/blog/claude-managed-agents/) — Claude Managed Agents launched April 2026. Here's what the infrastructure handles, what's still gated, how the pricing works, and who should try it now.

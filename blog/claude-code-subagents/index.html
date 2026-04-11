@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Subagents run in their own context window with their own tool access. Here's when they're the right tool, how to define custom subagents, and the gotchas that matter." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude Code Subagents: How They Work in Practice — Shoofly" />
+  <meta property="og:description" content="Subagents run in their own context window with their own tool access. Here's when they're the right tool, how to define custom subagents, and the gotchas that matter." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/claude-code-subagents/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Code Subagents: How They Work in Practice — Shoofly" />
+  <meta name="twitter:description" content="Subagents run in their own context window with their own tool access. Here's when they're the right tool, how to define custom subagents, and the gotchas that matter." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude Code Subagents: How They Work in Practice — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/claude-code-subagents/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .post-body table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:0.9rem;}
+    .post-body th{background:var(--bg-alt);border:1px solid var(--border);padding:0.6rem 1rem;text-align:left;font-weight:600;}
+    .post-body td{border:1px solid var(--border);padding:0.6rem 1rem;}
+    .post-body tr:nth-child(even) td{background:var(--bg-alt);}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
+      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
+      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-10">April 10, 2026</time>
+        <span class="post-tag">Claude Code</span>
+      </div>
+      <h1>Claude Code Subagents: How They Work in Practice</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>Most people discover subagents when they hit a specific problem: a task that generates a huge amount of output, or a task where the work would contaminate the main conversation context. Subagents are Claude Code's answer to that problem. Here's what they actually are, how they differ from other agent patterns, and the practical details that matter.</p>
+
+<hr>
+
+<h2>The problem subagents solve</h2>
+
+<p>When you give Claude Code a complex task, everything it does — tool calls, results, intermediate work — lives in the same context window. For most tasks, this is fine. The context stays manageable, and having the full history helps Claude Code reason about what it's done.</p>
+
+<p>But some tasks generate so much intermediate output that they crowd out useful context. Running a full test suite, searching a large codebase, processing many files — the results fill the context window with data that Claude Code doesn't need to keep reasoning about. The main conversation gets noisy, and you may hit context limits on long sessions.</p>
+
+<p>Other tasks need different tool access than the main session should have. A task that requires searching the web shouldn't need write access to the file system. A code review task that only reads files shouldn't have shell execution enabled.</p>
+
+<p>Subagents handle both problems: they run in their own context window, with their own tool configuration, and only pass their final result back to the parent. The noise stays in the subagent's context. The main conversation stays clean.</p>
+
+<hr>
+
+<h2>What subagents actually are</h2>
+
+<p>A subagent is a Claude Code session launched by another Claude Code session to handle a specific task. The parent agent defines the task, the subagent executes it, and the parent agent receives the result.</p>
+
+<p>In Claude Code, subagents are created using the Agent tool. The parent calls the Agent tool with a task description and optional configuration. Claude Code launches a new session (or process), runs the task, and returns the result as a tool output.</p>
+
+<p>The subagent has its own context window, its own tool set, and its own execution environment. It doesn't inherit the parent's context — it only gets what the parent explicitly passes to it in the task description.</p>
+
+<hr>
+
+<h2>How they differ from the Agent tool</h2>
+
+<p>The Agent tool and custom subagents (defined in <code>.claude/agents/</code>) are related but different:</p>
+
+<p><strong>The Agent tool</strong> (invocable by Claude Code at runtime) is the mechanism. It launches a new Claude Code process, runs it with the given prompt, and returns the output. Any Claude Code session can use the Agent tool.</p>
+
+<p><strong>Custom subagent definitions</strong> (<code>.claude/agents/*.md</code> files) are specializations. They pre-define the system prompt, tool access, and model for a specific type of task. When Claude Code decides to use a subagent for a particular task, it can match to a custom definition if one fits.</p>
+
+<p>You can use the Agent tool without any custom definitions — Claude Code will launch a generic session. Custom definitions let you configure specialized subagents for tasks you run frequently, ensuring consistent system prompts and appropriate tool access every time.</p>
+
+<hr>
+
+<h2>Writing a useful subagent definition</h2>
+
+<p>A custom subagent definition is a markdown file in <code>.claude/agents/</code>. It specifies:</p>
+
+<pre><code>---
+name: code-reviewer
+description: Reviews code changes for quality, security, and style issues. Use when asked to review a diff, PR, or set of file changes.
+tools: Read, Glob, Grep
+model: claude-haiku-4-5
+---
+
+You are a code reviewer. Your job is to read code changes and identify:
+- Logic errors or bugs
+- Security vulnerabilities
+- Style inconsistencies
+- Missing error handling
+- Test coverage gaps
+
+Return a structured report with findings organized by severity (high/medium/low).
+Do not make any changes to files. Read only.</code></pre>
+
+<p>The key design decisions:</p>
+
+<p><strong><code>description</code></strong> is how Claude Code decides whether to use this subagent. Write it to match the natural language descriptions of tasks you want routed to this subagent.</p>
+
+<p><strong><code>tools</code></strong> constrains what the subagent can do. A reviewer that only needs to read files shouldn't have Bash or Write access. Minimal tools = smaller blast radius if something goes wrong.</p>
+
+<p><strong><code>model</code></strong> lets you use a cheaper or faster model for tasks that don't require the full capability of Sonnet or Opus. Haiku for classification and summarization, Sonnet for complex reasoning.</p>
+
+<hr>
+
+<h2>Patterns that work in practice</h2>
+
+<p><strong>Verbose research.</strong> Searching documentation, reading many files, exploring a codebase to answer a question — these generate a lot of intermediate output. Delegating to a research subagent keeps the main session clean and lets you run research in parallel with other work.</p>
+
+<p><strong>Parallel file processing.</strong> If you need to process 50 files independently, launching 50 subagents would be excessive, but launching 5 each handling 10 files is reasonable. Each subagent processes its batch and returns a summary.</p>
+
+<p><strong>Isolated code review.</strong> A review subagent with read-only tools reviews a diff and returns a structured report. The main session doesn't need to wade through all the files the reviewer read.</p>
+
+<p><strong>Format conversion.</strong> Converting many files from one format to another is a good subagent task — repetitive, bounded, doesn't require reasoning across the full codebase.</p>
+
+<p><strong>Security scanning.</strong> A subagent that reads files and checks for known vulnerability patterns, with no write access — the isolation from the main session ensures it can't accidentally make changes.</p>
+
+<hr>
+
+<h2>Gotchas and limits</h2>
+
+<p><strong>Context is not shared.</strong> The subagent only knows what you pass to it. If the subagent needs context from the main session (earlier findings, environment details, project conventions), you need to explicitly include that in the task description. Assuming the subagent has context it doesn't have is a common failure mode.</p>
+
+<p><strong>Results come back as text.</strong> The subagent's output is returned to the parent as a text blob. If you want structured output (JSON, a specific format), say so explicitly in the task description. Otherwise you'll get prose that the parent has to interpret.</p>
+
+<p><strong>Errors in subagents don't automatically surface.</strong> If a subagent fails or produces malformed output, the parent may not realize it unless it checks. Build in result validation when subagent output feeds into subsequent work.</p>
+
+<p><strong>Cost multiplies.</strong> Each subagent is a separate Claude session. Running many subagents in parallel means multiple sessions consuming tokens simultaneously. For Claude Code on a subscription plan, this runs through your usage faster than a single session would.</p>
+
+<p><strong>Depth limits.</strong> Subagents can themselves launch subagents, but deep nesting gets hard to reason about and debug quickly. Two levels is usually the practical limit before you want a different architecture.</p>
+
+<hr>
+
+<p>Subagents are a clean solution to a specific class of problem. When the problem is "this task would contaminate my main context" or "I need tool isolation," they're exactly the right tool. When the problem is something else, they add overhead without clear benefit.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <a href="/openclaw" class="footer-link">OpenClaw</a>
+        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>
