@@ -23,9 +23,7 @@ fi
 
 echo "Validating install token..."
 VALIDATE_STATUS=$(/usr/bin/curl -s -o /dev/null -w "%{http_code}" \
-  -X POST \
-  -H "Authorization: Bearer ${INSTALL_TOKEN}" \
-  "https://shoofly-stripe-production.up.railway.app/validate")
+  "https://shoofly-stripe-production.up.railway.app/validate?token=${INSTALL_TOKEN}")
 
 if [[ "$VALIDATE_STATUS" != "200" ]]; then
   echo ""
