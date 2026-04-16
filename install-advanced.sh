@@ -172,40 +172,60 @@ _tui_opts_json() {
   printf '%s' "${json}]"
 }
 
-# Fallback: plain numbered select (no Node.js)
+# Fallback: plain numbered select (no Node.js) — bash 3.2 compatible
 _tui_bash_select() {
   local message="$1"; shift
-  printf "\n%s\n" "$message"
-  local i=1
-  for opt in "$@"; do
-    IFS='|' read -r v l h <<< "$opt"; printf "  %d) %s\n" "$i" "$l"; i=$((i+1))
+  local -a a=("$@")
+  local n=${#a[@]} i v l h choice idx
+  printf "\n${_G}${_B}${_DIA}${_R}  %s\n" "$message"
+  for ((i=0; i<n; i++)); do
+    IFS='|' read -r v l h <<< "${a[$i]}"
+    printf "  ${_G}${_BAR}${_R}  %d)  ${_B}%-24s${_R}  ${_D}%s${_R}\n" "$((i+1))" "$l" "${h:-}"
   done
-  printf "Choice [1]: "; local choice; IFS= read -r choice < /dev/tty
-  choice=${choice:-1}; local idx=$((choice-1))
-  [[ $idx -lt 0 || $idx -ge $# ]] && idx=0
-  local opt; eval "opt=\"\${${$((idx+1))}}\""
-  # bash doesn't support dynamic positional args easily — use an array
-  local -a a=("$@"); IFS='|' read -r TUI_RESULT _ _ <<< "${a[$idx]}"
+  printf "  ${_G}${_COR}${_R}\n"
+  while true; do
+    printf "  Enter number [1]: "
+    IFS= read -r choice < /dev/tty
+    choice=${choice:-1}
+    if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= n )); then
+      idx=$((choice-1)); break
+    fi
+    printf "  ${_D}Please enter a number from 1 to %d${_R}\n" "$n"
+  done
+  IFS='|' read -r TUI_RESULT _ _ <<< "${a[$idx]}"
 }
 
-# Fallback: plain numbered multiselect (no Node.js)
+# Fallback: plain numbered multiselect (no Node.js) — bash 3.2 compatible
 _tui_bash_multiselect() {
   local message="$1"; shift
-  printf "\n%s\n" "$message"
-  printf "(space-separated numbers, e.g. 1 4 — blank = option 1)\n"
-  local i=1
   local -a a=("$@")
-  for opt in "$@"; do
-    IFS='|' read -r v l h <<< "$opt"; printf "  %d) %s\n" "$i" "$l"; i=$((i+1))
+  local n=${#a[@]} i v l h
+  printf "\n${_G}${_B}${_DIA}${_R}  %s\n" "$message"
+  printf "  ${_G}${_BAR}${_R}  ${_D}Space-separated numbers (e.g. 1 3) -- blank = first option${_R}\n"
+  for ((i=0; i<n; i++)); do
+    IFS='|' read -r v l h <<< "${a[$i]}"
+    printf "  ${_G}${_BAR}${_R}  %d)  ${_B}%-24s${_R}  ${_D}%s${_R}\n" "$((i+1))" "$l" "${h:-}"
   done
-  printf "Choices [1]: "; local choices; IFS= read -r choices < /dev/tty
-  choices=${choices:-1}; TUI_RESULTS=()
-  local c idx v
-  for c in $choices; do
-    idx=$((c-1)); [[ $idx -ge 0 && $idx -lt ${#a[@]} ]] || continue
-    IFS='|' read -r v _ _ <<< "${a[$idx]}"; TUI_RESULTS+=("$v")
+  printf "  ${_G}${_COR}${_R}\n"
+  local choices c idx ok
+  TUI_RESULTS=()
+  while true; do
+    printf "  Enter numbers [1]: "
+    IFS= read -r choices < /dev/tty
+    choices=${choices:-1}
+    ok=true; TUI_RESULTS=()
+    for c in $choices; do
+      if [[ "$c" =~ ^[0-9]+$ ]] && (( c >= 1 && c <= n )); then
+        idx=$((c-1))
+        IFS='|' read -r v _ _ <<< "${a[$idx]}"
+        TUI_RESULTS+=("$v")
+      else
+        printf "  ${_D}%s is not valid -- enter numbers 1 to %d${_R}\n" "$c" "$n"
+        ok=false; break
+      fi
+    done
+    $ok && break
   done
-  [[ ${#TUI_RESULTS[@]} -eq 0 ]] && { IFS='|' read -r v _ _ <<< "${a[0]}"; TUI_RESULTS=("$v"); }
 }
 
 # tui_select <message> [option strings "value|label|hint" ...]
