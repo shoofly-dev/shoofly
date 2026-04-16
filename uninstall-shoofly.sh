@@ -40,8 +40,9 @@ trap '_tui_restore' EXIT INT TERM
 # Called before every tui_select/tui_multiselect — checks if file still exists
 # because subshell EXIT traps may delete it between calls.
 _tui_ensure_js() {
-  [[ -n "$_TUI_JS" && -f "$_TUI_JS" ]] && return
+  [[ -n "$_TUI_JS" && -f "$_TUI_JS" ]] && return 0
   _TUI_JS="/tmp/shoofly-tui-$$.js"
+  set +e
   cat > "$_TUI_JS" << 'TUI_JS_EOF'
 'use strict';
 // Shoofly TUI helper — vanilla Node.js, no npm dependencies required.
@@ -118,6 +119,11 @@ else if(type==='multiselect'){
   });
 }
 TUI_JS_EOF
+  local _rc=$?
+  set -e
+  if [[ $_rc -ne 0 || ! -s "$_TUI_JS" ]]; then
+    rm -f "$_TUI_JS" 2>/dev/null; _TUI_JS=""; return 1
+  fi
 }
 
 # Build JSON array from "value|label|hint" bash option strings
@@ -175,8 +181,7 @@ _tui_bash_multiselect() {
 # Sets TUI_RESULT to selected value.
 tui_select() {
   local message="$1"; shift
-  if command -v node >/dev/null 2>&1; then
-    _tui_ensure_js
+  if command -v node >/dev/null 2>&1 && _tui_ensure_js; then
     local json; json=$(_tui_opts_json "$@")
     TUI_RESULT=$(S_TYPE=select S_MSG="$message" S_OPTS="$json" node "$_TUI_JS" < /dev/tty) || {
       printf "\n%s  Setup cancelled.%s\n" "$_D" "$_R"; exit 1
@@ -191,8 +196,7 @@ tui_select() {
 tui_multiselect() {
   local message="$1"; shift
   TUI_RESULTS=()
-  if command -v node >/dev/null 2>&1; then
-    _tui_ensure_js
+  if command -v node >/dev/null 2>&1 && _tui_ensure_js; then
     local json; json=$(_tui_opts_json "$@")
     while IFS= read -r line; do
       [[ -n "$line" ]] && TUI_RESULTS+=("$line")
