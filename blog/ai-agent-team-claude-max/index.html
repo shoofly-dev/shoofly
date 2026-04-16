@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="Claude Max removes the rate limit ceiling that makes parallel Claude Code work painful. Here's what that actually looks like and what coordination approach works." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="How to Run an AI Agent Team on Claude Max — Shoofly" />
+  <meta property="og:description" content="Claude Max removes the rate limit ceiling that makes parallel Claude Code work painful. Here's what that actually looks like and what coordination approach works." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/ai-agent-team-claude-max/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="How to Run an AI Agent Team on Claude Max — Shoofly" />
+  <meta name="twitter:description" content="Claude Max removes the rate limit ceiling that makes parallel Claude Code work painful. Here's what that actually looks like and what coordination approach works." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>How to Run an AI Agent Team on Claude Max — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/ai-agent-team-claude-max/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-14">April 14, 2026</time>
+        <span class="post-tag">AI Agents</span>
+      </div>
+      <h1>How to Run an AI Agent Team on Claude Max</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>Claude Max changes the math on parallel agent work — not because it ships a turnkey "agent team" product, but because it removes the rate limit ceiling that makes running multiple Claude Code instances simultaneously painful on lower plans. With enough headroom, you can run several independent Claude Code sessions against the same codebase at once, coordinating through a shared task file. The setup is simple. The gains on the right work are real. For the architectural question of whether a single agent or a multi-agent team is the right pattern for your workload, <a href="/blog/single-agent-vs-multi-agent/">the single vs multi-agent comparison</a> lays out the tradeoffs clearly.</p>
+
+<p>This is what parallel Claude Code work actually looks like, what coordination approach works in practice, and what breaks.</p>
+
+<hr>
+
+<h2>What Claude Max actually gives you</h2>
+
+<p>Claude Max is the highest tier of Claude's consumer subscription, available in 5&times; and 20&times; usage variants compared to the standard Pro plan.</p>
+
+<p>The practical difference for agent work: sustained throughput. Agentic sessions consume usage fast — reading large codebases, iterating on output, running tools repeatedly. On Pro, a heavy Claude Code session can burn through your daily allocation in an hour or two. Claude Max extends that ceiling enough that you can run multiple sessions in parallel without one killing the others mid-task.</p>
+
+<p>Beyond usage limits, Claude Max supports longer individual sessions without hitting rate pauses. For tasks that require Claude Code to hold a lot in context — large codebases, multi-step refactors — that continuity matters.</p>
+
+<p>What Claude Max doesn't do: it doesn't provide a built-in orchestration layer, a shared memory system, or automatic coordination between running instances. That's something you set up yourself. The good news is the setup is lightweight.</p>
+
+<hr>
+
+<h2>The shared task list pattern</h2>
+
+<p>The coordination mechanism that works is a plain text task file in the repository — call it <code>TASKS.md</code> or <code>TODO.md</code>. Each running Claude Code instance reads the task list, claims a task, does the work, and marks it complete before picking up the next one.</p>
+
+<p>The file acts as a shared state that multiple instances can read and write:</p>
+
+<pre><code>## Tasks
+
+- [ ] Write unit tests for auth module — (unclaimed)
+- [x] Refactor database connection pool — (done)
+- [ ] Update API documentation — (unclaimed)
+- [~] Add error handling to webhook handler — (in progress)</code></pre>
+
+<p>Each instance opens the file, looks for an unclaimed task, claims it by updating the status, completes the work, and marks it done. Because file writes are atomic at the OS level and tasks are independent, conflicts are rare for genuinely separated work.</p>
+
+<p>This isn't a sophisticated system. It's a text file. The simplicity is the point — there's nothing to fail, nothing to maintain, and it works across any number of simultaneous instances.</p>
+
+<hr>
+
+<h2>How to structure the work</h2>
+
+<p><strong>Make tasks genuinely independent.</strong> The shared task list only works when tasks don't depend on each other's output. If task 3 requires the output of task 2, you need sequential execution, not parallel. Before splitting work across instances, audit whether the tasks are actually independent.</p>
+
+<p><strong>Scope tasks to a single, bounded output.</strong> "Write tests for the payment module" is a good parallel task. "Refactor the entire auth system" is not — it touches too much shared state and creates merge conflicts when another instance is working in an adjacent part of the codebase.</p>
+
+<p><strong>Give each instance a clear system prompt that includes the task list path.</strong> Each Claude Code session needs to know: where the task file lives, what "done" means for a task, and what to do if a task is ambiguous. Don't rely on implicit context.</p>
+
+<hr>
+
+<h2>Practical workflows where this pays off</h2>
+
+<p><strong>Test generation at scale.</strong> One instance per module, each writing tests independently. No shared state, no file conflicts, straightforward tasks. This is the cleanest parallel use case. Within a single Claude Code session, the same isolation benefits are available through <a href="/blog/claude-code-subagents/">Claude Code subagents</a>, which run in their own context window with constrained tool access.</p>
+
+<p><strong>Documentation.</strong> One instance per section or module, generating from code. Parallel execution is genuinely faster; the outputs don't interfere with each other.</p>
+
+<p><strong>Bulk refactoring with clear scope.</strong> Break a large refactor into file-level tasks. Each instance handles its assigned files. The risk is coordination failures on shared types or interfaces — scope the tasks carefully to minimize cross-file dependencies.</p>
+
+<p><strong>Codebase auditing.</strong> Each instance audits a different subsystem and produces a structured report. No writes, no conflicts, genuine concurrency benefit.</p>
+
+<hr>
+
+<h2>What breaks</h2>
+
+<p><strong>False independence.</strong> Tasks that look independent turn out to share a type definition, a config file, or an interface. Two instances edit the same thing in incompatible ways. The fix is better task decomposition upfront; the symptom is merge conflicts.</p>
+
+<p><strong>Context isolation.</strong> Each instance has its own context window and doesn't see what other instances have done unless it reads shared files. An instance that needs to build on another instance's output can't unless that output is written to a file it can read.</p>
+
+<p><strong>Cost scaling.</strong> Running three Claude Code instances simultaneously consumes usage at roughly three times the rate of one. Claude Max's higher ceiling handles this, but it's worth being conscious of tasks that could run serially without meaningful cost to your timeline. For a full breakdown of subscription versus API economics, <a href="/blog/anthropic-api-vs-claude-subscription/">the API vs subscription comparison</a> covers when each billing model makes sense.</p>
+
+<p><strong>Task file conflicts.</strong> If two instances try to update the task file at the same moment, you can get a merge conflict in the task list itself. This is rare but happens. The pragmatic fix: add a brief random sleep before each instance writes to the task file, spreading out the write attempts.</p>
+
+<hr>
+
+<h2>The honest math</h2>
+
+<p>Parallel Claude Code work multiplies throughput on genuinely parallelizable tasks. If your codebase has 40 independent test files to cover and you run four instances, you finish roughly four times faster than one instance working sequentially.</p>
+
+<p>For work with tight dependencies — where each step informs the next — parallelism doesn't help. You're still sequentially bottlenecked.</p>
+
+<p>The Claude Max plan makes sense for developers who are already hitting rate limits on Claude Code work, or who want to run parallel sessions regularly enough that the ceiling becomes a real constraint. For lighter usage, Pro is probably sufficient.</p>
+
+<p>The worst use case for parallel agents: exploratory work where you're still figuring out what to build. Multiple agents exploring the same uncertain territory don't converge faster — they produce divergent output that you have to reconcile, which can cost more time than the parallel execution saved.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

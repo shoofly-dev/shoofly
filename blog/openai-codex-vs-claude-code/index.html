@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="OpenAI Codex and Claude Code made different architectural bets. Here's what those differences mean for the work builders actually do." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="OpenAI Codex vs Claude Code: A Builder's Perspective — Shoofly" />
+  <meta property="og:description" content="OpenAI Codex and Claude Code made different architectural bets. Here's what those differences mean for the work builders actually do." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/openai-codex-vs-claude-code/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="OpenAI Codex vs Claude Code: A Builder's Perspective — Shoofly" />
+  <meta name="twitter:description" content="OpenAI Codex and Claude Code made different architectural bets. Here's what those differences mean for the work builders actually do." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>OpenAI Codex vs Claude Code: A Builder's Perspective — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/openai-codex-vs-claude-code/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-12">April 12, 2026</time>
+        <span class="post-tag">Claude Code</span>
+      </div>
+      <h1>OpenAI Codex vs Claude Code: A Builder's Perspective</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>Two different bets on what an AI coding agent should be. OpenAI Codex (the 2025-2026 version, not the original autocomplete model) and Claude Code are both trying to solve the problem of autonomous coding work. They've made different architectural decisions, and those decisions matter for what you're actually trying to build.</p>
+
+<p>This isn't a benchmark post. Benchmarks tell you who wins on carefully constructed test cases. This is about what the differences mean in practice. If you're also weighing Cursor and Cline alongside Codex, <a href="/blog/claude-code-vs-cursor-vs-cline/">the broader three-way comparison</a> covers the full landscape.</p>
+
+<hr>
+
+<h2>What Codex actually is now</h2>
+
+<p>OpenAI Codex in its current form is a cloud-based coding agent. You give it a task, it spins up a sandboxed environment, executes the work — writing code, running tests, making commits — and returns the result. The interaction is largely asynchronous: you submit a task, Codex works on it in the background, you come back to the result.</p>
+
+<p>It's built around the SWE-bench style of task: "here is a repository and a bug description, fix the bug." The cloud sandbox means Codex can run tests, install dependencies, and produce a diff without touching your local machine. OpenAI optimized heavily for benchmark performance on structured coding tasks, and it shows in what the product is good at.</p>
+
+<p>The tradeoff: the cloud execution model means Codex is removed from your local environment. It can't access your running services, your local database, your development secrets. It works on the code in isolation.</p>
+
+<hr>
+
+<h2>What Claude Code actually is</h2>
+
+<p>Claude Code is terminal-native and local-first. It runs in your shell with access to your actual development environment. It can read your local files, run commands against your local services, execute scripts, interact with tools on your machine.</p>
+
+<p>The design philosophy is different: Claude Code is meant to work alongside your existing development workflow, not replace it with a cloud sandbox. It hooks into your tools. It respects your directory structure. It can be configured with policies via hooks that run before and after every tool call.</p>
+
+<p>Claude Code is also explicitly agentic — it's built around the assumption that you'll be giving it tasks that require multiple steps, tool calls, and iteration, not just single-shot code generation.</p>
+
+<hr>
+
+<h2>Benchmark vs production reality</h2>
+
+<p>Codex has strong results on SWE-bench, which measures performance on structured bug-fix tasks against real open-source repositories. These benchmarks matter as a signal — they test real coding ability, not just prose generation.</p>
+
+<p>But SWE-bench tasks are different from the work most builders actually do:</p>
+<ul>
+  <li>The repository is fixed and well-understood</li>
+  <li>The task is a specific, scoped bug fix or feature</li>
+  <li>Success is measured by whether tests pass</li>
+</ul>
+
+<p>Production work is messier. You're building new things in a codebase you know well, integrating with services that have quirks, making decisions that require context that isn't in the repository. The task isn't "fix this bug" — it's "figure out why the webhook integration behaves differently in staging than production."</p>
+
+<p>For that kind of work, the architecture differences between Codex and Claude Code matter more than benchmark scores.</p>
+
+<hr>
+
+<h2>Where Codex makes sense</h2>
+
+<p><strong>Isolated, well-defined tasks.</strong> If you have a clear task — fix this test, refactor this module, implement this specification — and you want it done without distracting you from other work, Codex's async cloud model is a good fit. Submit the task, keep working, review the PR when it's ready.</p>
+
+<p><strong>Clean codebases with good test coverage.</strong> Codex works best when it can validate its own work by running the test suite. Repositories with high test coverage and clear conventions let Codex iterate effectively.</p>
+
+<p><strong>Teams already on OpenAI's platform.</strong> If you're already using OpenAI APIs throughout your stack, using Codex fits naturally into existing tooling, billing, and access control setups.</p>
+
+<hr>
+
+<h2>Where Claude Code makes sense</h2>
+
+<p><strong>Tasks requiring local environment access.</strong> If your work requires interacting with local services, databases, development configurations, or tools that only exist on your machine, Claude Code is the better fit. Codex's cloud sandbox can't reach your local environment.</p>
+
+<p><strong>Agentic workflows with hooks and policies.</strong> <a href="/blog/claude-code-hooks-explained/">Claude Code's hook system</a> lets you build enforcement and observability into the agent's behavior. Security policies, audit logging, notification routing, cost tracking — none of this exists in Codex's model.</p>
+
+<p><strong>Integration-heavy work.</strong> <a href="/blog/claude-code-mcp-servers/">Claude Code's MCP integration</a> gives it access to GitHub, search, databases, and external APIs through a standardized protocol. When the task requires pulling information from multiple external systems, MCP-connected Claude Code has more reach than a sandboxed cloud agent.</p>
+
+<p><strong>Continuous work alongside your development flow.</strong> Claude Code is designed to be a persistent presence in your development environment, not a task queue you submit to. If you want to work alongside an agent in real time, the terminal-native model fits that better.</p>
+
+<hr>
+
+<h2>The real question</h2>
+
+<p>The Codex vs Claude Code debate is partly a proxy for a more fundamental question: what kind of coding agent do you actually need?</p>
+
+<p>If you want an agent you can point at a repository and task, and get back a diff without babysitting it — cloud-first, async, isolated — Codex's model is purpose-built for that.</p>
+
+<p>If you want an agent that works alongside you in your actual development environment, can be configured with custom policies, integrates with your local tools, and can be scripted into your workflows — Claude Code's model is purpose-built for that.</p>
+
+<p>Most serious builders end up with both available. The choice of which to use on a given task depends on the task structure, not brand loyalty.</p>
+
+<hr>
+
+<h2>What neither does well</h2>
+
+<p>Both tools struggle with the same class of problem: tasks that require human judgment about priorities, tradeoffs, or context that isn't in the codebase.</p>
+
+<p>"Refactor the auth module" is doable. "Decide how to handle the auth module given that we're planning to migrate to a new provider in six months" is not. The agent can execute a decision; it can't reliably make the strategic decision for you.</p>
+
+<p>The productivity gains from these tools are real. But they're gains in execution speed, not in decision quality. Knowing the difference is how you use them without getting burned.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

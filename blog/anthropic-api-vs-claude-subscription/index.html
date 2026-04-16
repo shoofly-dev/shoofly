@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Same model, very different interfaces. Here's when to use the Anthropic API versus a Claude subscription — and the middle path that works for most builders." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Anthropic API vs Claude Subscription: Which to Use When — Shoofly" />
+  <meta property="og:description" content="Same model, very different interfaces. Here's when to use the Anthropic API versus a Claude subscription — and the middle path that works for most builders." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/anthropic-api-vs-claude-subscription/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Anthropic API vs Claude Subscription: Which to Use When — Shoofly" />
+  <meta name="twitter:description" content="Same model, very different interfaces. Here's when to use the Anthropic API versus a Claude subscription — and the middle path that works for most builders." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Anthropic API vs Claude Subscription: Which to Use When — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/anthropic-api-vs-claude-subscription/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-15">April 15, 2026</time>
+        <span class="post-tag">Claude Code</span>
+      </div>
+      <h1>Anthropic API vs Claude Subscription: Which to Use When</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>Same model, very different interfaces. The Anthropic API and Claude's consumer subscriptions both give you access to Claude — but the use cases are different enough that mixing them up costs you money, hits you with unexpected rate limits, or leaves you with more complexity than you need.</p>
+
+<p>Here's the practical breakdown.</p>
+
+<hr>
+
+<h2>What the API gives you</h2>
+
+<p>The Anthropic API is the programmatic interface to Claude. You send requests, you get responses. You control the system prompt, the model version, the temperature, the token budget. You can build applications on top of it, run automated workflows, integrate Claude into your own products.</p>
+
+<p>Billing is token-based: you pay per input token and per output token, at rates that vary by model. There's no subscription fee — you pay for what you use.</p>
+
+<p>The API also has rate limits, but they're structured differently than subscription plans. By default, new API accounts start with conservative limits that increase as you build usage history. Enterprise contracts get much higher limits.</p>
+
+<p>Tools, function calling, extended thinking — all the programmatic capabilities are API-only or API-first.</p>
+
+<hr>
+
+<h2>What subscriptions give you</h2>
+
+<p>Claude.ai subscriptions are the chat interface. You type, Claude responds. Pro, Team, and Max plans give you higher usage limits, access to different models, and in the case of Claude Max, extended session support.</p>
+
+<p>Billing is flat monthly fee. Predictable cost regardless of how much you use it within your plan's limits.</p>
+
+<p>The chat interface is the right tool when the workflow is inherently conversational — you're iterating on something, doing exploratory work, or need a back-and-forth where you can steer Claude's reasoning in real time.</p>
+
+<hr>
+
+<h2>When to use the API</h2>
+
+<p><strong>You're building a product.</strong> Any time Claude is part of something you're shipping to users — a feature, an integration, an automation — you need the API. You can't build on a chat subscription.</p>
+
+<p><strong>You need programmatic control.</strong> Custom system prompts, structured output, function calling, model version pinning — these are API features. If you need to control Claude's behavior precisely and programmatically, the chat interface doesn't give you enough control.</p>
+
+<p><strong>You're running automated workflows.</strong> Queue runners, cron jobs, triggered automations — these need to call Claude without a human in the loop. API with a script is the architecture.</p>
+
+<p><strong>You want predictable per-request pricing.</strong> At high scale, token-based pricing can be cheaper than a subscription if your usage is bursty or well-optimized. The math depends on your token consumption patterns.</p>
+
+<p><strong>You need multiple models in the same workflow.</strong> The API lets you use different model tiers for different tasks — a cheaper model for classification, a more capable one for synthesis. Subscriptions don't support this kind of in-flight model selection.</p>
+
+<hr>
+
+<h2>When to use a subscription</h2>
+
+<p><strong>You're doing conversational work.</strong> Research, brainstorming, drafting, exploration — work where you're actively steering and iterating. The chat interface is genuinely better for this than crafting API calls.</p>
+
+<p><strong>You want Claude Code.</strong> Claude Code is subscription-native. You need at least Claude Pro to use it meaningfully, and <a href="/blog/ai-agent-team-claude-max/">Claude Max for extended sessions and parallel work</a>. If Claude Code is your primary tool, you need a subscription.</p>
+
+<p><strong>Cost predictability matters more than cost optimization.</strong> A flat monthly fee is easier to budget for than token costs that vary with usage. For individual builders and small teams, the subscription's predictability often outweighs the potential savings of token-based pricing.</p>
+
+<p><strong>You need the chat features.</strong> Projects, memory, artifacts, the visual interface — these live in the subscription product, not the API.</p>
+
+<hr>
+
+<h2>The middle path: API + Claude Code</h2>
+
+<p>For most serious builders, the right setup is both.</p>
+
+<p>The API for everything that's programmatic: your product's AI features, automated workflows, anything that runs without you watching.</p>
+
+<p>Claude Code (subscription) for your own development work: agentic coding, exploration, the work you're doing to build the thing.</p>
+
+<p>These serve different masters and don't conflict. The subscription pays for your leverage as a developer. The API pays for the leverage you provide to your users or your automation stack.</p>
+
+<hr>
+
+<h2>Cost comparison that actually makes sense</h2>
+
+<p>The subscription question is whether the flat rate is cheaper than what you'd pay in tokens for the same work. This choice also intersects with which tools you use — <a href="/blog/claude-code-vs-cursor-vs-cline/">Claude Code, Cursor, and Cline</a> have different subscription and billing models that affect the total cost picture.</p>
+
+<p>Claude Pro is $20/month. If you're using Claude.ai heavily for conversational work and that's mostly what you need, $20/month for effectively unlimited conversational usage is very cheap compared to what those sessions would cost at API token rates.</p>
+
+<p>Claude Code on Pro — a full day of agentic work, dozens of tool calls, large context windows — would cost significantly more than $20 at API token rates. For developers using Claude Code seriously, the subscription is the economical choice.</p>
+
+<p>Where the API wins on cost: high-volume programmatic use with optimized prompts and compact responses. If your product is making thousands of short structured calls per day with tight system prompts, token-based pricing at the efficient models (Haiku) is very cheap.</p>
+
+<p>The mistake to avoid: using the API for conversational exploratory work (expensive tokens, wrong tool) or using a subscription for production automation (wrong architecture, wrong controls).</p>
+
+<hr>
+
+<h2>For builders shipping AI products</h2>
+
+<p>I use both. The Claude Max subscription is for everything I do as a developer — Claude Code sessions, research, design decisions. The API is for Shoofly's backend — the calls that happen automatically when Claude Code activity needs to be evaluated against a security policy. For a fuller picture of <a href="/blog/building-ai-products-solo-founder/">how this dual setup works in practice as a solo founder</a>, that post covers the discipline required to make it sustainable.</p>
+
+<p>The subscription is a cost of doing business as a developer in 2026. The API cost is a cost of running the product. They're different budget lines with different economics.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

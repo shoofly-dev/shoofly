@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MCP servers are what give Claude Code access to GitHub, databases, search, and external APIs. Here's what they are, which ones to install first, and how to build your own." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Claude Code MCP Servers: What They Are and Why They Matter — Shoofly" />
+  <meta property="og:description" content="MCP servers are what give Claude Code access to GitHub, databases, search, and external APIs. Here's what they are, which ones to install first, and how to build your own." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/claude-code-mcp-servers/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Claude Code MCP Servers: What They Are and Why They Matter — Shoofly" />
+  <meta name="twitter:description" content="MCP servers are what give Claude Code access to GitHub, databases, search, and external APIs. Here's what they are, which ones to install first, and how to build your own." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Claude Code MCP Servers: What They Are and Why They Matter — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/claude-code-mcp-servers/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-13">April 13, 2026</time>
+        <span class="post-tag">Claude Code</span>
+      </div>
+      <h1>Claude Code MCP Servers: What They Are and Why They Matter</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>If you've been using Claude Code without MCP servers, you've been using it with one hand tied behind its back. MCP — the Model Context Protocol — is what gives Claude Code access to the tools, data, and services that make it actually useful for production work. Understanding what it is and which servers to install is one of the highest-leverage things you can do to improve your Claude Code setup.</p>
+
+<hr>
+
+<h2>What MCP actually is</h2>
+
+<p>MCP stands for Model Context Protocol. It's a standard that defines how an AI application (Claude Code, in this case) can connect to external tools and data sources. Think of it as a plugin system with a standard interface: any server that implements the MCP protocol can expose tools, resources, and prompts to Claude Code.</p>
+
+<p>The practical upshot: instead of Claude Code being limited to what it can do with your local file system and shell, MCP servers let it interact with external systems — GitHub, Google Drive, databases, APIs, browsers, search engines — in a structured, auditable way.</p>
+
+<p>MCP is not Claude-specific. Other AI tools implement it too, and any MCP server you build or install can work across multiple clients. But Claude Code's MCP integration is currently the deepest and most capable in the market, which is part of why the ecosystem matters so much here.</p>
+
+<hr>
+
+<h2>What MCP servers actually give your agent</h2>
+
+<p>Each MCP server exposes a set of tools that Claude Code can call as part of its reasoning process. The agent sees these tools the same way it sees built-in tools — it can choose to use them based on what the task requires.</p>
+
+<p><strong>File system and data access.</strong> Read and write files in directories you authorize, query databases, access file metadata. Useful for giving Claude Code access to data sources that aren't in the working directory.</p>
+
+<p><strong>Version control.</strong> GitHub's MCP server lets Claude Code read issues, pull requests, commits, and repo metadata. Create issues, comment on PRs, check workflow status — without you having to copy-paste content into the session.</p>
+
+<p><strong>Web search.</strong> A Brave or Tavily search server lets Claude Code look things up when it needs information that isn't in its context or in the repository. For research-heavy tasks, this is significant.</p>
+
+<p><strong>Browser control.</strong> Playwright and Puppeteer MCP servers let Claude Code actually use a browser — navigate to URLs, fill forms, take screenshots, extract content. Useful for tasks that require interacting with web-based tools.</p>
+
+<p><strong>Communication.</strong> Slack, email, and calendar MCP servers let Claude Code send messages, check schedules, or read notifications as part of a workflow.</p>
+
+<p><strong>Custom tools.</strong> You can build your own MCP server that exposes any tool you need — your internal APIs, your database queries, your deployment pipeline. The protocol is well-documented and not hard to implement.</p>
+
+<hr>
+
+<h2>The servers worth installing first</h2>
+
+<p>Not all MCP servers are equally useful for day-to-day work. These are the ones with the highest utility-to-setup-cost ratio:</p>
+
+<p><strong>Filesystem server (official).</strong> Gives Claude Code structured access to specified directories. More reliable than raw file system access for some workflows, with explicit permission scoping.</p>
+
+<p><strong>GitHub server.</strong> If you use GitHub, this is close to mandatory. Read repo context, create issues, check PR status, look at CI results — all without leaving the Claude Code session.</p>
+
+<p><strong>Brave Search or Tavily.</strong> Web search when Claude Code needs information it doesn't have. Cheap to set up, high value for research-adjacent tasks.</p>
+
+<p><strong>Memory server.</strong> Persistent storage that Claude Code can read and write across sessions. Useful for maintaining context about a project that would otherwise be lost when a session ends.</p>
+
+<p><strong>Sqlite or Postgres server.</strong> Direct database access for tasks that involve reading or writing data. Much more reliable than asking Claude Code to write SQL and run it via bash.</p>
+
+<hr>
+
+<h2>Building your own MCP server</h2>
+
+<p>The protocol is straightforward. An MCP server is a process that communicates via stdin/stdout or HTTP, responds to a standard set of messages, and exposes tools with JSON Schema definitions.</p>
+
+<p>In Python:</p>
+
+<pre><code>from mcp.server import Server, tool
+from mcp.server.stdio import stdio_server
+
+server = Server("my-tools")
+
+@server.tool()
+def get_project_status(project_id: str) -> str:
+    """Get the current status of a project from the internal API."""
+    # your implementation here
+    return fetch_status(project_id)
+
+if __name__ == "__main__":
+    stdio_server(server)</code></pre>
+
+<p>Once your server is running, add it to Claude Code's MCP configuration and Claude Code can call your tools as naturally as it calls built-in ones.</p>
+
+<p>The most valuable custom servers are the ones that expose your specific internal systems — your deployment API, your internal documentation, your project management tool. These give Claude Code genuine context about your work that no general-purpose server can provide.</p>
+
+<hr>
+
+<h2>Security considerations</h2>
+
+<p>MCP servers have access to whatever systems they're connected to. A misconfigured server is a privilege escalation vector — if Claude Code can call a tool that Claude Code shouldn't have access to, that's a security gap.</p>
+
+<p>A few practices that matter:</p>
+
+<p><strong>Principle of least privilege.</strong> Each server should only expose what it needs to expose. A GitHub server that only needs read access shouldn't be configured with write access.</p>
+
+<p><strong>Audit tool calls.</strong> <a href="/blog/claude-code-hooks-explained/">Claude Code's PostToolUse hooks</a> fire when an MCP tool is called. Log these. You want to know when Claude Code is calling external services and with what arguments.</p>
+
+<p><strong>Test server scope.</strong> Before adding an MCP server to a production setup, understand exactly what tools it exposes and what permissions each tool requires. Read the source if it's open source.</p>
+
+<p><strong>Namespace your internal tools.</strong> If you're building custom MCP servers, give them clearly namespaced tool names so you can distinguish internal tool calls from external ones in your logs.</p>
+
+<hr>
+
+<h2>MCP + hooks = the real agent stack</h2>
+
+<p>MCP and hooks are complementary. MCP gives Claude Code capabilities — access to external systems, tools, data. Hooks give you control over how those capabilities are used — what can be called, under what conditions, with what logging.</p>
+
+<p>Together they're the foundation for a production Claude Code setup: broad capability with enforced boundaries and full observability. The security principles that apply to MCP — least privilege, scoped credentials, audit logging — are the same principles covered in depth in the <a href="/blog/ai-agent-security/">AI agent security overview</a>. And for how MCP fits into the broader landscape of what makes Claude Code distinctive, <a href="/blog/claude-code-vs-cursor-vs-cline/">the comparison with Cursor and Cline</a> puts it in context.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>

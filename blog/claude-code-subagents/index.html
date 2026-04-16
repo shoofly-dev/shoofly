@@ -78,9 +78,7 @@
     <ul class='nav-links' id='navLinks'>
       <li><a href='/#pricing'>Shoofly Basic</a></li>
       <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
-      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
-      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
-      <li><a href='/blog'>Blog</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
       <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
       <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
     </ul>
@@ -106,7 +104,7 @@
 
 <p>But some tasks generate so much intermediate output that they crowd out useful context. Running a full test suite, searching a large codebase, processing many files — the results fill the context window with data that Claude Code doesn't need to keep reasoning about. The main conversation gets noisy, and you may hit context limits on long sessions.</p>
 
-<p>Other tasks need different tool access than the main session should have. A task that requires searching the web shouldn't need write access to the file system. A code review task that only reads files shouldn't have shell execution enabled.</p>
+<p>Other tasks need different tool access than the main session should have. A task that requires searching the web shouldn't need write access to the file system. A code review task that only reads files shouldn't have shell execution enabled. This tool isolation per subagent is also a meaningful <a href="/blog/ai-agent-security/">security improvement</a> — a subagent that can only read files has a much smaller blast radius if something goes wrong.</p>
 
 <p>Subagents handle both problems: they run in their own context window, with their own tool configuration, and only pass their final result back to the parent. The noise stays in the subagent's context. The main conversation stays clean.</p>
 
@@ -193,11 +191,11 @@ Do not make any changes to files. Read only.</code></pre>
 
 <hr>
 
-<p>Subagents are a clean solution to a specific class of problem. When the problem is "this task would contaminate my main context" or "I need tool isolation," they're exactly the right tool. When the problem is something else, they add overhead without clear benefit.</p>
+<p>Subagents are a clean solution to a specific class of problem. When the problem is "this task would contaminate my main context" or "I need tool isolation," they're exactly the right tool. When the problem is something else, they add overhead without clear benefit. For the broader question of whether to use a single agent or a team of specialists, <a href="/blog/single-agent-vs-multi-agent/">the architectural tradeoff post</a> covers when either pattern actually wins. And for the hook behavior that applies to subagent tool calls just as it does to the parent session, <a href="/blog/claude-code-hooks-explained/">hooks explained</a> covers the full PreToolUse/PostToolUse lifecycle.</p>
 
       <hr>
       <div class="cta-box">
-        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
       </div>
     </main>
   </div>
@@ -205,9 +203,7 @@ Do not make any changes to files. Read only.</code></pre>
     <div class="container footer-inner">
       <span class="footer-copy">&copy; 2026 Shoofly</span>
       <div class="footer-links">
-        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-        <a href="/openclaw" class="footer-link">OpenClaw</a>
-        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
         <a href="/guides" class="footer-link">Guides</a>
         <a href="/blog" class="footer-link">Blog</a>
         <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>

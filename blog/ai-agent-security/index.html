@@ -78,9 +78,7 @@
     <ul class='nav-links' id='navLinks'>
       <li><a href='/#pricing'>Shoofly Basic</a></li>
       <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
-      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
-      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
-      <li><a href='/blog'>Blog</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
       <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
       <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
     </ul>
@@ -132,13 +130,13 @@
 
 <p>An agent with read-only database access that gets compromised can reveal data. An agent with read-write access that gets compromised can also modify or delete data. An agent with admin credentials can do significantly more damage.</p>
 
-<p>Most agent setups fail this principle not through carelessness but through convenience. Giving an agent a wide-scope API key is one configuration line instead of five. Giving it file system access to the entire home directory is easier than defining a precise allowed path list. These shortcuts are understandable in development and dangerous in production.</p>
+<p>Most agent setups fail this principle not through carelessness but through convenience. Giving an agent a wide-scope API key is one configuration line instead of five. Giving it file system access to the entire home directory is easier than defining a precise allowed path list. These shortcuts are understandable in development and dangerous in production. In multi-agent systems, this problem compounds — each agent in the team inherits whatever permissions it was given, which is one reason <a href="/blog/single-agent-vs-multi-agent/">tool isolation is a key argument for the multi-agent pattern</a>.</p>
 
 <h2>Pre-execution enforcement: the right layer</h2>
 
 <p>Post-execution detection — noticing that something bad happened after it happens — is better than nothing but much worse than prevention. The right security layer for agents is pre-execution: evaluate what the agent is about to do before it does it, and block operations that violate policy.</p>
 
-<p>This is what Claude Code's hook system enables. A PreToolUse hook fires before every tool call with the full tool name and arguments. Your hook can:</p>
+<p>This is what <a href="/blog/claude-code-hooks-explained/">Claude Code's hook system</a> enables. A PreToolUse hook fires before every tool call with the full tool name and arguments. Your hook can:</p>
 
 <ul>
   <li>Check whether the target file path is in an allowed directory</li>
@@ -161,7 +159,7 @@
 
 <p><strong>Pre-execution policy enforcement.</strong> Define what operations are allowed in terms of specific paths, commands, and API endpoints. Block everything else. This is the layer that prevents "the agent decided to do something reasonable but wrong in your specific environment."</p>
 
-<p><strong>Audit logging.</strong> Log every tool call with its arguments and result. You want a complete record of what the agent did in any session. When something goes wrong — and it will — the log is how you understand what happened.</p>
+<p><strong>Audit logging.</strong> Log every tool call with its arguments and result. You want a complete record of what the agent did in any session. When something goes wrong — and it will — the log is how you understand what happened. When Claude Code connects to external services via <a href="/blog/claude-code-mcp-servers/">MCP servers</a>, those tool calls should be logged with the same rigor — each MCP call is a potential vector for the same threats described here.</p>
 
 <p><strong>Output scanning.</strong> Before an agent sends output anywhere external (API call, file write, message), scan it for patterns that shouldn't be in output — credentials, internal hostnames, data that shouldn't leave your environment.</p>
 
@@ -182,8 +180,7 @@
 
       <hr>
       <div class="cta-box">
-        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
-        <p style="margin-top:0.75rem;margin-bottom:0;font-size:0.95rem;color:var(--text-muted)"><a href="https://shoofly.dev/advanced">Shoofly Advanced</a> is a pre-execution security layer for Claude Code — 20 threat rules, YAML policy-as-code, 100% local. $5/mo.</p>
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
       </div>
     </main>
   </div>
@@ -191,9 +188,7 @@
     <div class="container footer-inner">
       <span class="footer-copy">&copy; 2026 Shoofly</span>
       <div class="footer-links">
-        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-        <a href="/openclaw" class="footer-link">OpenClaw</a>
-        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
         <a href="/guides" class="footer-link">Guides</a>
         <a href="/blog" class="footer-link">Blog</a>
         <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>

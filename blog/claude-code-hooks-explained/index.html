@@ -78,9 +78,7 @@
     <ul class='nav-links' id='navLinks'>
       <li><a href='/#pricing'>Shoofly Basic</a></li>
       <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
-      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
-      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
-      <li><a href='/blog'>Blog</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
       <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
       <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
     </ul>
@@ -130,7 +128,7 @@
 
 <h2>What you can automate</h2>
 
-<p><strong>Security enforcement.</strong> PreToolUse is how you build a real security layer. Check whether the file path being written to is in an allowed directory. Check whether the bash command contains patterns you've banned. Block writes to production config files. Reject tool calls that target sensitive paths. This isn't a hint to Claude — it's an enforced boundary that runs before the tool executes, regardless of what Claude decided to do.</p>
+<p><strong>Security enforcement.</strong> PreToolUse is how you build a real security layer. Check whether the file path being written to is in an allowed directory. Check whether the bash command contains patterns you've banned. Block writes to production config files. Reject tool calls that target sensitive paths. This isn't a hint to Claude — it's an enforced boundary that runs before the tool executes, regardless of what Claude decided to do. For a full treatment of <a href="/blog/ai-agent-security/">AI agent security threats and mitigations</a>, the hooks layer is just one piece of a broader stack.</p>
 
 <p><strong>Audit logging.</strong> PostToolUse lets you build a complete record of what Claude did in a session. Every file write, every bash command, every API call — logged to a file or a database with timestamp, arguments, and result. When something goes wrong in production, you have a log to inspect.</p>
 
@@ -204,11 +202,11 @@ sys.exit(0)</code></pre>
 
 <hr>
 
-<p>The hook system is what turns Claude Code from a powerful assistant into a production-grade agent with enforceable policies. Building on top of it — security layers, logging infrastructure, notification routing — is where the real leverage is.</p>
+<p>The hook system is what turns Claude Code from a powerful assistant into a production-grade agent with enforceable policies. Building on top of it — security layers, logging infrastructure, notification routing — is where the real leverage is. Paired with <a href="/blog/claude-code-mcp-servers/">MCP servers</a>, hooks form the full production layer: MCP expands what Claude Code can reach, and hooks control how it's allowed to use that reach. This is also one of the key features that sets Claude Code apart in any <a href="/blog/claude-code-vs-cursor-vs-cline/">comparison with Cursor or Cline</a>.</p>
 
       <hr>
       <div class="cta-box">
-        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
       </div>
     </main>
   </div>
@@ -216,9 +214,7 @@ sys.exit(0)</code></pre>
     <div class="container footer-inner">
       <span class="footer-copy">&copy; 2026 Shoofly</span>
       <div class="footer-links">
-        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-        <a href="/openclaw" class="footer-link">OpenClaw</a>
-        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
         <a href="/guides" class="footer-link">Guides</a>
         <a href="/blog" class="footer-link">Blog</a>
         <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>

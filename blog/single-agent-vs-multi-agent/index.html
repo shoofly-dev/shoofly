@@ -78,9 +78,7 @@
     <ul class='nav-links' id='navLinks'>
       <li><a href='/#pricing'>Shoofly Basic</a></li>
       <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
-      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
-      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
-      <li><a href='/blog'>Blog</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
       <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
       <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
     </ul>
@@ -119,7 +117,7 @@
 <p><strong>Where it struggles:</strong></p>
 <ul>
   <li>Tasks with genuinely parallel subtasks — if step 3 and step 4 are independent, you're leaving time on the table</li>
-  <li>Situations where tool access should be isolated — if your research agent and your deployment agent share the same permissions, you're accepting more risk than necessary</li>
+  <li>Situations where tool access should be isolated — if your research agent and your deployment agent share the same permissions, you're accepting more <a href="/blog/ai-agent-security/">security risk</a> than necessary</li>
   <li>Very long tasks that exceed a single context window</li>
 </ul>
 
@@ -176,15 +174,15 @@
 
 <h2>What actually works</h2>
 
-<p>The pattern I've found most useful isn't at either extreme. One primary agent that handles the majority of a task, with occasional parallel delegation for subtasks that are genuinely independent and time-sensitive. The primary agent maintains context and continuity; specialists run on demand for bounded, well-defined work.</p>
+<p>The pattern I've found most useful isn't at either extreme. One primary agent that handles the majority of a task, with occasional parallel delegation for subtasks that are genuinely independent and time-sensitive. The primary agent maintains context and continuity; <a href="/blog/claude-code-subagents/">specialists run on demand</a> for bounded, well-defined work.</p>
 
-<p>The orchestration layer is thin — a queue runner that picks up cards, tracks state in files, and sends notifications when things complete. Not a complex coordination system, just enough structure to run tasks reliably without you watching.</p>
+<p>The orchestration layer is thin — a queue runner that picks up cards, tracks state in files, and sends notifications when things complete. Not a complex coordination system, just enough structure to run tasks reliably without you watching. If you want Anthropic to handle the orchestration infrastructure, <a href="/blog/claude-managed-agents/">Claude Managed Agents</a> is worth a look.</p>
 
 <p>This isn't elegant architecture. It's the minimum that works reliably, built up from what actually failed in simpler setups.</p>
 
       <hr>
       <div class="cta-box">
-        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
       </div>
     </main>
   </div>
@@ -192,9 +190,7 @@
     <div class="container footer-inner">
       <span class="footer-copy">&copy; 2026 Shoofly</span>
       <div class="footer-links">
-        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-        <a href="/openclaw" class="footer-link">OpenClaw</a>
-        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
         <a href="/guides" class="footer-link">Guides</a>
         <a href="/blog" class="footer-link">Blog</a>
         <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>

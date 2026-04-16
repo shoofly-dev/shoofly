@@ -78,9 +78,7 @@
     <ul class='nav-links' id='navLinks'>
       <li><a href='/#pricing'>Shoofly Basic</a></li>
       <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
-      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>
-      <li><a href='/openclaw'>OpenClaw FAQs</a></li>
-      <li><a href='/blog'>Blog</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
       <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
       <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
     </ul>
@@ -110,9 +108,9 @@
 
 <p><strong>Credential management.</strong> Connect to third-party services through MCP servers. The agent gets access to what it needs without your application managing secrets directly. Scoped at the environment level, not in the system prompt where credentials have a habit of leaking into logs.</p>
 
-<p><strong>Scoped permissions.</strong> Define what the agent can and cannot touch when you configure the environment, not as instructions you hope the model follows. There's a difference between telling an agent "don't delete files" and structurally preventing it from doing so.</p>
+<p><strong>Scoped permissions.</strong> Define what the agent can and cannot touch when you configure the environment, not as instructions you hope the model follows. There's a difference between telling an agent "don't delete files" and structurally preventing it from doing so. This is the same principle behind <a href="/blog/ai-agent-security/">pre-execution enforcement in self-hosted agent setups</a> — Managed Agents just handles that infrastructure for you.</p>
 
-<p><strong>End-to-end tracing.</strong> Every tool call, every decision step, logged and queryable in the console. This is the capability teams feel most acutely when they don't have it. Debugging a broken agent with print statements is not a sustainable workflow.</p>
+<p><strong>End-to-end tracing.</strong> Every tool call, every decision step, logged and queryable in the console. This is the capability teams feel most acutely when they don't have it. Debugging a broken agent with print statements is not a sustainable workflow. For teams building on Claude Code rather than Managed Agents, <a href="/blog/claude-code-hooks-explained/">hooks with PostToolUse logging</a> are the self-hosted equivalent of this tracing capability.</p>
 
 <p>Notion, Sentry, and Asana are already running production workloads on Managed Agents. Notion uses it for parallel task execution in coding and presentation workflows. Sentry uses it for bug detection and patch generation integrated into developer review. These aren't demos.</p>
 
@@ -168,7 +166,7 @@ You've already determined Claude is the right model for what you're building and
 
 <p><strong>Multi-agent teams with named specialists.</strong> A coordinator delegates to specialist agents, each with a narrow scope and specific tool access. A research agent, a build agent, a review agent — running concurrently where the work allows, isolated where the tools require it. The advantages are real concurrency on parallel subtasks and genuine tool isolation per specialist. The tradeoff is orchestration overhead, latency from coordination, and a debugging surface that multiplies with each agent you add.</p>
 
-<p>Both patterns work. Which one fits depends on your task structure: how parallel the work actually is, how important tool isolation is, and how much overhead you can absorb.</p>
+<p>Both patterns work. Which one fits depends on your task structure: how parallel the work actually is, how important tool isolation is, and how much overhead you can absorb. For a deeper treatment of when each pattern wins, <a href="/blog/single-agent-vs-multi-agent/">the single vs multi-agent comparison</a> covers the tradeoffs in detail.</p>
 
 <p>We've run both patterns in production. What we landed on takes the best of each. That's a longer conversation — but the short version is that the choice isn't binary, and the right answer usually isn't at either extreme.</p>
 
@@ -202,7 +200,7 @@ You've already determined Claude is the right model for what you're building and
 
       <hr>
       <div class="cta-box">
-        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/newsletter">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
       </div>
     </main>
   </div>
@@ -210,9 +208,7 @@ You've already determined Claude is the right model for what you're building and
     <div class="container footer-inner">
       <span class="footer-copy">&copy; 2026 Shoofly</span>
       <div class="footer-links">
-        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-        <a href="/openclaw" class="footer-link">OpenClaw</a>
-        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
         <a href="/guides" class="footer-link">Guides</a>
         <a href="/blog" class="footer-link">Blog</a>
         <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>

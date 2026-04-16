@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The leverage AI gives solo founders is real. So are the limits. Here's what actually changed, what didn't, and the discipline required to use it without getting burned." />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:title" content="Building AI Products as a Solo Founder: Lessons from Production — Shoofly" />
+  <meta property="og:description" content="The leverage AI gives solo founders is real. So are the limits. Here's what actually changed, what didn't, and the discipline required to use it without getting burned." />
+  <meta property="og:image" content="https://shoofly.dev/social-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://shoofly.dev/blog/building-ai-products-solo-founder/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Building AI Products as a Solo Founder: Lessons from Production — Shoofly" />
+  <meta name="twitter:description" content="The leverage AI gives solo founders is real. So are the limits. Here's what actually changed, what didn't, and the discipline required to use it without getting burned." />
+  <meta name="twitter:image" content="https://shoofly.dev/social-card.png" />
+  <title>Building AI Products as a Solo Founder: Lessons from Production — Shoofly</title>
+  <link rel="canonical" href="https://shoofly.dev/blog/building-ai-products-solo-founder/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {--bg:#0d1117;--bg-alt:#161b22;--border:#30363d;--text:#e6edf3;--text-muted:#8b949e;--accent:#16a34a;--accent-dim:#16a34a33;--font-body:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html{scroll-behavior:smooth;}
+    body{background-color:var(--bg);color:var(--text);font-family:var(--font-body);font-size:1rem;line-height:1.7;-webkit-font-smoothing:antialiased;padding-top:56px;}
+    a{color:var(--accent);text-decoration:none;}a:hover{text-decoration:underline;}
+    .site-nav{position:fixed;top:0;left:0;right:0;z-index:100;background-color:var(--bg-alt);border-bottom:1px solid var(--border);height:56px;padding:0 1.5rem;display:flex;justify-content:space-between;align-items:center;}
+    .nav-logo{font-size:1.1rem;font-weight:700;color:var(--accent);text-decoration:none;letter-spacing:-0.01em;white-space:nowrap;}
+    .nav-logo:hover{text-decoration:none;}
+    .nav-hamburger{display:none;flex-direction:column;justify-content:space-between;width:24px;height:18px;background:none;border:none;cursor:pointer;padding:0;}
+    .nav-hamburger span{display:block;height:2px;background:var(--text);border-radius:2px;}
+    .nav-links{display:flex;list-style:none;gap:1.5rem;align-items:center;}
+    .nav-links a{font-size:0.9rem;font-weight:500;color:var(--text-muted);text-decoration:none;transition:color 0.15s;}
+    .nav-links a:hover{color:var(--text);}
+    @media(max-width:768px){.nav-hamburger{display:flex;}.nav-links{display:none;position:absolute;top:56px;left:0;right:0;background:var(--bg-alt);border-bottom:1px solid var(--border);flex-direction:column;padding:1rem 1.5rem;gap:1rem;}.nav-links.open{display:flex;}}
+    .container{width:100%;max-width:720px;margin:0 auto;padding:0 1.5rem;}
+    .post-header{padding:3.5rem 0 2rem;border-bottom:1px solid var(--border);}
+    .post-meta{display:flex;gap:1rem;align-items:center;margin-bottom:1rem;}
+    .post-date{font-size:0.85rem;color:var(--text-muted);}
+    .post-tag{background:var(--accent-dim);color:var(--accent);padding:0.15rem 0.5rem;border-radius:4px;font-size:0.75rem;font-weight:500;}
+    .post-header h1{font-size:clamp(1.75rem,5vw,2.5rem);font-weight:700;letter-spacing:-0.02em;line-height:1.2;}
+    .post-body{padding:2.5rem 0 4rem;}
+    .post-body p{margin-bottom:1.4rem;color:var(--text);font-size:1.05rem;}
+    .post-body h2{font-size:1.3rem;font-weight:700;margin:2.5rem 0 1rem;color:var(--text);letter-spacing:-0.01em;}
+    .post-body h3{font-size:1.1rem;font-weight:700;margin:2rem 0 0.75rem;color:var(--text);}
+    .post-body ul,.post-body ol{margin:1rem 0 1.4rem 1.5rem;}
+    .post-body li{margin-bottom:0.4rem;font-size:1.05rem;}
+    .post-body code{font-family:var(--font-mono);font-size:0.88em;background:var(--bg-alt);border:1px solid var(--border);padding:0.15em 0.4em;border-radius:3px;}
+    .post-body pre{background:var(--bg-alt);border:1px solid var(--border);border-radius:6px;padding:1.25rem 1.5rem;margin:1.5rem 0;overflow-x:auto;}
+    .post-body pre code{background:none;border:none;padding:0;font-size:0.9rem;}
+    .post-body hr{border:none;border-top:1px solid var(--border);margin:2rem 0;}
+    .post-body strong{color:var(--text);font-weight:600;}
+    .post-body a{color:var(--accent);font-weight:600;}
+    .back-link{display:inline-block;margin-bottom:2rem;font-size:0.9rem;color:var(--text-muted);}
+    .back-link:hover{color:var(--accent);}
+    .cta-box{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:1.5rem 2rem;margin:2rem 0;}
+    .footer{border-top:1px solid var(--border);padding:2rem 0;margin-top:2rem;}
+    .footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;}
+    .footer-copy{color:var(--text-muted);font-size:0.875rem;}
+    .footer-link{font-size:0.875rem;color:var(--text-muted);text-decoration:none;}.footer-link:hover{color:var(--accent);}
+    .footer-links{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  </style>
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link rel="alternate" type="application/rss+xml" title="Shoofly Blog" href="/feed.xml">
+</head>
+<body>
+  <nav class='site-nav'>
+    <a href='/' class='nav-logo'>🪰 Shoofly</a>
+    <button class='nav-hamburger' id='navHamburger' aria-label='Open menu'><span></span><span></span><span></span></button>
+    <ul class='nav-links' id='navLinks'>
+      <li><a href='/#pricing'>Shoofly Basic</a></li>
+      <li><a href='/#pricing-advanced'>Shoofly Advanced</a></li>
+      <li><a href='/claude-code-dispatch'>Claude Code FAQs</a></li>      <li><a href='/blog'>Blog</a></li>
+      <li><a href='https://clawhub.ai/wow-leeroy-jenkins05/shoofly-basic' target='_blank' rel='noopener noreferrer'>ClawHub</a></li>
+      <li><a href='https://github.com/shoofly-dev/shoofly' target='_blank' rel='noopener noreferrer'>GitHub</a></li>
+    </ul>
+  </nav>
+  <div class="container">
+    <div class="post-header">
+      <div class="post-meta">
+        <time class="post-date" datetime="2026-04-16">April 16, 2026</time>
+        <span class="post-tag">Solo Founder</span>
+      </div>
+      <h1>Building AI Products as a Solo Founder: Lessons from Production</h1>
+    </div>
+    <main class="post-body">
+      <a href="/blog" class="back-link">&larr; Back to Blog</a>
+
+<p>There's a version of the "AI changes everything for solo founders" story that's mostly hype. AI writes your code so fast you ship in days. AI does your marketing. AI is your cofounder. This version is exaggerated in ways that will get you burned if you take it literally.</p>
+
+<p>There's also a real version. The leverage is real. The limits are real. The discipline required to use it well is real and largely underdiscussed. This is what I've actually learned building Shoofly as a solo founder with Claude as a core tool in the stack.</p>
+
+<hr>
+
+<h2>What actually changed</h2>
+
+<p>The headline claim — that one person can now build what used to require a team — is partially true and needs qualification.</p>
+
+<p>What changed: the execution cost of known tasks dropped dramatically. Implementing a feature you understand clearly, writing tests for code that exists, refactoring a module, building out documentation — these tasks are faster with a capable agent. Not 10&times; faster on every task, but meaningfully faster on the right tasks, compounding over time.</p>
+
+<p>What didn't change: the thinking. Deciding what to build, figuring out why something is broken in a way that requires understanding your specific system, making calls about product direction, talking to customers — the parts of the job that require judgment about your specific context are not significantly accelerated by AI. They require your full attention and they still take the time they take.</p>
+
+<p>The leverage is real. It's just not equally distributed across all the work.</p>
+
+<hr>
+
+<h2>The tools worth betting on</h2>
+
+<p>I'm going to give you the honest version of this rather than a comprehensive survey.</p>
+
+<p><strong>Claude Code</strong> is the core of my development workflow. Not because it's perfect, but because the <a href="/blog/claude-code-hooks-explained/">hook system</a>, <a href="/blog/claude-code-mcp-servers/">MCP integration</a>, and terminal-native design make it programmable in ways other tools aren't. I can build security policies, logging, notifications, and automation on top of it. It's a platform, not just an assistant.</p>
+
+<p><strong>Claude for thinking and drafting.</strong> Research, writing, working through problems — the conversational interface is genuinely better than the API for work that requires back-and-forth. I have a Claude Max subscription and use it heavily.</p>
+
+<p><strong>The Anthropic API</strong> for anything that runs automatically — the parts of the product that call Claude without me watching. The question of when to use the API versus a Claude subscription is worth thinking through carefully; <a href="/blog/anthropic-api-vs-claude-subscription/">the breakdown of API vs subscription</a> covers when each model makes sense.</p>
+
+<p>What I don't use: a dozen different AI tools for different tasks. The context fragmentation of switching between many tools erodes the leverage you gain. Pick a smaller set of tools you understand deeply.</p>
+
+<hr>
+
+<h2>The hidden cost: context management</h2>
+
+<p>This is the thing nobody talks about enough. The most expensive resource in a heavy AI workflow isn't money — it's managing your own understanding of what the AI has done.</p>
+
+<p>AI makes it easy to accumulate a large, messy codebase faster than you can fully understand it. You can ship features quickly. You can also create a situation where you have production code that you don't deeply understand, that the AI wrote in a session you can't fully remember, with architectural decisions that made sense at the time but that you can't now reconstruct.</p>
+
+<p>The discipline I've developed: nothing goes to production that I haven't read and understood at the level of understanding I'd need to debug it at 2am. This sounds obvious. It's surprisingly hard to maintain when the AI is producing plausible, functional code faster than you can absorb it.</p>
+
+<p>Practical tactics: short sessions with clear scope, output files that accumulate decisions not just code, a personal log of the architectural choices made in each session.</p>
+
+<hr>
+
+<h2>What breaks when you're solo</h2>
+
+<p><strong>No PR review.</strong> When you're solo, the AI writes the code and the AI reviews the code, which is less scrutiny than it sounds like. The AI's review is better than no review and worse than a thoughtful human reviewer. The gaps: anything that requires understanding business context, <a href="/blog/ai-agent-security/">security implications specific to your domain</a>, or edge cases the AI didn't think to check.</p>
+
+<p>Build other review mechanisms. Tests are the obvious one. A structured checklist you run before merging is another. A forcing function that requires you to write a one-paragraph explanation of what changed and why.</p>
+
+<p><strong>No rubber duck.</strong> A lot of problem-solving happens by explaining a problem to someone else. The AI can play this role, and does it reasonably well for technical problems. It's less useful for problems that require someone to push back on your framing or ask questions you didn't know to consider.</p>
+
+<p>Build the habit of writing down your problem before talking to the AI about it. The act of writing it out often surfaces the issue. When it doesn't, you have a cleaner problem statement to work with.</p>
+
+<p><strong>Scope drift.</strong> Without another person to sanity-check scope, it's easy to build in directions that feel productive but aren't. The AI is highly agreeable — it will enthusiastically help you build the wrong thing.</p>
+
+<p>Maintain a list of what you're not building this week. Review it before each AI work session.</p>
+
+<hr>
+
+<h2>The production discipline that matters most</h2>
+
+<p>The single most important discipline I've developed: make every AI work session produce a written output beyond the code itself.</p>
+
+<p>A one-paragraph summary of what was done and why. The decisions that were made. The things that were explicitly not done. This record is for future-you — the person who will be debugging something three months from now and needs to understand why the system is shaped the way it is.</p>
+
+<p>The AI writes fast. Writing fast means decisions accumulate fast. Without a record, you're left with a codebase that represents a series of choices you can't fully reconstruct.</p>
+
+<hr>
+
+<h2>What I'd tell someone starting today</h2>
+
+<p>The highest-leverage thing you can do as a solo founder using AI: build clear working boundaries between what you'll let the AI do autonomously and what requires your active attention.</p>
+
+<p>The autonomous zone: implementing clearly specified features, writing tests, refactoring code you've reviewed and understood, generating documentation, building routine infrastructure.</p>
+
+<p>The attentive zone: architectural decisions, anything that touches auth or payments or sensitive data, decisions that close off future options, anything you'd be embarrassed not to understand deeply.</p>
+
+<p>The mistake most people make is letting the autonomous zone expand gradually until important decisions are being made without sufficient scrutiny. The leverage is real and worth having. So is the discipline to keep the boundaries clear.</p>
+
+      <hr>
+      <div class="cta-box">
+        <p>I build with Claude every day and write about what it's actually like to ship AI-powered products. <a href="https://shoofly.dev/#email">Subscribe at shoofly.dev/newsletter</a> — building AI products in the real world, not what the press releases say.</p>
+      </div>
+    </main>
+  </div>
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-copy">&copy; 2026 Shoofly</span>
+      <div class="footer-links">
+        <a href="https://github.com/shoofly-dev/shoofly" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>        <a href="/claude-code-dispatch" class="footer-link">Claude Code</a>
+        <a href="/guides" class="footer-link">Guides</a>
+        <a href="/blog" class="footer-link">Blog</a>
+        <a href="/docs/advanced" class="footer-link">Shoofly Advanced Docs</a>
+        <a href="mailto:support@shoofly.dev" class="footer-link">support@shoofly.dev</a>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const h=document.getElementById('navHamburger'),n=document.getElementById('navLinks');
+    if(h)h.addEventListener('click',()=>n.classList.toggle('open'));
+  </script>
+</body>
+</html>
