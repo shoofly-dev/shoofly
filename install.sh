@@ -28,6 +28,14 @@ _R='\033[0m'      # reset
 # Unicode box chars
 _DIA='◆'  _BAR='│'  _COR='└'
 
+# Emoji support — skip on non-UTF-8 locales to avoid terminal rendering gaps
+_FLY="🪰 "
+case "${LANG:-}${LC_ALL:-}${LC_CTYPE:-}" in
+  *[Uu][Tt][Ff]8*|*[Uu][Tt][Ff]-8*) ;;  # UTF-8 confirmed
+  "")                                    ;;  # unset → macOS default is UTF-8
+  *) _FLY=""                            ;;  # non-UTF-8 locale: omit emoji
+esac
+
 # Output globals (set by tui_select / tui_multiselect)
 TUI_RESULT=""
 TUI_RESULTS=()
@@ -259,13 +267,30 @@ tui_info()  { printf "  ${_D}ℹ  %s${_R}\n" "$1"; }
 # ═════════════════════════════════════════════════════════════════════════════
 
 # ─── Intro ───────────────────────────────────────────────────────────────────
-tui_intro "🪰 Shoofly Basic v3 — AI Agent Security" \
+tui_intro "${_FLY}Shoofly Basic v3 — AI Agent Security" \
   "Monitors your AI agents and alerts on suspicious behavior."
 
 # ─── Step 1: Hard dependencies ───────────────────────────────────────────────
 printf "Checking dependencies...\n"
-command -v jq >/dev/null 2>&1 || {
-  printf "  ${_D}ERROR: jq is required.  macOS: brew install jq${_R}\n"; exit 1; }
+if ! command -v jq >/dev/null 2>&1; then
+  tui_warn "jq not found"
+  if command -v brew >/dev/null 2>&1; then
+    printf "  Installing jq via Homebrew...\n"
+    if brew install jq >/dev/null 2>&1; then
+      tui_step "jq installed via Homebrew"
+    else
+      printf "\n  ${_D}brew install jq failed. Run it manually, then re-run this installer.${_R}\n\n"
+      exit 1
+    fi
+  else
+    printf "\n"
+    printf "  ${_D}jq is required but Homebrew was not found.${_R}\n"
+    printf "  ${_D}Install Homebrew:  https://brew.sh${_R}\n"
+    printf "  ${_D}Then:              brew install jq${_R}\n"
+    printf "  ${_D}Then re-run:       curl -fsSL https://shoofly.dev/install.sh | bash${_R}\n\n"
+    exit 1
+  fi
+fi
 command -v curl >/dev/null 2>&1 || {
   printf "  ${_D}ERROR: curl is required.${_R}\n"; exit 1; }
 tui_step "jq, curl found"
@@ -329,7 +354,7 @@ Continuing will upgrade your install. Nothing breaks."
 fi
 
 # ─── Step 4: Alert sensitivity ───────────────────────────────────────────────
-tui_select "How sensitive should 🪰 Shoofly be?" \
+tui_select "How sensitive should ${_FLY}Shoofly be?" \
   "default|Default|alert on confirmed threats and likely threats  (recommended)" \
   "quiet|Quiet  |only alert on high-confidence, high-severity threats" \
   "verbose|Verbose|alert on anything suspicious, including low-confidence signals"
@@ -339,11 +364,11 @@ SENSITIVITY_LABEL="$TUI_RESULT"
 _CHANNEL_OPTS=(
   "macos|macOS notifications|banner + sound"
   "telegram|Telegram         |direct message to a Telegram chat"
-  "terminal|Terminal          |printed where 🪰 Shoofly runs — good for logging"
+  "terminal|Terminal          |printed where ${_FLY}Shoofly runs — good for logging"
 )
 [[ "$DETECTED_TOOL" == "openclaw" ]] && \
   _CHANNEL_OPTS+=("openclaw|OpenClaw (local)  |via OpenClaw gateway  (legacy)")
-tui_multiselect "Where should 🪰 Shoofly send threat alerts?" "${_CHANNEL_OPTS[@]}"
+tui_multiselect "Where should ${_FLY}Shoofly send threat alerts?" "${_CHANNEL_OPTS[@]}"
 
 CHANNELS=("${TUI_RESULTS[@]+"${TUI_RESULTS[@]}"}")
 [[ ${#CHANNELS[@]} -eq 0 ]] && CHANNELS=("macos")
@@ -406,7 +431,7 @@ Agent:        ${AGENT_NAME}
 Tool:         ${DETECTED_TOOL}"
 
 # ─── Step 8: Install files ───────────────────────────────────────────────────
-printf "\nInstalling 🪰 Shoofly Basic...\n"
+printf "\nInstalling ${_FLY}Shoofly Basic...\n"
 mkdir -p "$HOME/.shoofly/"{bin,policy,logs}
 tui_step "Directories ready"
 
@@ -537,7 +562,7 @@ Tool:        ${DETECTED_TOOL}
 Alerts log:  ~/.shoofly/logs/alerts.log
 Policy:      ~/.shoofly/policy/threats.yaml"
 
-tui_outro "🪰  Shoofly Basic is watching. Threats will be flagged. You'll be the first to know.
+tui_outro "${_FLY}Shoofly Basic is watching. Threats will be flagged. You'll be the first to know.
 
   Run  shoofly-status  anytime to check in.
   Upgrade to Advanced for pre-execution blocking: shoofly.dev/#pricing-advanced"
