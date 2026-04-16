@@ -16,6 +16,9 @@
 # License: MIT
 
 set -euo pipefail
+# Fail-open trap: any unhandled error exits 0 (allow). shoofly-check must never
+# block a tool call because of its own bug, missing dep, or unexpected input.
+trap 'exit 0' ERR
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 SHOOFLY_DIR="$HOME/.shoofly"
@@ -25,35 +28,41 @@ ALERTS_LOG="$SHOOFLY_DIR/logs/alerts.log"
 DEFAULT_CONFIG="$SHOOFLY_DIR/config.json"
 
 # ─── Argument parsing ─────────────────────────────────────────────────────────
+# Claude Code invokes PreToolUse hooks with no arguments — JSON payload on stdin.
+# Format: {"hook_event_name":"PreToolUse","tool_name":"...","tool_input":{...},...}
+# For backward-compat and direct testing, --tool/--args flags are also accepted.
 TOOL_NAME=""
 TOOL_ARGS=""
 CONFIG_PATH="$DEFAULT_CONFIG"
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --tool)
-      TOOL_NAME="$2"
-      shift 2
-      ;;
-    --args)
-      TOOL_ARGS="$2"
-      shift 2
-      ;;
-    --config)
-      CONFIG_PATH="$2"
-      shift 2
-      ;;
-    *)
-      echo "Unknown argument: $1" >&2
-      exit 2
-      ;;
-  esac
-done
+if [[ $# -gt 0 ]]; then
+  # Explicit flag mode (direct invocation / legacy callers)
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --tool)   TOOL_NAME="${2:-}"; shift 2 ;;
+      --args)   TOOL_ARGS="${2:-}"; shift 2 ;;
+      --config) CONFIG_PATH="${2:-$DEFAULT_CONFIG}"; shift 2 ;;
+      *)        shift ;;
+    esac
+  done
+else
+  # Claude Code hook mode: read JSON payload from stdin
+  if command -v jq >/dev/null 2>&1; then
+    PAYLOAD=$(cat 2>/dev/null || true)
+    if [[ -n "$PAYLOAD" ]]; then
+      TOOL_NAME=$(echo "$PAYLOAD" | jq -r '.tool_name // ""' 2>/dev/null || true)
+      TOOL_ARGS=$(echo "$PAYLOAD" | jq -c '.tool_input // {}' 2>/dev/null || true)
+    fi
+  fi
+fi
 
-# ─── Input validation ─────────────────────────────────────────────────────────
+# ─── Fail-open guard ──────────────────────────────────────────────────────────
+# If tool name could not be determined, allow the call. Never block due to our own bug.
 if [[ -z "$TOOL_NAME" ]]; then
-  echo "shoofly-check: --tool is required" >&2
-  exit 2
+  printf '{"ts":"%s","level":"warn","source":"shoofly-check","msg":"tool name unavailable — failing open"}\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo 'unknown')" \
+    >> "$ALERTS_LOG" 2>/dev/null || true
+  exit 0
 fi
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
