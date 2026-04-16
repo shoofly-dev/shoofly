@@ -7,7 +7,7 @@ set -euo pipefail
 
 # ─── TTY guard ───────────────────────────────────────────────────────────────
 if [ ! -t 0 ]; then
-  SELF=$(mktemp /tmp/shoofly-uninstall-XXXXXX.sh)
+  SELF="/tmp/shoofly-uninstall-$$.sh"
   curl -fsSL "https://shoofly.dev/uninstall.sh" -o "$SELF"
   chmod +x "$SELF"
   exec bash "$SELF" < /dev/tty

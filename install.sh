@@ -7,7 +7,7 @@ set -euo pipefail
 
 # ─── TTY guard ───────────────────────────────────────────────────────────────
 if [ ! -t 0 ]; then
-  SELF=$(mktemp /tmp/shoofly-basic-XXXXXX.sh)
+  SELF="/tmp/shoofly-basic-$$.sh"
   curl -fsSL "https://shoofly.dev/install.sh" -o "$SELF"
   chmod +x "$SELF"
   exec bash "$SELF" < /dev/tty

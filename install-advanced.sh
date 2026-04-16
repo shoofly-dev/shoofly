@@ -37,7 +37,7 @@ echo "  ✓ Token validated"
 
 # ─── TTY guard ───────────────────────────────────────────────────────────────
 if [ ! -t 0 ]; then
-  SELF=$(mktemp /tmp/shoofly-advanced-XXXXXX.sh)
+  SELF="/tmp/shoofly-advanced-$$.sh"
   curl -fsSL "https://shoofly.dev/install-advanced.sh" -o "$SELF"
   chmod +x "$SELF"
   exec env SHOOFLY_TOKEN="$INSTALL_TOKEN" bash "$SELF" < /dev/tty
