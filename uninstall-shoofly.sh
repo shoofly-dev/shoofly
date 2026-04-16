@@ -32,8 +32,9 @@ _DIA='◆'  _BAR='│'  _COR='└'
 TUI_RESULT=""
 TUI_RESULTS=()
 _TUI_JS=""   # path to Node.js TUI helper; recreated if deleted by subshell EXIT trap
+_JQ_TMP=""   # temp jq binary; cleaned on exit if needed
 
-_tui_restore() { printf '\033[?25h'; stty echo icanon 2>/dev/null || true; [[ -n "${_TUI_JS:-}" ]] && rm -f "$_TUI_JS" 2>/dev/null; }
+_tui_restore() { printf '\033[?25h'; stty echo icanon 2>/dev/null || true; [[ -n "${_TUI_JS:-}" ]] && rm -f "$_TUI_JS" 2>/dev/null; [[ -n "${_JQ_TMP:-}" ]] && rm -f "$_JQ_TMP" 2>/dev/null; }
 trap '_tui_restore' EXIT INT TERM
 
 # Write the Node.js TUI helper to a temp file (PID-named to avoid collisions).
@@ -263,6 +264,32 @@ tui_info()  { printf "  ${_D}ℹ  %s${_R}\n" "$1"; }
 # ═════════════════════════════════════════════════════════════════════════════
 
 tui_intro "🪰 Shoofly Uninstaller" "Removes 🪰 Shoofly and all associated files from this machine."
+
+# ─── Step 0: jq dependency ───────────────────────────────────────────────────
+if ! command -v jq >/dev/null 2>&1; then
+  if [[ -x "$HOME/.shoofly/bin/jq" ]]; then
+    jq() { "$HOME/.shoofly/bin/jq" "$@"; }
+    tui_step "Using bundled jq from ~/.shoofly/bin/jq"
+  else
+    tui_warn "jq not found — downloading for uninstall..."
+    _JQ_TMP="/tmp/shoofly-jq-$$"
+    case "$(uname -s)/$(uname -m)" in
+      Darwin/arm64)  _jq_bin="jq-macos-arm64" ;;
+      Darwin/x86_64) _jq_bin="jq-macos-amd64" ;;
+      Linux/aarch64) _jq_bin="jq-linux-arm64"  ;;
+      Linux/x86_64)  _jq_bin="jq-linux-amd64"  ;;
+      *)
+        printf "  ${_D}Unsupported platform — install jq manually.${_R}\n"; exit 1 ;;
+    esac
+    curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/${_jq_bin}" \
+      -o "$_JQ_TMP" 2>/dev/null || {
+      rm -f "$_JQ_TMP"; _JQ_TMP=""
+      printf "  ${_D}ERROR: Failed to download jq. Check your internet connection.${_R}\n"; exit 1; }
+    chmod +x "$_JQ_TMP"
+    jq() { "$_JQ_TMP" "$@"; }
+    tui_step "jq 1.7.1 downloaded"
+  fi
+fi
 
 # ─── Step 1: Detect what's installed ─────────────────────────────────────────
 printf "Detecting 🪰 Shoofly install...\n"

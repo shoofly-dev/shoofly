@@ -40,8 +40,9 @@ esac
 TUI_RESULT=""
 TUI_RESULTS=()
 _TUI_JS=""   # path to Node.js TUI helper; recreated if deleted by subshell EXIT trap
+_JQ_TMP=""   # temp jq binary; cleaned on exit if install is interrupted
 
-_tui_restore() { printf '\033[?25h'; stty echo icanon 2>/dev/null || true; [[ -n "${_TUI_JS:-}" ]] && rm -f "$_TUI_JS" 2>/dev/null; }
+_tui_restore() { printf '\033[?25h'; stty echo icanon 2>/dev/null || true; [[ -n "${_TUI_JS:-}" ]] && rm -f "$_TUI_JS" 2>/dev/null; [[ -n "${_JQ_TMP:-}" ]] && rm -f "$_JQ_TMP" 2>/dev/null; }
 trap '_tui_restore' EXIT INT TERM
 
 # Write the Node.js TUI helper to a temp file (PID-named to avoid collisions).
@@ -276,28 +277,32 @@ tui_intro "${_FLY}Shoofly Basic v3 — AI Agent Security" \
 
 # ─── Step 1: Hard dependencies ───────────────────────────────────────────────
 printf "Checking dependencies...\n"
-if ! command -v jq >/dev/null 2>&1; then
-  tui_warn "jq not found"
-  if command -v brew >/dev/null 2>&1; then
-    printf "  Installing jq via Homebrew...\n"
-    if brew install jq >/dev/null 2>&1; then
-      tui_step "jq installed via Homebrew"
-    else
-      printf "\n  ${_D}brew install jq failed. Run it manually, then re-run this installer.${_R}\n\n"
-      exit 1
-    fi
-  else
-    printf "\n"
-    printf "  ${_D}jq is required but Homebrew was not found.${_R}\n"
-    printf "  ${_D}Install Homebrew:  https://brew.sh${_R}\n"
-    printf "  ${_D}Then:              brew install jq${_R}\n"
-    printf "  ${_D}Then re-run:       curl -fsSL https://shoofly.dev/install.sh | bash${_R}\n\n"
-    exit 1
-  fi
-fi
 command -v curl >/dev/null 2>&1 || {
   printf "  ${_D}ERROR: curl is required.${_R}\n"; exit 1; }
-tui_step "jq, curl found"
+
+if ! command -v jq >/dev/null 2>&1; then
+  tui_warn "jq not found — downloading bundled binary..."
+  _JQ_TMP="/tmp/shoofly-jq-$$"
+  case "$(uname -s)/$(uname -m)" in
+    Darwin/arm64)  _jq_bin="jq-macos-arm64" ;;
+    Darwin/x86_64) _jq_bin="jq-macos-amd64" ;;
+    Linux/aarch64) _jq_bin="jq-linux-arm64"  ;;
+    Linux/x86_64)  _jq_bin="jq-linux-amd64"  ;;
+    *)
+      printf "  ${_D}Unsupported platform — install jq manually: https://jqlang.github.io/jq/${_R}\n"
+      exit 1 ;;
+  esac
+  curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-1.7.1/${_jq_bin}" \
+    -o "$_JQ_TMP" 2>/dev/null || {
+    rm -f "$_JQ_TMP"; _JQ_TMP=""
+    printf "  ${_D}ERROR: Failed to download jq. Check your internet connection.${_R}\n"
+    exit 1
+  }
+  chmod +x "$_JQ_TMP"
+  jq() { "$_JQ_TMP" "$@"; }
+  tui_step "jq 1.7.1 downloaded"
+fi
+tui_step "Dependencies ready"
 
 # ─── Step 2: Auto-detect AI tool ─────────────────────────────────────────────
 printf "\nDetecting AI tools...\n"
@@ -438,6 +443,15 @@ Tool:         ${DETECTED_TOOL}"
 printf "\nInstalling ${_FLY}Shoofly Basic...\n"
 mkdir -p "$HOME/.shoofly/"{bin,policy,logs}
 tui_step "Directories ready"
+
+# Place bundled jq permanently if we downloaded it during dep check
+if [[ -n "${_JQ_TMP:-}" && -f "$_JQ_TMP" ]]; then
+  cp "$_JQ_TMP" "$HOME/.shoofly/bin/jq"
+  chmod +x "$HOME/.shoofly/bin/jq"
+  rm -f "$_JQ_TMP"; _JQ_TMP=""
+  jq() { "$HOME/.shoofly/bin/jq" "$@"; }
+  tui_step "jq installed to ~/.shoofly/bin/jq"
+fi
 
 BASE_URL="https://raw.githubusercontent.com/shoofly-dev/shoofly/main"
 curl -fsSL "$BASE_URL/basic/policy/threats.yaml"    -o "$HOME/.shoofly/policy/threats.yaml"
